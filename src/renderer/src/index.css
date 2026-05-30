@@ -101,6 +101,13 @@
   }
   .ink-bullet { @apply text-accent; }
   .ink-list-number { @apply text-accent; font-variant-numeric: tabular-nums; }
+  .ink-task { cursor: pointer; accent-color: rgb(var(--accent)); vertical-align: middle; margin: 0 0.4em 0 0; }
+  .ink-hr { display: block; border: none; border-top: 1px solid rgb(var(--faint)); margin: 0.3em 0; }
+  .ink-u { text-decoration: underline; text-underline-offset: 2px; }
+  .ink-highlight { background: rgb(var(--accent) / 0.22); border-radius: 2px; padding: 0 0.1em; }
+  .ink-sub { vertical-align: sub; font-size: 0.78em; }
+  .ink-sup { vertical-align: super; font-size: 0.78em; }
+  .ink-emoji { font-style: normal; }
 
   /* A token that is hidden because the cursor is not on its line. */
   .ink-hidden-mark { display: none; }

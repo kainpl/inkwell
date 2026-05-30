@@ -9,15 +9,20 @@ import {
   saveDoc,
   saveDocAs
 } from '@renderer/lib/docActions'
+import { useEditor } from '@renderer/store/useEditor'
+import { applyFormat, type FormatAction } from '@renderer/lib/formatCommands'
 import TitleBar from '@renderer/components/TitleBar'
 import Sidebar from '@renderer/components/Sidebar'
 import OutlinePanel from '@renderer/components/OutlinePanel'
 import StatusBar from '@renderer/components/StatusBar'
 import Editor from '@renderer/components/Editor/Editor'
+import Toolbar from '@renderer/components/Toolbar'
+import FloatingToolbar from '@renderer/components/FloatingToolbar'
 import ConfirmUnsavedModal from '@renderer/components/ConfirmUnsavedModal'
 
 export default function App(): JSX.Element {
   const theme = useAppStore((s) => s.theme)
+  const formatBarOpen = useAppStore((s) => s.formatBarOpen)
 
   // Apply theme class to <html>.
   useEffect(() => {
@@ -35,9 +40,18 @@ export default function App(): JSX.Element {
       window.api.onMenu(IPC.menuSaveAs, () => void saveDocAs()),
       window.api.onMenu(IPC.menuToggleSidebar, () => store.toggleSidebar()),
       window.api.onMenu(IPC.menuToggleOutline, () => store.toggleOutline()),
-      window.api.onMenu(IPC.menuToggleFocusMode, () => store.toggleFocusMode())
+      window.api.onMenu(IPC.menuToggleFocusMode, () => store.toggleFocusMode()),
+      window.api.onMenu(IPC.menuToggleFormatBar, () => useAppStore.getState().toggleFormatBar())
     ]
     return () => unsubs.forEach((u) => u())
+  }, [])
+
+  // Native Format-menu commands run against the live editor view.
+  useEffect(() => {
+    return window.api.onFormat((action) => {
+      const view = useEditor.getState().view
+      if (view) applyFormat(view, action as FormatAction)
+    })
   }, [])
 
   // Keep the main process informed of unsaved state (drives the close guard).
@@ -64,6 +78,7 @@ export default function App(): JSX.Element {
   return (
     <div className="flex h-full w-full flex-col bg-paper">
       <TitleBar />
+      {formatBarOpen && <Toolbar />}
       <div className="flex min-h-0 flex-1">
         <Sidebar />
         <main className="min-w-0 flex-1">
@@ -72,6 +87,7 @@ export default function App(): JSX.Element {
         <OutlinePanel />
       </div>
       <StatusBar />
+      <FloatingToolbar />
       <ConfirmUnsavedModal />
     </div>
   )

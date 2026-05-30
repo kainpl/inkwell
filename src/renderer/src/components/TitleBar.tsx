@@ -28,10 +28,11 @@ function IconButton({
 }
 
 export default function TitleBar(): JSX.Element {
-  const { doc, sidebarOpen, outlineOpen, theme } = useAppStore()
+  const { doc, sidebarOpen, outlineOpen, theme, formatBarOpen } = useAppStore()
   const toggleSidebar = useAppStore((s) => s.toggleSidebar)
   const toggleOutline = useAppStore((s) => s.toggleOutline)
   const toggleTheme = useAppStore((s) => s.toggleTheme)
+  const toggleFormatBar = useAppStore((s) => s.toggleFormatBar)
 
   return (
     <header
@@ -43,6 +44,11 @@ export default function TitleBar(): JSX.Element {
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <rect x="3" y="4" width="18" height="16" rx="2" />
             <line x1="9" y1="4" x2="9" y2="20" />
+          </svg>
+        </IconButton>
+        <IconButton label="Toggle formatting bar (⌘⇧B)" active={formatBarOpen} onClick={toggleFormatBar}>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <path d="M6 4h8a4 4 0 010 8H6zM6 12h9a4 4 0 010 8H6z" />
           </svg>
         </IconButton>
       </div>

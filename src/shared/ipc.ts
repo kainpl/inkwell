@@ -38,6 +38,8 @@ export const IPC = {
   menuToggleSidebar: 'menu:toggleSidebar',
   menuToggleOutline: 'menu:toggleOutline',
   menuToggleFocusMode: 'menu:toggleFocusMode',
+  menuToggleFormatBar: 'menu:toggleFormatBar',
+  menuFormat: 'menu:format',
   // app lifecycle / unsaved-changes guard
   setDirty: 'app:setDirty',
   closeWindow: 'app:closeWindow',

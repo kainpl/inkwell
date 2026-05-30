@@ -4,6 +4,7 @@ import { EditorView, keymap } from '@codemirror/view'
 import { defaultKeymap, history, historyKeymap } from '@codemirror/commands'
 import { inkwellExtensions } from './markdownExtensions'
 import { useAppStore } from '@renderer/store/useAppStore'
+import { useEditor } from '@renderer/store/useEditor'
 
 /** OutlinePanel dispatches this to jump the caret to a heading. */
 export const GOTO_EVENT = 'ink:goto'
@@ -29,6 +30,10 @@ export default function Editor(): JSX.Element {
         ...inkwellExtensions((value) => {
           lastPushed.current = value
           setContent(value)
+        }),
+        // Notify the editor store of selection/doc changes (drives toolbars).
+        EditorView.updateListener.of((u) => {
+          if (u.selectionSet || u.docChanged) useEditor.getState().bump()
         })
       ]
     })
@@ -36,9 +41,11 @@ export default function Editor(): JSX.Element {
     const view = new EditorView({ state, parent: hostRef.current })
     viewRef.current = view
     lastPushed.current = state.doc.toString()
+    useEditor.getState().setView(view)
     view.focus()
 
     return () => {
+      useEditor.getState().setView(null)
       view.destroy()
       viewRef.current = null
     }

@@ -4,6 +4,7 @@ import { IPC } from '../shared/ipc'
 export function buildMenu(win: BrowserWindow): void {
   const isMac = process.platform === 'darwin'
   const send = (channel: string) => () => win.webContents.send(channel)
+  const fmt = (action: string) => () => win.webContents.send(IPC.menuFormat, action)
 
   const template: MenuItemConstructorOptions[] = [
     ...(isMac
@@ -35,8 +36,34 @@ export function buildMenu(win: BrowserWindow): void {
       ]
     },
     {
+      label: 'Format',
+      submenu: [
+        { label: 'Bold', accelerator: 'CmdOrCtrl+B', click: fmt('bold') },
+        { label: 'Italic', accelerator: 'CmdOrCtrl+I', click: fmt('italic') },
+        { label: 'Strikethrough', click: fmt('strike') },
+        { label: 'Inline Code', click: fmt('code') },
+        { label: 'Highlight', click: fmt('highlight') },
+        { type: 'separator' },
+        { label: 'Heading 1', accelerator: 'CmdOrCtrl+1', click: fmt('h1') },
+        { label: 'Heading 2', accelerator: 'CmdOrCtrl+2', click: fmt('h2') },
+        { label: 'Heading 3', accelerator: 'CmdOrCtrl+3', click: fmt('h3') },
+        { type: 'separator' },
+        { label: 'Bullet List', click: fmt('ul') },
+        { label: 'Numbered List', click: fmt('ol') },
+        { label: 'Task List', click: fmt('task') },
+        { label: 'Quote', click: fmt('quote') },
+        { type: 'separator' },
+        { label: 'Link', accelerator: 'CmdOrCtrl+K', click: fmt('link') },
+        { label: 'Image', click: fmt('image') },
+        { label: 'Table', accelerator: 'CmdOrCtrl+T', click: fmt('table') },
+        { label: 'Code Block', click: fmt('codeblock') },
+        { label: 'Horizontal Rule', click: fmt('hr') }
+      ]
+    },
+    {
       label: 'View',
       submenu: [
+        { label: 'Toggle Formatting Bar', accelerator: 'CmdOrCtrl+Shift+B', click: send(IPC.menuToggleFormatBar) },
         { label: 'Toggle Sidebar', accelerator: 'CmdOrCtrl+\\', click: send(IPC.menuToggleSidebar) },
         { label: 'Toggle Outline', accelerator: 'CmdOrCtrl+/', click: send(IPC.menuToggleOutline) },
         {

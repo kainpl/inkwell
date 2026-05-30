@@ -9,7 +9,8 @@ const menuChannels = [
   IPC.menuSaveAs,
   IPC.menuToggleSidebar,
   IPC.menuToggleOutline,
-  IPC.menuToggleFocusMode
+  IPC.menuToggleFocusMode,
+  IPC.menuToggleFormatBar
 ] as const
 
 type MenuChannel = (typeof menuChannels)[number]
@@ -33,6 +34,13 @@ const api = {
     const listener = (): void => handler()
     ipcRenderer.on(IPC.tryClose, listener)
     return () => ipcRenderer.removeListener(IPC.tryClose, listener)
+  },
+
+  /** Subscribe to Format-menu commands; handler receives the action id. */
+  onFormat: (handler: (action: string) => void): (() => void) => {
+    const listener = (_e: unknown, action: string): void => handler(action)
+    ipcRenderer.on(IPC.menuFormat, listener)
+    return () => ipcRenderer.removeListener(IPC.menuFormat, listener)
   },
 
   /** Subscribe to a menu command coming from the main process. Returns an unsubscribe fn. */

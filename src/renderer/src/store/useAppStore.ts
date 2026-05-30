@@ -28,10 +28,12 @@ interface AppState {
   outlineOpen: boolean
   focusMode: boolean
   typewriterMode: boolean
+  formatBarOpen: boolean
   toggleSidebar: () => void
   toggleOutline: () => void
   toggleFocusMode: () => void
   toggleTypewriter: () => void
+  toggleFormatBar: () => void
 }
 
 const EMPTY_DOC: DocState = {
@@ -51,6 +53,8 @@ marker reappears so you can edit it.
 - *Italic*, **bold**, ~~strikethrough~~ and \`inline code\`
 - A [link](https://typora.io) styled inline
 - Headings resize as you type
+- <u>Underline</u>, ==highlight==, H~2~O, x^2^ (and a hidden comment <!-- like this -->)
+- Emoji shortcodes like :tada: :rocket: :coffee: render inline
 
 ## Lists
 
@@ -63,7 +67,25 @@ marker reappears so you can edit it.
 2. Ordered item two
 3. Ordered item three
 
+## Tasks
+
+- [x] Hide markdown markers on idle lines
+- [ ] Click this box to toggle it
+- [ ] Render tables as widgets
+
 > Markers hide on idle lines and reveal on the line you're editing.
+>
+> > Quotes can nest, too.
+
+---
+
+## Links
+
+Ctrl/⌘-click to follow: an [inline link](https://github.com), a
+[reference link][repo], an autolink <https://typora.io>, a bare URL
+https://example.com, and an internal jump to the [Tasks](#tasks) heading.
+
+[repo]: https://github.com/kainpl/inkwell
 
 ### Next
 
@@ -103,8 +125,10 @@ export const useAppStore = create<AppState>((set) => ({
   outlineOpen: false,
   focusMode: false,
   typewriterMode: false,
+  formatBarOpen: true,
   toggleSidebar: () => set((s) => ({ sidebarOpen: !s.sidebarOpen })),
   toggleOutline: () => set((s) => ({ outlineOpen: !s.outlineOpen })),
   toggleFocusMode: () => set((s) => ({ focusMode: !s.focusMode })),
-  toggleTypewriter: () => set((s) => ({ typewriterMode: !s.typewriterMode }))
+  toggleTypewriter: () => set((s) => ({ typewriterMode: !s.typewriterMode })),
+  toggleFormatBar: () => set((s) => ({ formatBarOpen: !s.formatBarOpen }))
 }))
