@@ -1,0 +1,166 @@
+# Дорожня карта
+
+Мета — зробити Inkwell **максимально потужним і зручним** редактором Markdown у
+дусі Typora: безшовний live-preview, але відкритий, розширюваний і місцями
+кращий за оригінал — для письма, редагування, перегляду й друку `.md`.
+
+Карту звірено з **реальною інсталяцією Typora 1.13.6** (`C:\Program Files\Typora`:
+повне меню `locales\Base.lproj\Menu.json`, `conf.default.json` і вбудовані docs:
+*Markdown Reference, Table Editing, Draw Diagrams, Use Images, Custom Themes,
+Auto Save & Version Control*) і з поточним кодом Inkwell.
+
+**Легенда:** `[x]` зроблено · `[~]` частково / є заготовка · `[ ]` заплановано ·
+⭐ — справжня перевага над Typora (у неї цього немає).
+
+> **Робочий принцип:** усе, що впливає на рендер md, **одразу** супроводжуємо
+> прикладом у welcome-документі (`useAppStore.ts`) і юніт-тестом на чисту
+> `buildDecorations` (`livePreview.test.ts`). Блок-віджети — через `WidgetType`,
+> замінюючи сирий текст **лише на неактивному** блоці.
+
+---
+
+## Фаза 0 — каркас (готово)
+- [x] Electron + electron-vite + React + Tailwind; IPC-контракт; файлові операції; нативне меню
+- [x] CodeMirror 6 + базовий live-preview (H1–H6, **strong**, *em*, ~~strike~~, `code`, посилання)
+- [x] Маркери проявляються на активному рядку (`activeLines` + `Decoration.replace`)
+- [x] Сайдбар, дерево файлів (лінива підвантаж), аутлайн, статус-бар, світла/темна теми, focus mode
+- [x] Фікс preload (`index.mjs`) + `StartupError` замість «білого екрана»
+- [x] Тестова інфраструктура: Vitest (+ jsdom, RTL), coverage, ESLint flat-config
+- [ ] Guard на незбережені зміни (перед open/new/close) — також у Фазі 4
+
+## Фаза 1 — інлайн live-preview (ядро Typora-відчуття)
+- [x] **Списки** марк./нумер.: булети за глибиною `•/◦/▪`, видимі номери, hanging-indent
+- [~] **Цитати `>`**: маркер ховається; треба стиль блоку (ліва лінія, відступ) + вкладені
+- [ ] **Task list `- [ ]`/`- [x]`**: клікабельний чекбокс, що міняє джерело (toggle / mark complete)
+- [ ] **Горизонтальна лінія `---`/`***`** → `<hr>`-віджет
+- [ ] **Посилання**: ховати `[..](url)` → лейбл; Ctrl/⌘+клік відкриває; **reference/implicit** посилання; **внутрішні якорі на заголовки** (`#heading`); автолінк `<url>` і «голих» URL
+- [ ] **Underline** `<u>..</u>` (raw-HTML інлайн, як у Typora)
+- [ ] **Highlight `==..==`, Sub `~..~`, Sup `^..^`, Comment** — за прапорцем у налаштуваннях (як у Typora)
+- [ ] **Emoji** `:smile:` з автодоповненням (тригер ESC / автоматично)
+- [ ] **Input rules (магія набору)**: `# `→H, `- `/`* `→список, `1. `→нумер., `> `→цитата, `[] `→таск, ` ``` `→код, `---`→hr, `$$`→math, `|..|`→таблиця; авто-обгортка виділення `**`/`*`/`` ` ``
+- [ ] **Авто-продовження списків/цитат** (Enter, авто-інкремент, Tab/Shift+Tab — рівні; порожній пункт виходить)
+- [ ] **Авто-пари** дужок/лапок/маркерів і обгортання виділеного
+- [ ] **Розумне виділення**: Select Word / Line / Sentence / Styled Scope (як у меню Typora)
+
+## Фаза 2 — блокові віджети
+- [ ] **Зображення** (велике): рендер на неактивному рядку; **відносні шляхи** до файлу; `typora-root-url`-аналог; **paste з буфера** і **drag&drop** з копіюванням у теку (`copy-images-to`); **upload** на хостинг; **resize**; перемикання **md⇄HTML-синтаксису**; zoom/magnify; авто-центр одиночного зображення
+- [~] **Code fence**: підсвітка вже є (`language-data`); треба фон/рамка, бейдж мови, кнопка **copy**, auto-indent, prettify
+- [ ] **Таблиці** (велике): візуальний редактор + тулбар (resize/align/delete) + контекст-меню (додати/видалити/перемістити рядок/стовпець) + вирівнювання `:`; джерело генерується авто
+- [ ] **Математика**: інлайн `$..$` і блок `$$..$$` через **KaTeX/MathJax**; попап-прев'ю; Copy as **Tex/MathML**; Refresh All
+- [ ] **Діаграми** (за прапорцем): **mermaid** (flowchart/sequence/gantt), **flowchart.js** (` ```flow `), **js-sequence** (` ```sequence `); рендер у віджет; включати в експорт
+- [ ] **GitHub-alert / callout блоки**: Note / Tip / Important / Warning / Caution (за прапорцем — як у Typora 1.8+)
+- [ ] **Виноски** `[^1]`: рендер + спливна підказка тексту
+- [ ] **YAML front matter**: акуратний блок метаданих
+- [ ] **TOC `[toc]`**: авто-генерація зі заголовків, оновлення наживо
+- [ ] **HTML-блок** + вбудовування `<iframe>`/`<video>` (passthrough; рендер у idle)
+
+## Фаза 3 — навігація й режими письма
+- [ ] **Source Code Mode** (увесь документ у сирому md без декорацій) + toggle
+- [x] Focus mode
+- [ ] **Typewriter mode** (активний рядок по центру скролом)
+- [ ] **Outline**: згортуваний/плоский, Expand/Collapse All, підсвітка поточного заголовка, popover
+- [ ] **Сайдбар**: дві вкладки — **File Tree** і **Articles (список md, сортування/фільтр)**
+- [ ] **Пошук/заміна** в документі (`@codemirror/search`, regex)
+- [ ] **Глобальний пошук** по теці (з контекстом) ⭐ (Typora це робить слабко)
+- [ ] **Jump To**: Top / Bottom / Selection; **Open Quickly** (швидкий перемикач файлів)
+- [ ] **Word count popover** (слова/символи/рядки) + **час читання** + **ціль за словами**
+- [ ] Always on Top, Full Screen, перемикання масштабу (zoom in/out/actual)
+
+## Фаза 4 — файли та надійність
+- [ ] **Guard незбережених змін** (діалог перед open/new/close) + індикатор «брудного» документа
+- [ ] **Автозбереження** (`autoSaveTimer`, debounce → `fs.writeFile`)
+- [ ] **Recover Unsaved Drafts** — бекапи `{date}-{filename}.md` при краху/виході
+- [ ] **Browse All Versions** — локальна історія версій документа
+- [ ] **Open Recent / Recent Locations**, **Reopen Closed File**, **Save All**, **New Window**
+- [ ] **Відновлення сесії** (останній документ/тека/каретка) при старті
+- [ ] Дії над файлами в дереві: New File/Folder, Rename, Duplicate, Move To, Delete, Reveal in File Tree / Open File Location
+- [ ] Reopen with Encoding; **Line Endings** CRLF/LF; Insert Final New Line On Save
+- [ ] **Стеження за змінами файлу на диску** + перезавантаження/конфлікт
+
+## Фаза 5 — експорт і друк
+- [ ] **Export HTML** (зі стилями теми та «without styles»)
+- [ ] **Export PDF** (`printToPDF`) + **Page Setup** + **Print**
+- [ ] **Export Word/docx** через **pandoc** (детект pandoc, підказка встановити)
+- [ ] **Export Image** (PNG документа)
+- [ ] **Export інше через pandoc** (RTF, epub, LaTeX, OpenDocument, MediaWiki…) — діаграми/math входять у HTML/PDF/epub/docx
+- [ ] **Copy as Markdown / HTML / Plain Text / Image**, **Copy to MS Word**
+- [ ] Налаштування експорту по форматах (CSS-тема, вбудовування ресурсів)
+
+## Фаза 6 — теми й оформлення
+- [x] Світла/темна тема (CSS-змінні + перемикач)
+- [~] Кастомні теми: механізм `[data-theme]` є; треба **завантаження зовнішніх `.css`** із теки тем + перемикач у UI
+- [ ] Кілька **вбудованих тем** (аналоги github / newsprint / night / pixyll / whitey)
+- [ ] Каскад `base.user.css` + `{theme}.user.css` для правок без втрати при оновленні (як у Typora)
+- [ ] **Налаштування**: шрифти (standard/serif/sans/mono), ширина «сторінки», міжрядковий інтервал, розмір; auto-hide menu bar
+- [ ] Повноцінна панель **Preferences** (Editor / Appearance / Image / Markdown-прапорці / Export)
+
+## Фаза 7 — продуктивність і power-user
+- [ ] **Команда-палітра** (`Ctrl/⌘ K`/`P`) — усі дії + fuzzy-перемикач файлів ⭐
+- [ ] **Smart Punctuation** (типографські лапки/тире/трикрапка; convert on input/rendering; remap unicode) — за прапорцем
+- [ ] **Перевірка орфографії + граматики** (hunspell), check-while-typing, autocorrect, Learn/Unlearn Word
+- [ ] **Кастомні гарячі клавіші** (`keyBinding`) і **кастомні Search Services** (контекст-меню «Search With…»)
+- [ ] **Мультикурсор** (від CodeMirror — увімкнути й задокументувати)
+- [ ] **TTS** (Start/Stop Speaking), **Clear Format**, **Prettify Source**
+- [ ] **Сніпети/шаблони** документів
+
+## Фаза 8 — «понад Typora» (наші диференціатори ⭐)
+> Вкладки, кілька вікон і історія версій у Typora **вже є** — це паритет (фази 3–4),
+> не перевага. Справжні переваги:
+- [ ] **Plugin / extension API** — у Typora немає взагалі
+- [ ] **Wiki-links `[[..]]`** + **зворотні посилання (backlinks)** + **граф нотаток** (Obsidian-стиль)
+- [ ] **Git-статус** у дереві файлів + базові git-дії
+- [ ] **AI-асист** (продовження / рерайт / переклад / summary виділення)
+- [ ] **Відкритий код і розширюваність** (Typora — закрита й платна)
+- [ ] **Real-time співпраця** (далекий горизонт)
+
+## Звірено веб-дослідженням (verified) і важелі проти Typora
+
+Підтверджені факти Typora 1.13.x (джерела — support.typora.io, high-confidence):
+
+- **Тригери створення:** таблиця — рядок `| a | b |` + Enter (вирівнювання
+  двокрапками `:--`/`:-:`/`--:`, md-джерело генерується авто); math-блок — `$$`
+  + Enter; код — ` ``` ` + Enter.
+- **Гарячі клавіші — дзеркалити для паритету:** Table `Ctrl+T`, Code Fence
+  `Ctrl+Shift+K`, Math Block `Ctrl+Shift+M`, Hyperlink `Ctrl+K`, Image
+  `Ctrl+Shift+I`, Source Mode `Ctrl+/`, Focus `F8`, Typewriter `F9`
+  (на macOS — Cmd/Opt-варіанти). Закласти типову розкладку + кастомні keybindings.
+- **Math = MathJax v3** (не KaTeX). **Експорт:** HTML / PDF / image — нативні
+  (PDF: A4/A5/custom-папір, поля, розрив сторінки на H1); **усе інше (docx, odt,
+  rtf, epub, latex, mediawiki, rst, textile, opml) — лише через окремо
+  встановлений pandoc.**
+- **Теми = чистий CSS** у теці тем; каскад у 4 шари: базові → тема →
+  `base.user.css` → `{theme}.user.css`.
+- **Auto-pair** поширюється на md-символи і (умовно) на `=`/`$`/`^`.
+
+**Наші важелі (зробити краще за Typora):**
+
+- ⭐ **KaTeX замість MathJax** — швидший рендер; цього давно просять користувачі Typora.
+- ⭐ **Вбудований експортер** (docx/epub/…) — прибрати ручну залежність від pandoc.
+- ⭐ Решта — Фаза 8 (plugin API, wiki-links + backlinks + граф, git, AI, відкритий код).
+
+> Веб-пас не зміг адъюдикувати (0-0, мертві URL) частину пунктів, але **локальні
+> docs Typora їх підтверджують**: візуальний тулбар таблиць + контекст-меню
+> рядків/стовпців; рушії діаграм — js-sequence (` ```sequence `), flowchart.js
+> (` ```flow `), mermaid (` ```mermaid `: flowchart/sequence/gantt); ~5 вбудованих
+> тем (github/newsprint/night/pixyll/whitey); inline-math/sub/sup/highlight/діаграми
+> вмикаються прапорцем у налаштуваннях.
+>
+> Натомість веб-розділ «скарги/обмеження Typora» **не дав підтверджених фактів** —
+> наші диференціатори (Фаза 8: tabs-quirks, plugin API, wiki-links/backlinks/граф,
+> perf на великих файлах, collab) спираються на загальні знання, а не на цей пас;
+> їх варто окремо підтвердити форумами/рев'ю перед скоупом.
+
+**Джерела:** support.typora.io — `/Markdown-Reference/`, `/Table-Editing/`,
+`/Math/`, `/Shortcut-Keys/`, `/Focus-and-Typewriter-Mode/`; локальна інсталяція
+Typora 1.13.6 (`Menu.json`, вбудовані docs).
+
+## Технічний борг / нотатки
+- `livePreview` декорує лише видимі діапазони — навмисно (продуктивність); стежити
+  за перебудовою при скролі (`viewportChanged` уже в підписці).
+- Логіка декорацій — у чистій `buildDecorations(state, ranges, active)` під юніт-тести
+  без DOM. Тримати цей патерн.
+- Низку елементів Typora вмикає **прапорцем у налаштуваннях** (inline math, sub/sup,
+  highlight, diagrams, callouts) — закласти такий самий перемикач у Preferences.
+- Розглянути винесення рушія декорацій в окремий модуль, якщо розростеться.
+- TODO: розпакувати `app.asar` Typora для звірки нюансів поведінки (за потреби).
+```
