@@ -12,6 +12,7 @@ import { indentMore, indentLess, selectLine, selectParentSyntax } from '@codemir
 import { autocompletion, closeBrackets, closeBracketsKeymap } from '@codemirror/autocomplete'
 import { inkTheme, inkHighlight } from './theme'
 import { livePreview, openLinksOnClick, emojiCompletion } from './livePreview'
+import { imagePaste } from './imagePaste'
 
 /** Select the word(s) under each cursor. */
 export const selectWord: Command = (view) => {
@@ -111,6 +112,7 @@ export function inkwellExtensions(onChange: (value: string) => void): Extension[
     inkHighlight,
     livePreview,
     openLinksOnClick,
+    imagePaste,
     // Auto-pair brackets/quotes and common markdown symbols (wraps a selection).
     markdownLanguage.data.of({
       closeBrackets: { brackets: ['(', '[', '{', "'", '"', '`', '*', '_', '~'] }

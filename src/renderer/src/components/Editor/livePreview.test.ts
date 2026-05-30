@@ -9,6 +9,8 @@ import {
   TaskCheckboxWidget,
   HrWidget,
   EmojiWidget,
+  ImageWidget,
+  resolveImageSrc,
   linkUrlAt,
   headingOffset
 } from './livePreview'
@@ -167,6 +169,62 @@ describe('buildDecorations — inline extras', () => {
       .filter((w): w is EmojiWidget => w instanceof EmojiWidget)
     expect(widgets).toHaveLength(1)
     expect(widgets[0].char.length).toBeGreaterThan(0)
+  })
+})
+
+describe('resolveImageSrc', () => {
+  it('passes through remote and data URLs', () => {
+    expect(resolveImageSrc('https://x.io/a.png', 'D:\\d\\f.md')).toBe('https://x.io/a.png')
+    expect(resolveImageSrc('data:image/png;base64,AAAA', null)).toBe('data:image/png;base64,AAAA')
+  })
+
+  it('resolves a relative path against the Windows document folder', () => {
+    expect(resolveImageSrc('img/a.png', 'D:\\docs\\f.md')).toBe('file:///D:/docs/img/a.png')
+  })
+
+  it('resolves ../ segments', () => {
+    expect(resolveImageSrc('../pics/a.png', 'D:\\docs\\sub\\f.md')).toBe('file:///D:/docs/pics/a.png')
+  })
+
+  it('resolves a relative path against a POSIX document folder', () => {
+    expect(resolveImageSrc('a.png', '/home/u/f.md')).toBe('file:///home/u/a.png')
+  })
+
+  it('returns the raw src when there is no document path', () => {
+    expect(resolveImageSrc('img/a.png', null)).toBe('img/a.png')
+  })
+})
+
+describe('buildDecorations — images', () => {
+  it('renders an image widget for ![alt](src) on idle lines', () => {
+    const imgs = decorate('![cat](https://x.io/c.png)')
+      .map((i) => i.spec.widget)
+      .filter((w): w is ImageWidget => w instanceof ImageWidget)
+    expect(imgs).toHaveLength(1)
+    expect(imgs[0].alt).toBe('cat')
+    expect(imgs[0].src).toBe('https://x.io/c.png')
+  })
+
+  it('centers a paragraph that is only an image', () => {
+    expect(decorate('![x](https://x.io/c.png)').some((i) => i.spec.class === 'ink-img-line')).toBe(
+      true
+    )
+  })
+
+  it('shows raw markdown for an image on the active line', () => {
+    const imgs = decorate('![cat](https://x.io/c.png)', [1])
+      .map((i) => i.spec.widget)
+      .filter((w): w is ImageWidget => w instanceof ImageWidget)
+    expect(imgs).toHaveLength(0)
+  })
+
+  it('renders an HTML <img> tag with its width', () => {
+    const imgs = decorate('<img src="https://x.io/c.png" alt="cat" width="120" />')
+      .map((i) => i.spec.widget)
+      .filter((w): w is ImageWidget => w instanceof ImageWidget)
+    expect(imgs).toHaveLength(1)
+    expect(imgs[0].width).toBe(120)
+    expect(imgs[0].alt).toBe('cat')
   })
 })
 

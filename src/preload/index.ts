@@ -24,6 +24,12 @@ const api = {
     ipcRenderer.invoke(IPC.saveFile, path, content),
   saveFileAs: (content: string): Promise<OpenedFile | null> =>
     ipcRenderer.invoke(IPC.saveFileAs, content),
+  /** Save image bytes to the doc's assets folder; returns the relative path or null. */
+  saveImage: (docPath: string | null, name: string, data: Uint8Array): Promise<string | null> =>
+    ipcRenderer.invoke(IPC.saveImage, docPath, name, data),
+  /** Upload an image via a configured shell command; resolves to the URL. */
+  uploadImage: (command: string, filePath: string): Promise<string> =>
+    ipcRenderer.invoke(IPC.uploadImage, command, filePath),
 
   /** Tell the main process whether the document has unsaved changes. */
   setDirty: (dirty: boolean): void => ipcRenderer.send(IPC.setDirty, dirty),

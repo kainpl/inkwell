@@ -57,7 +57,10 @@ export function buildMenu(win: BrowserWindow): void {
         { label: 'Image', click: fmt('image') },
         { label: 'Table', accelerator: 'CmdOrCtrl+T', click: fmt('table') },
         { label: 'Code Block', click: fmt('codeblock') },
-        { label: 'Horizontal Rule', click: fmt('hr') }
+        { label: 'Horizontal Rule', click: fmt('hr') },
+        { type: 'separator' },
+        { label: 'Toggle Image Markdown/HTML', click: fmt('toggleImageSyntax') },
+        { label: 'Upload Image', click: fmt('uploadImage') }
       ]
     },
     {

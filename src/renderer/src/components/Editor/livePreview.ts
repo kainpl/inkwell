@@ -12,6 +12,8 @@ import type { SyntaxNode, SyntaxNodeRef } from '@lezer/common'
 import { parseOutline } from '@renderer/lib/outline'
 import { get as emojiGet, search as emojiSearch } from 'node-emoji'
 import type { CompletionSource } from '@codemirror/autocomplete'
+import { useAppStore } from '@renderer/store/useAppStore'
+import { parseHtmlImage, parseImage, toHtmlImage } from '@renderer/lib/imageInput'
 
 /**
  * The "seamless live preview" core (Typora's signature behaviour).
@@ -116,6 +118,125 @@ export class HrWidget extends WidgetType {
     el.className = 'ink-hr'
     el.setAttribute('aria-hidden', 'true')
     return el
+  }
+}
+
+/** Directory portion of a file path (handles both `/` and `\`). */
+function dirOf(p: string): string {
+  const i = Math.max(p.lastIndexOf('/'), p.lastIndexOf('\\'))
+  return i >= 0 ? p.slice(0, i) : ''
+}
+
+/**
+ * Resolve an image `src` to something the renderer can load. Remote/data/file
+ * URLs pass through; a local path is resolved relative to the document's folder
+ * and returned as a `file://` URL (allowed by the renderer CSP). Returns the
+ * raw src when there is no document path to resolve against.
+ */
+export function resolveImageSrc(src: string, docPath: string | null): string {
+  const s = src.trim()
+  if (/^(https?|data|file|blob):/i.test(s)) return s
+  if (!docPath) return s
+
+  const combined = (dirOf(docPath) + '/' + s).replace(/\\/g, '/')
+  const isWinDrive = /^[a-zA-Z]:/.test(combined)
+  const unixAbs = combined.startsWith('/')
+
+  const out: string[] = []
+  for (const part of combined.split('/')) {
+    if (part === '' || part === '.') continue
+    if (part === '..') out.pop()
+    else out.push(part)
+  }
+  const joined = encodeURI(out.join('/'))
+  if (isWinDrive) return 'file:///' + joined
+  return 'file://' + (unixAbs ? '/' : '') + joined
+}
+
+/** Fired when a rendered image is clicked, to open the zoom overlay. */
+export const IMAGE_ZOOM_EVENT = 'ink:image-zoom'
+
+/** Rewrite the image at [from,to] as an HTML <img> with the given width. */
+function writeImageWidth(view: EditorView, from: number, to: number, width: number): void {
+  const text = view.state.doc.sliceString(from, to)
+  const img = parseImage(text)
+  if (!img) return
+  const next = toHtmlImage({ ...img, width: Math.max(16, Math.round(width)) })
+  view.dispatch({ changes: { from, to, insert: next } })
+}
+
+/** Renders an image in place of `![alt](src)` / `<img>` on idle lines. */
+export class ImageWidget extends WidgetType {
+  constructor(
+    readonly src: string,
+    readonly alt: string,
+    readonly docPath: string | null,
+    readonly width: number | undefined,
+    readonly from: number,
+    readonly to: number
+  ) {
+    super()
+  }
+  eq(other: ImageWidget): boolean {
+    return (
+      other.src === this.src &&
+      other.alt === this.alt &&
+      other.docPath === this.docPath &&
+      other.width === this.width &&
+      other.from === this.from &&
+      other.to === this.to
+    )
+  }
+  toDOM(view: EditorView): HTMLElement {
+    const wrap = document.createElement('span')
+    wrap.className = 'ink-img-wrap'
+
+    const img = document.createElement('img')
+    img.className = 'ink-img'
+    img.alt = this.alt
+    img.title = this.alt || this.src
+    img.loading = 'lazy'
+    const resolved = resolveImageSrc(this.src, this.docPath)
+    img.src = resolved
+    if (this.width) img.style.width = this.width + 'px'
+    img.onerror = (): void => img.classList.add('ink-img-broken')
+    // Plain click zooms; modified clicks fall through to caret/link handling.
+    img.addEventListener('click', (e) => {
+      if (e.metaKey || e.ctrlKey || e.altKey) return
+      window.dispatchEvent(
+        new CustomEvent(IMAGE_ZOOM_EVENT, { detail: { src: resolved, alt: this.alt } })
+      )
+    })
+    wrap.appendChild(img)
+
+    // Drag handle (bottom-right) to resize; writes width on release.
+    const handle = document.createElement('span')
+    handle.className = 'ink-img-handle'
+    handle.title = 'Drag to resize'
+    handle.addEventListener('pointerdown', (e) => {
+      e.preventDefault()
+      e.stopPropagation()
+      const startX = e.clientX
+      const startW = img.getBoundingClientRect().width
+      handle.setPointerCapture(e.pointerId)
+      const onMove = (ev: PointerEvent): void => {
+        img.style.width = Math.max(16, startW + (ev.clientX - startX)) + 'px'
+      }
+      const onUp = (ev: PointerEvent): void => {
+        handle.removeEventListener('pointermove', onMove)
+        handle.removeEventListener('pointerup', onUp)
+        writeImageWidth(view, this.from, this.to, startW + (ev.clientX - startX))
+      }
+      handle.addEventListener('pointermove', onMove)
+      handle.addEventListener('pointerup', onUp)
+    })
+    wrap.appendChild(handle)
+
+    return wrap
+  }
+  ignoreEvent(): boolean {
+    // Let clicks through so the caret can land on the line and reveal the source.
+    return false
   }
 }
 
@@ -275,6 +396,39 @@ export const emojiCompletion: CompletionSource = (ctx) => {
   }
 }
 
+// Standalone HTML <img …> tags (Lezer leaves these as raw HTML); rendered like
+// markdown images so resize/HTML-syntax round-trips work.
+const HTML_IMG_RE = /<img\b[^>]*>/gi
+
+/** Decorate standalone `<img>` tags as image widgets on idle lines. */
+function htmlImageDecos(
+  text: string,
+  base: number,
+  active: Set<number>,
+  doc: Text,
+  docPath: string | null,
+  out: Range<Decoration>[]
+): void {
+  HTML_IMG_RE.lastIndex = 0
+  let m: RegExpExecArray | null
+  while ((m = HTML_IMG_RE.exec(text)) !== null) {
+    const start = base + m.index
+    const end = start + m[0].length
+    const line = doc.lineAt(start)
+    if (active.has(line.number)) continue
+    const parsed = parseHtmlImage(m[0])
+    if (!parsed) continue
+    if (start === line.from && end === line.to) {
+      out.push(Decoration.line({ class: 'ink-img-line' }).range(line.from))
+    }
+    out.push(
+      Decoration.replace({
+        widget: new ImageWidget(parsed.src, parsed.alt, docPath, parsed.width, start, end)
+      }).range(start, end)
+    )
+  }
+}
+
 // Inline syntaxes Lezer doesn't parse: <u>underline</u>, ==highlight==, <!--comments-->.
 const INLINE_RULES: { re: RegExp; cls: string | null; open: number; close: number }[] = [
   { re: /<u>([\s\S]+?)<\/u>/gi, cls: 'ink-u', open: 3, close: 4 },
@@ -321,7 +475,8 @@ function inlineRegexDecos(
 export function buildDecorations(
   state: EditorState,
   ranges: readonly { from: number; to: number }[],
-  active: Set<number>
+  active: Set<number>,
+  docPath: string | null = null
 ): DecorationSet {
   const decos: Range<Decoration>[] = []
   const doc = state.doc
@@ -330,7 +485,7 @@ export function buildDecorations(
     syntaxTree(state).iterate({
       from,
       to,
-      enter: (node) => {
+      enter: (node): boolean | void => {
         const name = node.name
 
         // 1) Headings: tag the whole line so CSS can resize it.
@@ -356,6 +511,29 @@ export function buildDecorations(
         if (name === 'Autolink') {
           decos.push(Decoration.mark({ class: 'ink-link' }).range(node.from, node.to))
           return
+        }
+
+        // 3b) Image ![alt](src): render as <img> on idle lines. Return false to
+        //     skip children (avoids overlapping decorations inside the widget);
+        //     on the active line we leave the raw markdown fully visible.
+        if (name === 'Image') {
+          const line = doc.lineAt(node.from)
+          if (!active.has(line.number)) {
+            const text = doc.sliceString(node.from, node.to)
+            const m = /^!\[([^\]]*)\]\(\s*(\S+?)(?:\s+"[^"]*")?\s*\)$/.exec(text)
+            if (m) {
+              // Center a paragraph that is just an image (Typora behaviour).
+              if (node.from === line.from && node.to === line.to) {
+                decos.push(Decoration.line({ class: 'ink-img-line' }).range(line.from))
+              }
+              decos.push(
+                Decoration.replace({
+                  widget: new ImageWidget(m[2], m[1], docPath, undefined, node.from, node.to)
+                }).range(node.from, node.to)
+              )
+            }
+          }
+          return false
         }
 
         // 4) List markers: bullet widget for unordered, styled number for
@@ -459,6 +637,7 @@ export function buildDecorations(
     const slice = doc.sliceString(from, to)
     inlineRegexDecos(slice, from, active, doc, decos)
     emojiDecos(slice, from, active, doc, decos)
+    htmlImageDecos(slice, from, active, doc, docPath, decos)
   }
 
   // RangeSet must be sorted by position; `true` lets CodeMirror sort for us.
@@ -469,14 +648,17 @@ export const livePreview = ViewPlugin.fromClass(
   class {
     decorations: DecorationSet
     constructor(view: EditorView) {
-      this.decorations = buildDecorations(view.state, view.visibleRanges, activeLines(view))
+      const docPath = useAppStore.getState().doc.path
+      this.decorations = buildDecorations(view.state, view.visibleRanges, activeLines(view), docPath)
     }
     update(update: ViewUpdate) {
       if (update.docChanged || update.selectionSet || update.viewportChanged) {
+        const docPath = useAppStore.getState().doc.path
         this.decorations = buildDecorations(
           update.view.state,
           update.view.visibleRanges,
-          activeLines(update.view)
+          activeLines(update.view),
+          docPath
         )
       }
     }

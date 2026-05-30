@@ -1,5 +1,6 @@
 import { EditorView } from '@codemirror/view'
 import { EditorSelection } from '@codemirror/state'
+import { parseImage, parseMarkdownImage, toHtmlImage, toMarkdownImage } from './imageInput'
 
 /**
  * Formatting commands shared by the toolbars and the native Format menu. Each
@@ -25,6 +26,7 @@ export type FormatAction =
   | 'table'
   | 'codeblock'
   | 'hr'
+  | 'toggleImageSyntax'
 
 /** Wrap (or unwrap, if already wrapped) the selection with inline marks. */
 export function wrapSelection(view: EditorView, mark: string, end: string = mark): boolean {
@@ -145,6 +147,63 @@ export function insertImage(view: EditorView): boolean {
   return true
 }
 
+/** Find a standalone image (md or HTML) on the current line: its range + parse. */
+function imageOnLine(
+  view: EditorView
+): { from: number; to: number; text: string } | null {
+  const line = view.state.doc.lineAt(view.state.selection.main.head)
+  const text = line.text.trim()
+  if (!parseImage(text)) return null
+  // Range of the trimmed image within the line.
+  const lead = line.text.length - line.text.trimStart().length
+  return { from: line.from + lead, to: line.from + lead + text.length, text }
+}
+
+/** Toggle the image on the current line between markdown and HTML syntax. */
+export function toggleImageSyntax(view: EditorView): boolean {
+  const found = imageOnLine(view)
+  if (!found) return false
+  const img = parseImage(found.text)
+  if (!img) return false
+  // Markdown has no width; switch to HTML to keep a size, else flip both ways.
+  const next = parseMarkdownImage(found.text) ? toHtmlImage(img) : toMarkdownImage(img)
+  view.dispatch({ changes: { from: found.from, to: found.to, insert: next } })
+  view.focus()
+  return true
+}
+
+/** Set (or clear, when width<=0) the pixel width of the image on the current line. */
+export function setImageWidth(view: EditorView, width: number): boolean {
+  const found = imageOnLine(view)
+  if (!found) return false
+  const img = parseImage(found.text)
+  if (!img) return false
+  const next = toHtmlImage({ ...img, width: width > 0 ? Math.round(width) : undefined })
+  view.dispatch({ changes: { from: found.from, to: found.to, insert: next } })
+  view.focus()
+  return true
+}
+
+/** Rewrite the `src` of the image on the current line (e.g. after upload). */
+export function setImageSrc(view: EditorView, src: string): boolean {
+  const found = imageOnLine(view)
+  if (!found) return false
+  const img = parseImage(found.text)
+  if (!img) return false
+  const next = parseMarkdownImage(found.text)
+    ? toMarkdownImage({ ...img, src })
+    : toHtmlImage({ ...img, src })
+  view.dispatch({ changes: { from: found.from, to: found.to, insert: next } })
+  view.focus()
+  return true
+}
+
+/** The src of the image on the current line, if any. */
+export function imageSrcOnLine(view: EditorView): string | null {
+  const found = imageOnLine(view)
+  return found ? (parseImage(found.text)?.src ?? null) : null
+}
+
 /** Insert the emoji glyph at the cursor. */
 export function insertEmoji(view: EditorView, emoji: string): boolean {
   const pos = view.state.selection.main.head
@@ -190,6 +249,8 @@ export function applyFormat(view: EditorView, action: FormatAction): boolean {
       return insertBlock(view, '```\n\n```\n', 4)
     case 'hr':
       return insertBlock(view, '---\n', 4)
+    case 'toggleImageSyntax':
+      return toggleImageSyntax(view)
     default:
       return false
   }

@@ -11,6 +11,7 @@ import {
 } from '@renderer/lib/docActions'
 import { useEditor } from '@renderer/store/useEditor'
 import { applyFormat, type FormatAction } from '@renderer/lib/formatCommands'
+import { uploadCurrentImage } from '@renderer/lib/uploadImage'
 import TitleBar from '@renderer/components/TitleBar'
 import Sidebar from '@renderer/components/Sidebar'
 import OutlinePanel from '@renderer/components/OutlinePanel'
@@ -18,6 +19,7 @@ import StatusBar from '@renderer/components/StatusBar'
 import Editor from '@renderer/components/Editor/Editor'
 import Toolbar from '@renderer/components/Toolbar'
 import FloatingToolbar from '@renderer/components/FloatingToolbar'
+import ImageZoom from '@renderer/components/ImageZoom'
 import ConfirmUnsavedModal from '@renderer/components/ConfirmUnsavedModal'
 
 export default function App(): JSX.Element {
@@ -50,7 +52,9 @@ export default function App(): JSX.Element {
   useEffect(() => {
     return window.api.onFormat((action) => {
       const view = useEditor.getState().view
-      if (view) applyFormat(view, action as FormatAction)
+      if (!view) return
+      if (action === 'uploadImage') void uploadCurrentImage(view)
+      else applyFormat(view, action as FormatAction)
     })
   }, [])
 
@@ -88,6 +92,7 @@ export default function App(): JSX.Element {
       </div>
       <StatusBar />
       <FloatingToolbar />
+      <ImageZoom />
       <ConfirmUnsavedModal />
     </div>
   )

@@ -5,7 +5,11 @@ import {
   wrapSelection,
   setHeading,
   insertLink,
-  applyFormat
+  applyFormat,
+  toggleImageSyntax,
+  setImageWidth,
+  setImageSrc,
+  imageSrcOnLine
 } from './formatCommands'
 
 function mkView(doc: string, from: number, to = from): EditorView {
@@ -69,6 +73,36 @@ describe('formatCommands', () => {
     const view = mkView('note', 0)
     applyFormat(view, 'quote')
     expect(view.state.doc.toString()).toBe('> note')
+    view.destroy()
+  })
+
+  it('toggles an image between markdown and HTML syntax', () => {
+    const view = mkView('![cat](a.png)', 2)
+    toggleImageSyntax(view)
+    expect(view.state.doc.toString()).toBe('<img src="a.png" alt="cat" />')
+    toggleImageSyntax(view)
+    expect(view.state.doc.toString()).toBe('![cat](a.png)')
+    view.destroy()
+  })
+
+  it('sets an image width (switching to HTML syntax)', () => {
+    const view = mkView('![cat](a.png)', 2)
+    setImageWidth(view, 200)
+    expect(view.state.doc.toString()).toBe('<img src="a.png" alt="cat" width="200" />')
+    view.destroy()
+  })
+
+  it('does nothing when the line is not an image', () => {
+    const view = mkView('plain text', 2)
+    expect(toggleImageSyntax(view)).toBe(false)
+    view.destroy()
+  })
+
+  it('reads and rewrites the image src on the current line', () => {
+    const view = mkView('![cat](local.png)', 2)
+    expect(imageSrcOnLine(view)).toBe('local.png')
+    setImageSrc(view, 'https://cdn.io/cat.png')
+    expect(view.state.doc.toString()).toBe('![cat](https://cdn.io/cat.png)')
     view.destroy()
   })
 })

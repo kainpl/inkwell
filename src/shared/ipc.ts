@@ -29,6 +29,8 @@ export const IPC = {
   saveFile: 'fs:saveFile',
   saveFileAs: 'fs:saveFileAs',
   readDir: 'fs:readDir',
+  saveImage: 'fs:saveImage',
+  uploadImage: 'fs:uploadImage',
   // main -> renderer (send/on)
   menuNewFile: 'menu:newFile',
   menuOpenFile: 'menu:openFile',

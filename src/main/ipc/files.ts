@@ -1,6 +1,7 @@
 import { ipcMain, dialog, BrowserWindow } from 'electron'
 import { promises as fs } from 'fs'
-import { basename, join } from 'path'
+import { basename, dirname, extname, join } from 'path'
+import { execFile } from 'child_process'
 import { IPC, type FileNode, type OpenedFile } from '../../shared/ipc'
 
 const MD_EXTENSIONS = ['.md', '.markdown', '.mdown', '.mkd', '.txt']
@@ -90,6 +91,56 @@ export function registerFileIpc(): void {
       if (canceled || !filePath) return null
       await fs.writeFile(filePath, content, 'utf-8')
       return { path: filePath, name: basename(filePath), content }
+    }
+  )
+
+  // Save a pasted/dropped image next to the document in an `assets/` folder,
+  // returning the relative path to insert. Null when the doc is unsaved (the
+  // renderer then falls back to embedding a data: URI).
+  ipcMain.handle(
+    IPC.saveImage,
+    async (_e, docPath: string | null, name: string, data: Uint8Array): Promise<string | null> => {
+      if (!docPath) return null
+      const dir = join(dirname(docPath), 'assets')
+      await fs.mkdir(dir, { recursive: true })
+
+      // Avoid clobbering: append -1, -2, … if the name is taken.
+      const ext = extname(name)
+      const stem = basename(name, ext)
+      let candidate = name
+      let n = 1
+      for (;;) {
+        try {
+          await fs.access(join(dir, candidate))
+          candidate = `${stem}-${n++}${ext}`
+        } catch {
+          break
+        }
+      }
+      await fs.writeFile(join(dir, candidate), Buffer.from(data))
+      return 'assets/' + candidate
+    }
+  )
+
+  // Upload an image via a user-configured shell command (Typora-style). The
+  // command runs with the absolute file path appended as the last argument and
+  // must print the resulting URL to stdout. Returns the trimmed URL, or throws.
+  ipcMain.handle(
+    IPC.uploadImage,
+    async (_e, command: string, filePath: string): Promise<string> => {
+      if (!command.trim()) throw new Error('No image upload command configured')
+      const parts = command.trim().split(/\s+/)
+      const exe = parts[0]
+      const args = [...parts.slice(1), filePath]
+      const stdout = await new Promise<string>((resolve, reject) => {
+        execFile(exe, args, { timeout: 60_000 }, (err, out, errOut) => {
+          if (err) reject(new Error(errOut || err.message))
+          else resolve(out)
+        })
+      })
+      const url = stdout.trim().split(/\r?\n/).pop()?.trim() ?? ''
+      if (!/^https?:\/\//i.test(url)) throw new Error('Upload command did not return a URL')
+      return url
     }
   )
 }

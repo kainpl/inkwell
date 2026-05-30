@@ -29,11 +29,14 @@ interface AppState {
   focusMode: boolean
   typewriterMode: boolean
   formatBarOpen: boolean
+  /** Shell command for image upload (Typora-style); configured in Preferences. */
+  imageUploadCommand: string
   toggleSidebar: () => void
   toggleOutline: () => void
   toggleFocusMode: () => void
   toggleTypewriter: () => void
   toggleFormatBar: () => void
+  setImageUploadCommand: (command: string) => void
 }
 
 const EMPTY_DOC: DocState = {
@@ -87,6 +90,15 @@ https://example.com, and an internal jump to the [Tasks](#tasks) heading.
 
 [repo]: https://github.com/kainpl/inkwell
 
+## Images
+
+An image renders in place when its line is idle; click the line to reveal the
+\`![alt](src)\` source. Relative paths like \`![photo](images/photo.png)\` resolve
+from the document's folder once the file is saved, and you can paste or drag &
+drop an image to copy it into an \`assets/\` folder automatically. Hover a rendered
+image to get a resize handle, click it to zoom, or use Format → Toggle Image
+Markdown/HTML to switch syntax (HTML keeps a \`width\`).
+
 ### Next
 
 Open a folder (\`Ctrl/⌘ Shift O\`) to browse files, or just start writing.
@@ -126,9 +138,11 @@ export const useAppStore = create<AppState>((set) => ({
   focusMode: false,
   typewriterMode: false,
   formatBarOpen: true,
+  imageUploadCommand: '',
   toggleSidebar: () => set((s) => ({ sidebarOpen: !s.sidebarOpen })),
   toggleOutline: () => set((s) => ({ outlineOpen: !s.outlineOpen })),
   toggleFocusMode: () => set((s) => ({ focusMode: !s.focusMode })),
   toggleTypewriter: () => set((s) => ({ typewriterMode: !s.typewriterMode })),
-  toggleFormatBar: () => set((s) => ({ formatBarOpen: !s.formatBarOpen }))
+  toggleFormatBar: () => set((s) => ({ formatBarOpen: !s.formatBarOpen })),
+  setImageUploadCommand: (command) => set({ imageUploadCommand: command })
 }))

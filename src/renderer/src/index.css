@@ -108,6 +108,18 @@
   .ink-sub { vertical-align: sub; font-size: 0.78em; }
   .ink-sup { vertical-align: super; font-size: 0.78em; }
   .ink-emoji { font-style: normal; }
+  .ink-img-wrap { position: relative; display: inline-block; line-height: 0; }
+  .ink-img { max-width: 100%; height: auto; border-radius: 4px; vertical-align: middle; cursor: zoom-in; }
+  .ink-img-broken { display: inline-block; min-width: 2em; min-height: 1em; outline: 1px dashed rgb(var(--faint)); }
+  .cm-line.ink-img-line { text-align: center; }
+  /* Resize handle, visible on hover (bottom-right corner). */
+  .ink-img-handle {
+    position: absolute; right: -3px; bottom: 1px; width: 12px; height: 12px;
+    border: 2px solid rgb(var(--accent)); border-top: none; border-left: none;
+    border-radius: 0 0 3px 0; cursor: nwse-resize; opacity: 0;
+    transition: opacity 0.12s ease;
+  }
+  .ink-img-wrap:hover .ink-img-handle { opacity: 1; }
 
   /* A token that is hidden because the cursor is not on its line. */
   .ink-hidden-mark { display: none; }
