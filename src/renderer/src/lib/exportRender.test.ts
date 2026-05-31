@@ -1,4 +1,5 @@
 import { renderMarkdownBody, renderDocumentHtml, renderPlainText } from './exportRender'
+import { DEFAULT_MARKDOWN_FEATURES } from './markdownFeatures'
 
 describe('renderMarkdownBody', () => {
   it('renders headings, emphasis and inline code', () => {
@@ -63,6 +64,23 @@ describe('renderMarkdownBody', () => {
     expect(html).toContain('hljs')
     expect(html).toContain('language-js')
   })
+
+  it('leaves disabled inline features as raw text', () => {
+    const off = {
+      ...DEFAULT_MARKDOWN_FEATURES,
+      math: false,
+      emoji: false,
+      highlight: false,
+      subSup: false,
+      footnotes: false
+    }
+    const html = renderMarkdownBody('$E=mc^2$ :rocket: ==hi== H~2~O x^2^ a[^1]\n\n[^1]: note', off)
+    expect(html).toContain('$E=mc^2$') // math not rendered
+    expect(html).toContain(':rocket:') // emoji not rendered
+    expect(html).not.toContain('<mark>') // highlight off
+    expect(html).not.toContain('<sub>') // subscript off
+    expect(html).not.toContain('footnote') // footnotes off
+  })
 })
 
 describe('renderPlainText', () => {
@@ -101,6 +119,19 @@ describe('renderDocumentHtml', () => {
     const html = await renderDocumentHtml('# One\n\n[toc]\n\n## Two')
     expect(html).toContain('ink-toc')
     expect(html).toContain('href="#two"')
+  })
+
+  it('leaves alerts, [toc] and mermaid as plain content when those features are off', async () => {
+    const off = { ...DEFAULT_MARKDOWN_FEATURES, alerts: false, toc: false, mermaid: false }
+    const html = await renderDocumentHtml(
+      '# One\n\n[toc]\n\n> [!NOTE]\n> hi\n\n```mermaid\ngraph LR\nA-->B\n```',
+      { features: off, styled: false, renderMermaidSvg: async () => '<svg id="m"></svg>' }
+    )
+    expect(html).not.toContain('ink-alert')
+    expect(html).not.toContain('ink-toc')
+    expect(html).not.toContain('ink-mermaid')
+    expect(html).toContain('[!NOTE]') // raw
+    expect(html).toContain('[toc]') // raw
   })
 
   it('renders mermaid blocks via the injected renderer', async () => {

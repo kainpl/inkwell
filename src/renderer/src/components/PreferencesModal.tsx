@@ -3,12 +3,14 @@ import { IPC } from '@shared/ipc'
 import { useAppStore } from '@renderer/store/useAppStore'
 import type { EditorFont } from '@renderer/lib/settings'
 import { THEMES } from '@renderer/lib/themes'
+import { MARKDOWN_FEATURE_LIST } from '@renderer/lib/markdownFeatures'
 
-type Section = 'appearance' | 'editor' | 'image' | 'export'
+type Section = 'appearance' | 'editor' | 'markdown' | 'image' | 'export'
 
 const SECTIONS: { id: Section; label: string }[] = [
   { id: 'appearance', label: 'Appearance' },
   { id: 'editor', label: 'Editor' },
+  { id: 'markdown', label: 'Markdown' },
   { id: 'image', label: 'Image' },
   { id: 'export', label: 'Export' }
 ]
@@ -110,6 +112,24 @@ function Editor(): JSX.Element {
   )
 }
 
+function Markdown(): JSX.Element {
+  const s = useAppStore()
+  return (
+    <>
+      {MARKDOWN_FEATURE_LIST.map((f) => (
+        <Row key={f.key} label={f.label}>
+          <input
+            type="checkbox"
+            className="h-4 w-4 accent-accent"
+            checked={s.markdownFeatures[f.key]}
+            onChange={() => s.setMarkdownFeature(f.key, !s.markdownFeatures[f.key])}
+          />
+        </Row>
+      ))}
+    </>
+  )
+}
+
 function Image(): JSX.Element {
   const s = useAppStore()
   return (
@@ -188,6 +208,7 @@ export default function PreferencesModal(): JSX.Element | null {
         <div className="min-w-0 flex-1 overflow-y-auto p-5">
           {section === 'appearance' && <Appearance />}
           {section === 'editor' && <Editor />}
+          {section === 'markdown' && <Markdown />}
           {section === 'image' && <Image />}
           {section === 'export' && <Export />}
         </div>

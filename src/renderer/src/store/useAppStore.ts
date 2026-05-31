@@ -4,6 +4,7 @@ import { type Tab, findByPath, isReplaceable, closeTab } from '@renderer/lib/tab
 import { type PageSetup, loadPageSetup, savePageSetup } from '@renderer/lib/pageSetup'
 import { type EditorFont, loadSettings } from '@renderer/lib/settings'
 import { isDarkTheme } from '@renderer/lib/themes'
+import type { MarkdownFeatures } from '@renderer/lib/markdownFeatures'
 
 export interface DocState {
   path: string | null
@@ -82,6 +83,9 @@ interface AppState {
   /** Export CSS: built-in print stylesheet vs the active editor theme. */
   exportStyle: 'default' | 'theme'
   setExportStyle: (style: 'default' | 'theme') => void
+  /** Toggleable Markdown features (live editor + export). */
+  markdownFeatures: MarkdownFeatures
+  setMarkdownFeature: (key: keyof MarkdownFeatures, on: boolean) => void
   /** Auto-hide the native menu bar (Windows/Linux). */
   autoHideMenuBar: boolean
   setAutoHideMenuBar: (on: boolean) => void
@@ -228,6 +232,7 @@ export const useAppStore = create<AppState>((set) => ({
   contentWidth: s0.contentWidth,
   embedImages: s0.embedImages,
   exportStyle: s0.exportStyle,
+  markdownFeatures: s0.markdownFeatures,
   autoHideMenuBar: s0.autoHideMenuBar,
   setEditorFont: (font) => set({ editorFont: font }),
   setEditorFontSize: (px) => set({ editorFontSize: px }),
@@ -235,6 +240,8 @@ export const useAppStore = create<AppState>((set) => ({
   setContentWidth: (px) => set({ contentWidth: px }),
   setEmbedImages: (on) => set({ embedImages: on }),
   setExportStyle: (exportStyle) => set({ exportStyle }),
+  setMarkdownFeature: (key, on) =>
+    set((s) => ({ markdownFeatures: { ...s.markdownFeatures, [key]: on } })),
   setAutoHideMenuBar: (on) => set({ autoHideMenuBar: on }),
   pageSetup: loadPageSetup(),
   setPageSetup: (patch) =>

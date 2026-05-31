@@ -40,7 +40,8 @@ async function buildExportHtml(content: string, opts: RenderDocOptions): Promise
   const themed = exportThemeCss()
   const userCss = await exportUserCss()
   const themeCss = [themed?.css, userCss].filter(Boolean).join('\n\n') || undefined
-  return renderDocumentHtml(content, { ...opts, themeCss, dark: themed?.dark })
+  const features = useAppStore.getState().markdownFeatures
+  return renderDocumentHtml(content, { ...opts, themeCss, dark: themed?.dark, features })
 }
 
 /** Export the current document as standalone HTML (with or without styles). */

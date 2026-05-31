@@ -3,6 +3,7 @@ import { EditorState } from '@codemirror/state'
 import { EditorView, keymap } from '@codemirror/view'
 import { defaultKeymap, history, historyKeymap } from '@codemirror/commands'
 import { inkwellExtensions } from './markdownExtensions'
+import { refreshPreview } from './livePreview'
 import { setSourceMode, setTypewriter } from './editorModes'
 import { useAppStore } from '@renderer/store/useAppStore'
 import { useEditor } from '@renderer/store/useEditor'
@@ -101,6 +102,18 @@ export default function Editor(): JSX.Element {
       viewRef.current = null
     }
   }, [makeState, restoreCaret])
+
+  // Re-render the live preview when the Markdown feature flags change (the
+  // StateField recomputes on a refresh effect, no doc edit needed).
+  useEffect(() => {
+    let last = useAppStore.getState().markdownFeatures
+    return useAppStore.subscribe(() => {
+      const cur = useAppStore.getState().markdownFeatures
+      if (cur === last) return
+      last = cur
+      viewRef.current?.dispatch({ effects: refreshPreview.of(null) })
+    })
+  }, [])
 
   // Switch tabs: stash the outgoing tab's full state, restore (or build) the
   // incoming one, then re-apply the global view modes.

@@ -120,7 +120,8 @@ Auto Save & Version Control*) і з поточним кодом Inkwell.
 - ✅ Каскад `base.user.css` + `{theme}.user.css` — 6.3: `base.user.css` завжди поверх активної теми, `{theme}.user.css` — лише для неї (як у Typora). Перевірено наживо
 - ✅ **Типографіка**: шрифт редактора (serif/sans/mono), ширина «сторінки», міжрядковий інтервал, розмір — застосовуються живими CSS-змінними через CM-тему; зберігаються у `localStorage` (`lib/settings.ts` + `settingsSync.ts`)
   - ✅ auto-hide menu bar (Windows/Linux; перемикач у Preferences ▸ Appearance, застосовується в main через IPC)
-- 🟡 Панель **Preferences** (Edit → Preferences…, `Ctrl/⌘ ,`): секції **Appearance / Editor / Image / Export** готові; **Markdown-прапорці** — у наступних підфазах (потребують умовного вмикання у livePreview)
+- ✅ Панель **Preferences** (Edit → Preferences…, `Ctrl/⌘ ,`): секції **Appearance / Editor / Markdown / Image / Export**
+- ✅ **Markdown-прапорці**: вмикання/вимикання фіч (math, mermaid, footnotes, sub/sup, ==highlight==, emoji, alerts, [toc]) — діють і в **живому редакторі** (гейтинг у `buildDecorations` + форс-перерахунок StateField через `refreshPreview`-ефект), і в **експорті** (умовні markdown-it плагіни + DOM-постобробка). Вимкнена фіча показується сирим текстом. Перевірено наживо: тогл emoji миттєво перемальовує редактор
 
 ## Фаза 7 — продуктивність і power-user
 - ✅ **Панель інструментів для новачків** ⭐: фіксований toolbar + спливаюча над виділенням + меню **Format** + **emoji-пікер** (перемикач `Ctrl/⌘+Shift+B`); набір розширюється з кожною новою фічею

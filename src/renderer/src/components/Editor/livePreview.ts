@@ -1,5 +1,5 @@
 import { Decoration, type DecorationSet, EditorView, WidgetType } from '@codemirror/view'
-import { Range, StateField, type EditorState, type Text } from '@codemirror/state'
+import { Range, StateField, StateEffect, type EditorState, type Text } from '@codemirror/state'
 import { syntaxTree } from '@codemirror/language'
 import type { SyntaxNode, SyntaxNodeRef } from '@lezer/common'
 import { parseOutline } from '@renderer/lib/outline'
@@ -7,6 +7,7 @@ import { get as emojiGet, search as emojiSearch } from 'node-emoji'
 import type { CompletionSource } from '@codemirror/autocomplete'
 import { useAppStore } from '@renderer/store/useAppStore'
 import { isDarkThemeResolved } from '@renderer/lib/themes'
+import { type MarkdownFeatures, DEFAULT_MARKDOWN_FEATURES } from '@renderer/lib/markdownFeatures'
 import { parseHtmlImage, parseImage, toHtmlImage } from '@renderer/lib/imageInput'
 import katex from 'katex'
 import { renderMermaid } from '@renderer/lib/mermaidRender'
@@ -837,7 +838,8 @@ export function buildDecorations(
   state: EditorState,
   ranges: readonly { from: number; to: number }[],
   active: Set<number>,
-  docPath: string | null = null
+  docPath: string | null = null,
+  features: MarkdownFeatures = DEFAULT_MARKDOWN_FEATURES
 ): DecorationSet {
   const decos: Range<Decoration>[] = []
   const doc = state.doc
@@ -886,7 +888,10 @@ export function buildDecorations(
 
         // 2) Inline content styling.
         if (CONTENT_CLASS[name]) {
-          decos.push(Decoration.mark({ class: CONTENT_CLASS[name] }).range(node.from, node.to))
+          const isSubSup = name === 'Subscript' || name === 'Superscript'
+          if (!isSubSup || features.subSup) {
+            decos.push(Decoration.mark({ class: CONTENT_CLASS[name] }).range(node.from, node.to))
+          }
           return
         }
 
@@ -991,7 +996,7 @@ export function buildDecorations(
           }
 
           // Mermaid: render the diagram on idle blocks; raw source when active.
-          if (lang === 'mermaid' && !blockActive && code.trim()) {
+          if (lang === 'mermaid' && features.mermaid && !blockActive && code.trim()) {
             const st = useAppStore.getState()
             const dark = isDarkThemeResolved(st.theme, st.externalThemes)
             decos.push(Decoration.line({ class: 'ink-img-line' }).range(first.from))
@@ -1091,7 +1096,9 @@ export function buildDecorations(
           const firstLine = doc.lineAt(node.from)
           const first = firstLine.number
           const last = doc.lineAt(node.to).number
-          const alert = /^>\s*\[!(NOTE|TIP|IMPORTANT|WARNING|CAUTION)\]\s*$/i.exec(firstLine.text)
+          const alert = features.alerts
+            ? /^>\s*\[!(NOTE|TIP|IMPORTANT|WARNING|CAUTION)\]\s*$/i.exec(firstLine.text)
+            : null
           const alertType = alert ? alert[1].toLowerCase() : null
 
           for (let ln = first; ln <= last; ln++) {
@@ -1153,6 +1160,8 @@ export function buildDecorations(
 
         // 5) Syntax markers: hide on inactive lines, dim on active ones.
         if (MARK_NODES.has(name)) {
+          // When sub/superscript is disabled, keep its `~`/`^` markers visible.
+          if ((name === 'SubscriptMark' || name === 'SuperscriptMark') && !features.subSup) return
           const lineNo = doc.lineAt(node.from).number
           if (active.has(lineNo)) {
             decos.push(Decoration.mark({ class: 'ink-mark' }).range(node.from, node.to))
@@ -1164,11 +1173,11 @@ export function buildDecorations(
     })
     const slice = doc.sliceString(from, to)
     inlineRegexDecos(slice, from, active, doc, decos)
-    emojiDecos(slice, from, active, doc, decos)
+    if (features.emoji) emojiDecos(slice, from, active, doc, decos)
     htmlImageDecos(slice, from, active, doc, docPath, decos)
-    mathDecos(slice, from, active, doc, decos)
-    footnoteDecos(slice, from, active, doc, fnDefs, decos)
-    tocDecos(slice, from, active, doc, tocHeadings, decos)
+    if (features.math) mathDecos(slice, from, active, doc, decos)
+    if (features.footnotes) footnoteDecos(slice, from, active, doc, fnDefs, decos)
+    if (features.toc) tocDecos(slice, from, active, doc, tocHeadings, decos)
   }
 
   // RangeSet must be sorted by position; `true` lets CodeMirror sort for us.
@@ -1184,14 +1193,28 @@ export function buildDecorations(
  * `visibleRanges`) and rebuild on doc or selection changes.
  */
 function computeDecorations(state: EditorState): DecorationSet {
-  const docPath = useAppStore.getState().doc.path
-  return buildDecorations(state, [{ from: 0, to: state.doc.length }], activeLines(state), docPath)
+  const { doc, markdownFeatures } = useAppStore.getState()
+  return buildDecorations(
+    state,
+    [{ from: 0, to: state.doc.length }],
+    activeLines(state),
+    doc.path,
+    markdownFeatures
+  )
 }
+
+/**
+ * Dispatch this effect to force the live-preview field to recompute without a
+ * doc/selection change — used when the Markdown feature flags change so the
+ * editor re-renders immediately.
+ */
+export const refreshPreview = StateEffect.define<null>()
 
 export const livePreview = StateField.define<DecorationSet>({
   create: (state) => computeDecorations(state),
   update(value, tr) {
-    if (!tr.docChanged && !tr.selection) return value
+    const refresh = tr.effects.some((e) => e.is(refreshPreview))
+    if (!tr.docChanged && !tr.selection && !refresh) return value
     return computeDecorations(tr.state)
   },
   provide: (f) => EditorView.decorations.from(f)

@@ -17,7 +17,8 @@ function currentSettings(): Settings {
     contentWidth: s.contentWidth,
     autoHideMenuBar: s.autoHideMenuBar,
     embedImages: s.embedImages,
-    exportStyle: s.exportStyle
+    exportStyle: s.exportStyle,
+    markdownFeatures: s.markdownFeatures
   }
 }
 

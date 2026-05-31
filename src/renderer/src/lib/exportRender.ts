@@ -13,6 +13,7 @@ import hljsDarkCss from 'highlight.js/styles/github-dark.css?raw'
 import DOMPurify from 'dompurify'
 import { get as emojiGet } from 'node-emoji'
 import { EXPORT_CSS } from './exportCss'
+import { type MarkdownFeatures, DEFAULT_MARKDOWN_FEATURES } from './markdownFeatures'
 
 /**
  * The export render engine: turns a Markdown document into standalone, sanitized
@@ -36,31 +37,48 @@ function emojiPlugin(md: MarkdownIt): void {
   })
 }
 
-const md = new MarkdownIt({
-  html: true,
-  linkify: true,
-  typographer: false,
-  // Syntax-highlight fenced code with a known language (highlight.js). Unknown
-  // langs (e.g. mermaid) return '' so markdown-it keeps the default code block.
-  highlight: (str, lang) => {
-    if (lang && hljs.getLanguage(lang)) {
-      try {
-        const out = hljs.highlight(str, { language: lang, ignoreIllegals: true }).value
-        return `<pre class="hljs"><code class="language-${lang}">${out}</code></pre>`
-      } catch {
-        /* fall through to default */
-      }
+// Syntax-highlight fenced code with a known language (highlight.js). Unknown
+// langs (e.g. mermaid) return '' so markdown-it keeps the default code block.
+function highlightCode(str: string, lang: string): string {
+  if (lang && hljs.getLanguage(lang)) {
+    try {
+      const out = hljs.highlight(str, { language: lang, ignoreIllegals: true }).value
+      return `<pre class="hljs"><code class="language-${lang}">${out}</code></pre>`
+    } catch {
+      /* fall through to default */
     }
-    return ''
   }
-})
-  .use(footnote)
-  .use(taskLists, { enabled: true, label: true })
-  .use(sub)
-  .use(sup)
-  .use(mark)
-  .use(texmath, { engine: katex, delimiters: 'dollars', katexOptions: { throwOnError: false } })
-  .use(emojiPlugin)
+  return ''
+}
+
+/** Build a markdown-it configured for the enabled features. */
+function buildMd(f: MarkdownFeatures): MarkdownIt {
+  const m = new MarkdownIt({
+    html: true,
+    linkify: true,
+    typographer: false,
+    highlight: highlightCode
+  }).use(taskLists, { enabled: true, label: true })
+  if (f.footnotes) m.use(footnote)
+  if (f.subSup) m.use(sub).use(sup)
+  if (f.highlight) m.use(mark)
+  if (f.math)
+    m.use(texmath, { engine: katex, delimiters: 'dollars', katexOptions: { throwOnError: false } })
+  if (f.emoji) m.use(emojiPlugin)
+  return m
+}
+
+// Cache one markdown-it per distinct feature set (exports are infrequent).
+const mdCache = new Map<string, MarkdownIt>()
+function getMd(f: MarkdownFeatures): MarkdownIt {
+  const key = JSON.stringify(f)
+  let m = mdCache.get(key)
+  if (!m) {
+    m = buildMd(f)
+    mdCache.set(key, m)
+  }
+  return m
+}
 
 /** DOMPurify config: allow HTML + KaTeX's MathML + SVG (mermaid), drop scripts. */
 const PURIFY_OPTS = { USE_PROFILES: { html: true, mathMl: true, svg: true } } as const
@@ -72,8 +90,11 @@ const PURIFY_OPTS = { USE_PROFILES: { html: true, mathMl: true, svg: true } } as
  * and the HTML is later written to a file / loaded into a print window. DOMPurify
  * strips scripts and event handlers while keeping KaTeX (MathML) and SVG.
  */
-export function renderMarkdownBody(markdown: string): string {
-  return DOMPurify.sanitize(md.render(markdown), PURIFY_OPTS)
+export function renderMarkdownBody(
+  markdown: string,
+  features: MarkdownFeatures = DEFAULT_MARKDOWN_FEATURES
+): string {
+  return DOMPurify.sanitize(getMd(features).render(markdown), PURIFY_OPTS)
 }
 
 /** Plain text of the document (markdown stripped), with blocks on their own lines. */
@@ -234,6 +255,8 @@ export interface RenderDocOptions {
   themeCss?: string
   /** Use the dark code-highlight stylesheet (when matching a dark theme). */
   dark?: boolean
+  /** Toggleable Markdown features (defaults to all on). */
+  features?: MarkdownFeatures
   /** Injectable for tests. */
   renderMermaidSvg?: (code: string) => Promise<string>
   embedImage?: (url: string) => Promise<string | null>
@@ -248,13 +271,14 @@ export async function renderDocumentHtml(
   markdown: string,
   opts: RenderDocOptions = {}
 ): Promise<string> {
+  const features = opts.features ?? DEFAULT_MARKDOWN_FEATURES
   const doc = new DOMParser().parseFromString(
-    `<!doctype html><body>${renderMarkdownBody(markdown)}</body>`,
+    `<!doctype html><body>${renderMarkdownBody(markdown, features)}</body>`,
     'text/html'
   )
-  applyAlerts(doc)
-  applyToc(doc)
-  await applyMermaid(doc, opts.renderMermaidSvg ?? defaultMermaid)
+  if (features.alerts) applyAlerts(doc)
+  if (features.toc) applyToc(doc)
+  if (features.mermaid) await applyMermaid(doc, opts.renderMermaidSvg ?? defaultMermaid)
   if (opts.embed !== false) {
     await embedImages(doc, opts.docPath ?? null, opts.embedImage ?? fetchAsDataUri)
   }

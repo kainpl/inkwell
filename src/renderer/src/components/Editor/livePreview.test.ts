@@ -22,6 +22,7 @@ import {
   linkUrlAt,
   headingOffset
 } from './livePreview'
+import { DEFAULT_MARKDOWN_FEATURES, type MarkdownFeatures } from '@renderer/lib/markdownFeatures'
 
 interface DecoItem {
   from: number
@@ -494,6 +495,77 @@ describe('buildDecorations — math', () => {
     // treated as one block that swallows everything between them.
     const doc = 'price is $$ here\n\nlots of text\n\nand $$ there'
     expect(mathWidgets(doc)).toHaveLength(0)
+  })
+})
+
+describe('buildDecorations — feature flags', () => {
+  /** Decorate with a subset of features turned off. */
+  function decorateF(doc: string, off: Partial<MarkdownFeatures>): DecoItem[] {
+    const features = { ...DEFAULT_MARKDOWN_FEATURES, ...off }
+    const state = EditorState.create({
+      doc,
+      extensions: [markdown({ base: markdownLanguage, extensions: [Subscript, Superscript] })]
+    })
+    ensureSyntaxTree(state, state.doc.length, 5000)
+    const set = buildDecorations(state, [{ from: 0, to: state.doc.length }], new Set(), null, features)
+    const items: DecoItem[] = []
+    const cursor = set.iter()
+    while (cursor.value) {
+      items.push({ from: cursor.from, to: cursor.to, spec: cursor.value.spec })
+      cursor.next()
+    }
+    return items
+  }
+
+  const widgets = (items: DecoItem[]): unknown[] => items.map((i) => i.spec.widget).filter(Boolean)
+
+  it('does not render math when math is off', () => {
+    const w = decorateF('see $x^2$', { math: false }).filter((i) => i.spec.widget instanceof MathWidget)
+    expect(w).toHaveLength(0)
+  })
+
+  it('does not render mermaid when mermaid is off', () => {
+    const w = decorateF('```mermaid\ngraph LR\nA-->B\n```', { mermaid: false }).filter(
+      (i) => i.spec.widget instanceof MermaidWidget
+    )
+    expect(w).toHaveLength(0)
+  })
+
+  it('does not render emoji when emoji is off', () => {
+    const w = decorateF('hi :rocket:', { emoji: false }).filter(
+      (i) => i.spec.widget instanceof EmojiWidget
+    )
+    expect(w).toHaveLength(0)
+  })
+
+  it('does not render footnote refs when footnotes are off', () => {
+    const w = decorateF('text[^1]\n\n[^1]: a note', { footnotes: false }).filter(
+      (i) => i.spec.widget instanceof FootnoteRefWidget
+    )
+    expect(w).toHaveLength(0)
+  })
+
+  it('does not render alert labels when alerts are off', () => {
+    const w = decorateF('> [!NOTE]\n> careful', { alerts: false }).filter(
+      (i) => i.spec.widget instanceof AlertLabelWidget
+    )
+    expect(w).toHaveLength(0)
+  })
+
+  it('does not style sub/superscript when subSup is off', () => {
+    const items = decorateF('H~2~O and x^2^', { subSup: false })
+    expect(items.some((i) => i.spec.class === 'ink-sub' || i.spec.class === 'ink-sup')).toBe(false)
+  })
+
+  it('still renders a feature that stays enabled', () => {
+    const w = decorateF('see $x^2$', { mermaid: false }).filter(
+      (i) => i.spec.widget instanceof MathWidget
+    )
+    expect(w).toHaveLength(1)
+  })
+
+  it('renders everything by default (all flags on)', () => {
+    expect(widgets(decorateF('hi :rocket:', {})).length).toBeGreaterThan(0)
   })
 })
 

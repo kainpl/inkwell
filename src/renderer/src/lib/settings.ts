@@ -5,6 +5,11 @@
  */
 
 import { isKnownTheme } from './themes'
+import {
+  type MarkdownFeatures,
+  DEFAULT_MARKDOWN_FEATURES,
+  normalizeFeatures
+} from './markdownFeatures'
 
 export type EditorFont = 'serif' | 'sans' | 'mono'
 
@@ -27,6 +32,8 @@ export interface Settings {
   embedImages: boolean
   /** Export CSS: the built-in print stylesheet, or the active editor theme. */
   exportStyle: 'default' | 'theme'
+  /** Toggleable Markdown features (live editor + export). */
+  markdownFeatures: MarkdownFeatures
 }
 
 export const FONT_STACKS: Record<EditorFont, string> = {
@@ -48,7 +55,8 @@ export const DEFAULT_SETTINGS: Settings = {
   contentWidth: 80,
   autoHideMenuBar: false,
   embedImages: true,
-  exportStyle: 'default'
+  exportStyle: 'default',
+  markdownFeatures: DEFAULT_MARKDOWN_FEATURES
 }
 
 const KEY = 'inkwell.settings'
@@ -62,6 +70,7 @@ function sanitize(s: Settings): Settings {
     ...s,
     theme: isKnownTheme(s.theme) ? s.theme : DEFAULT_SETTINGS.theme,
     exportStyle: s.exportStyle === 'theme' ? 'theme' : 'default',
+    markdownFeatures: normalizeFeatures(s.markdownFeatures),
     editorFontSize: clamp(s.editorFontSize, 10, 40, DEFAULT_SETTINGS.editorFontSize),
     editorLineHeight: clamp(s.editorLineHeight, 1, 3, DEFAULT_SETTINGS.editorLineHeight),
     contentWidth: clamp(s.contentWidth, 40, 100, DEFAULT_SETTINGS.contentWidth)
