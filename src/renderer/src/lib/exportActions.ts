@@ -57,6 +57,22 @@ export async function copyAsImage(): Promise<void> {
   await window.api.copyImage(html)
 }
 
+/** Output file extension per pandoc format. */
+const PANDOC_EXT: Record<string, string> = {
+  docx: 'docx',
+  odt: 'odt',
+  rtf: 'rtf',
+  epub: 'epub',
+  latex: 'tex'
+}
+
+/** Export the document to a pandoc format (docx/odt/rtf/epub/latex). */
+export async function exportPandocFile(format: string): Promise<void> {
+  const { doc } = useAppStore.getState()
+  const ext = PANDOC_EXT[format] ?? format
+  await window.api.exportPandoc(doc.content, format, ext, doc.path, outName(ext))
+}
+
 /** Print the current document (system print dialog). */
 export async function printDocument(): Promise<void> {
   const { doc, pageSetup } = useAppStore.getState()

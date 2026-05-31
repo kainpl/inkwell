@@ -116,6 +116,7 @@ export const IPC = {
   printDoc: 'export:print',
   clipboardWrite: 'export:clipboardWrite',
   copyImage: 'export:copyImage',
+  exportPandoc: 'export:pandoc',
   // main -> renderer (send/on)
   menuNewFile: 'menu:newFile',
   menuOpenFile: 'menu:openFile',
@@ -151,6 +152,7 @@ export const IPC = {
   menuCopyPlain: 'menu:copyPlain',
   menuCopyImage: 'menu:copyImage',
   menuExportImage: 'menu:exportImage',
+  menuExportPandoc: 'menu:exportPandoc',
   menuFormat: 'menu:format',
   // open document changed/removed on disk by another program
   fileChangedExternally: 'watch:changed',

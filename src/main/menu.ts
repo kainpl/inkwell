@@ -5,6 +5,7 @@ export function buildMenu(win: BrowserWindow): void {
   const isMac = process.platform === 'darwin'
   const send = (channel: string) => () => win.webContents.send(channel)
   const fmt = (action: string) => () => win.webContents.send(IPC.menuFormat, action)
+  const pandoc = (format: string) => () => win.webContents.send(IPC.menuExportPandoc, format)
 
   const template: MenuItemConstructorOptions[] = [
     ...(isMac
@@ -50,7 +51,13 @@ export function buildMenu(win: BrowserWindow): void {
             { label: 'HTML (with styles)…', click: send(IPC.menuExportHtml) },
             { label: 'HTML (without styles)…', click: send(IPC.menuExportHtmlPlain) },
             { label: 'PDF…', click: send(IPC.menuExportPdf) },
-            { label: 'Image (PNG)…', click: send(IPC.menuExportImage) }
+            { label: 'Image (PNG)…', click: send(IPC.menuExportImage) },
+            { type: 'separator' },
+            { label: 'Word (.docx)…', click: pandoc('docx') },
+            { label: 'OpenDocument (.odt)…', click: pandoc('odt') },
+            { label: 'Rich Text (.rtf)…', click: pandoc('rtf') },
+            { label: 'EPUB (.epub)…', click: pandoc('epub') },
+            { label: 'LaTeX (.tex)…', click: pandoc('latex') }
           ]
         },
         { label: 'Page Setup…', click: send(IPC.menuPageSetup) },

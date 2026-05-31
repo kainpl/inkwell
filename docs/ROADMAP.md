@@ -108,7 +108,7 @@ Auto Save & Version Control*) і з поточним кодом Inkwell.
 - ✅ **Export PDF** (`printToPDF` в offscreen-вікні) + **Page Setup** (папір A4/Letter/A5/Custom, поля, орієнтація, розрив на H1 — модалка + стан у сторі) + **Print** (системний діалог). Чисті `pageSetup`/`exportRender` з тестами; PDF-пайплайн перевірено наживо
 - ✅ **Copy as** (Edit → Copy As): **Markdown** / **HTML** (формат у Word/Docs) / **Plain Text** (`renderPlainText`) / **Image** (PNG у буфер) — через системний clipboard
 - ✅ **Export Image** (PNG): повний-сторінковий PNG через offscreen-вікно + `capturePage` (вся висота документа, з DPI-масштабом); File → Export ▸ Image. Спільний `renderToImage` для експорту й Copy as Image
-- ⬜ **Export Word/docx** + **інше через pandoc** (RTF, epub, LaTeX, OpenDocument, MediaWiki…; детект pandoc) — 5.4
+- ✅ **Export через pandoc**: Word (.docx) / OpenDocument (.odt) / RTF / EPUB / LaTeX — детект pandoc (повідомлення «встанови з pandoc.org», якщо немає); читає md-джерело `gfm+tex_math_dollars`, `--resource-path` для зображень. *(саму конвертацію не тестовано наживо — pandoc не встановлено на машині)*
 - ⬜ Налаштування експорту по форматах (CSS-тема, вбудовування ресурсів) — 5.5
 - ⬜ підсвітка коду в експорті (highlight.js)
 

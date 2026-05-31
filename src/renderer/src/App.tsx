@@ -24,6 +24,7 @@ import {
   exportHtmlFile,
   exportPdfFile,
   exportImageFile,
+  exportPandocFile,
   printDocument,
   copyAsMarkdown,
   copyAsHtml,
@@ -121,6 +122,9 @@ export default function App(): JSX.Element {
       if (view) runFormatAction(view, action)
     })
   }, [])
+
+  // Pandoc export-menu commands (docx/odt/rtf/epub/latex).
+  useEffect(() => window.api.onExportPandoc((format) => void exportPandocFile(format)), [])
 
   // Keep the main process informed of unsaved state across ALL tabs (drives the
   // window-close guard), and keep the restorable session file on the active tab.

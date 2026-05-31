@@ -1,6 +1,7 @@
 import { ipcMain, dialog, BrowserWindow, app, clipboard } from 'electron'
 import { promises as fs } from 'fs'
-import { join } from 'path'
+import { join, dirname } from 'path'
+import { execFile } from 'child_process'
 import { IPC, type PdfOptions } from '../../shared/ipc'
 
 /**
@@ -52,6 +53,21 @@ async function renderToImage(html: string): Promise<Electron.NativeImage> {
   }
 }
 
+/** Whether pandoc is on PATH. */
+function pandocAvailable(): Promise<boolean> {
+  return new Promise((resolve) => execFile('pandoc', ['--version'], (err) => resolve(!err)))
+}
+
+/** Run pandoc with args; rejects with its stderr on failure. */
+function runPandoc(args: string[]): Promise<void> {
+  return new Promise((resolve, reject) => {
+    execFile('pandoc', args, { timeout: 120_000 }, (err, _out, errOut) => {
+      if (err) reject(new Error(errOut || err.message))
+      else resolve()
+    })
+  })
+}
+
 export function registerExportIpc(): void {
   // Write text and/or HTML to the system clipboard (Copy as Markdown/HTML/Plain).
   ipcMain.handle(IPC.clipboardWrite, (_e, data: { text?: string; html?: string }): boolean => {
@@ -75,6 +91,51 @@ export function registerExportIpc(): void {
     clipboard.writeImage(await renderToImage(html))
     return true
   })
+
+  // Export to docx / odt / rtf / epub / latex via pandoc (read Markdown source).
+  ipcMain.handle(
+    IPC.exportPandoc,
+    async (
+      e,
+      markdown: string,
+      format: string,
+      ext: string,
+      docPath: string | null,
+      defaultName: string
+    ): Promise<boolean> => {
+      const parent = BrowserWindow.fromWebContents(e.sender) ?? undefined
+      if (!(await pandocAvailable())) {
+        await dialog.showMessageBox(parent!, {
+          type: 'info',
+          message: 'Pandoc is not installed',
+          detail: 'Install pandoc from https://pandoc.org to export to this format.'
+        })
+        return false
+      }
+      const { canceled, filePath } = await dialog.showSaveDialog(parent!, {
+        defaultPath: defaultName,
+        filters: [{ name: format.toUpperCase(), extensions: [ext] }]
+      })
+      if (canceled || !filePath) return false
+      const tmp = join(app.getPath('temp'), `inkwell-pandoc-${Date.now()}.md`)
+      await fs.writeFile(tmp, markdown, 'utf-8')
+      const args = ['-f', 'gfm+tex_math_dollars', '-t', format, '-o', filePath, tmp]
+      if (docPath) args.push('--resource-path', dirname(docPath))
+      try {
+        await runPandoc(args)
+        return true
+      } catch (err) {
+        await dialog.showMessageBox(parent!, {
+          type: 'error',
+          message: 'Export failed',
+          detail: String(err instanceof Error ? err.message : err)
+        })
+        return false
+      } finally {
+        void fs.unlink(tmp).catch(() => undefined)
+      }
+    }
+  )
 
   ipcMain.handle(IPC.exportHtml, async (e, html: string, defaultName: string): Promise<boolean> => {
     const win = BrowserWindow.fromWebContents(e.sender) ?? undefined

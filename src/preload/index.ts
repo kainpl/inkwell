@@ -74,6 +74,21 @@ const api = {
     ipcRenderer.invoke(IPC.exportImage, html, defaultName),
   /** Render the HTML to a PNG image and copy it to the clipboard. */
   copyImage: (html: string): Promise<boolean> => ipcRenderer.invoke(IPC.copyImage, html),
+  /** Export Markdown to docx/odt/rtf/epub/latex via pandoc (save dialog). */
+  exportPandoc: (
+    markdown: string,
+    format: string,
+    ext: string,
+    docPath: string | null,
+    defaultName: string
+  ): Promise<boolean> =>
+    ipcRenderer.invoke(IPC.exportPandoc, markdown, format, ext, docPath, defaultName),
+  /** Subscribe to a pandoc-export menu command; handler receives the format id. */
+  onExportPandoc: (handler: (format: string) => void): (() => void) => {
+    const listener = (_e: unknown, format: string): void => handler(format)
+    ipcRenderer.on(IPC.menuExportPandoc, listener)
+    return () => ipcRenderer.removeListener(IPC.menuExportPandoc, listener)
+  },
   /** Render to PDF and open it in the OS viewer for preview + print. */
   printDoc: (html: string, pdfOptions: PdfOptions): Promise<boolean> =>
     ipcRenderer.invoke(IPC.printDoc, html, pdfOptions),
