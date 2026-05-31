@@ -1,5 +1,6 @@
 import { useAppStore } from '@renderer/store/useAppStore'
-import { renderDocumentHtml, renderPlainText } from './exportRender'
+import { renderDocumentHtml, renderPlainText, type RenderDocOptions } from './exportRender'
+import { isDarkThemeResolved } from './themes'
 import { pdfOptions } from './pageSetup'
 
 /** Output file name derived from the current document name (or "document"). */
@@ -8,17 +9,51 @@ function outName(ext: string): string {
   return name.replace(/\.[^./\\]*$/, '') + '.' + ext
 }
 
+/**
+ * When the export style is "match theme", build a CSS override that maps the
+ * active theme's tokens onto the print stylesheet (read live so external themes
+ * work too), and report whether to use the dark code-highlight theme.
+ */
+function exportThemeCss(): { css: string; dark: boolean } | null {
+  const { exportStyle, theme, externalThemes } = useAppStore.getState()
+  if (exportStyle !== 'theme') return null
+  const cs = getComputedStyle(document.documentElement)
+  const v = (name: string): string => cs.getPropertyValue(name).trim()
+  const css =
+    `:root{ --ink:rgb(${v('--ink')}); --muted:rgb(${v('--muted')}); ` +
+    `--line:rgb(${v('--line')}); --accent:rgb(${v('--accent')}); --code-bg:rgb(${v('--chrome')}); }\n` +
+    `body{ background:rgb(${v('--paper')}); color:rgb(${v('--ink')}); }`
+  return { css, dark: isDarkThemeResolved(theme, externalThemes) }
+}
+
+/** Optional user export stylesheet (themes/export.user.css), or '' if absent. */
+async function exportUserCss(): Promise<string> {
+  try {
+    return (await window.api.readThemeCss('export')).themeUser ?? ''
+  } catch {
+    return ''
+  }
+}
+
+/** Render document HTML with the configured export style (theme + user CSS) applied. */
+async function buildExportHtml(content: string, opts: RenderDocOptions): Promise<string> {
+  const themed = exportThemeCss()
+  const userCss = await exportUserCss()
+  const themeCss = [themed?.css, userCss].filter(Boolean).join('\n\n') || undefined
+  return renderDocumentHtml(content, { ...opts, themeCss, dark: themed?.dark })
+}
+
 /** Export the current document as standalone HTML (with or without styles). */
 export async function exportHtmlFile(styled: boolean): Promise<void> {
   const { doc, embedImages } = useAppStore.getState()
-  const html = await renderDocumentHtml(doc.content, { docPath: doc.path, styled, embed: embedImages })
+  const html = await buildExportHtml(doc.content, { docPath: doc.path, styled, embed: embedImages })
   await window.api.exportHtml(html, outName('html'))
 }
 
 /** Export the current document as a PDF using the configured page setup. */
 export async function exportPdfFile(): Promise<void> {
   const { doc, pageSetup } = useAppStore.getState()
-  const html = await renderDocumentHtml(doc.content, {
+  const html = await buildExportHtml(doc.content, {
     docPath: doc.path,
     styled: true,
     breakBeforeH1: pageSetup.breakBeforeH1
@@ -34,7 +69,7 @@ export async function copyAsMarkdown(): Promise<void> {
 /** Copy the rendered document as HTML (formatting carries into Word / Docs). */
 export async function copyAsHtml(): Promise<void> {
   const { doc } = useAppStore.getState()
-  const html = await renderDocumentHtml(doc.content, { docPath: doc.path, styled: true })
+  const html = await buildExportHtml(doc.content, { docPath: doc.path, styled: true })
   await window.api.clipboardWrite({ html, text: renderPlainText(doc.content) })
 }
 
@@ -46,14 +81,14 @@ export async function copyAsPlainText(): Promise<void> {
 /** Export the rendered document as a PNG image. */
 export async function exportImageFile(): Promise<void> {
   const { doc } = useAppStore.getState()
-  const html = await renderDocumentHtml(doc.content, { docPath: doc.path, styled: true })
+  const html = await buildExportHtml(doc.content, { docPath: doc.path, styled: true })
   await window.api.exportImage(html, outName('png'))
 }
 
 /** Copy the rendered document as a PNG image to the clipboard. */
 export async function copyAsImage(): Promise<void> {
   const { doc } = useAppStore.getState()
-  const html = await renderDocumentHtml(doc.content, { docPath: doc.path, styled: true })
+  const html = await buildExportHtml(doc.content, { docPath: doc.path, styled: true })
   await window.api.copyImage(html)
 }
 
@@ -76,7 +111,7 @@ export async function exportPandocFile(format: string): Promise<void> {
 /** Print the current document (system print dialog). */
 export async function printDocument(): Promise<void> {
   const { doc, pageSetup } = useAppStore.getState()
-  const html = await renderDocumentHtml(doc.content, {
+  const html = await buildExportHtml(doc.content, {
     docPath: doc.path,
     styled: true,
     breakBeforeH1: pageSetup.breakBeforeH1

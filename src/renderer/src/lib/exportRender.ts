@@ -9,6 +9,7 @@ import katex from 'katex'
 import katexCss from 'katex/dist/katex.min.css?raw'
 import hljs from 'highlight.js'
 import hljsCss from 'highlight.js/styles/github.css?raw'
+import hljsDarkCss from 'highlight.js/styles/github-dark.css?raw'
 import DOMPurify from 'dompurify'
 import { get as emojiGet } from 'node-emoji'
 import { EXPORT_CSS } from './exportCss'
@@ -208,9 +209,14 @@ async function defaultMermaid(code: string): Promise<string> {
   return svg ?? ''
 }
 
-function wrapHtml(body: string, styled: boolean, breakBeforeH1: boolean): string {
-  let css = styled ? `${katexCss}\n${hljsCss}\n${EXPORT_CSS}` : ''
-  if (breakBeforeH1) css += '\nh1:not(:first-of-type){break-before:page;}'
+function wrapHtml(body: string, styled: boolean, opts: RenderDocOptions): string {
+  let css = ''
+  if (styled) {
+    css = `${katexCss}\n${opts.dark ? hljsDarkCss : hljsCss}\n${EXPORT_CSS}`
+    if (opts.breakBeforeH1 === true) css += '\nh1:not(:first-of-type){break-before:page;}'
+    // Theme palette / user export CSS overrides the built-in print stylesheet.
+    if (opts.themeCss) css += '\n' + opts.themeCss
+  }
   const head = css ? `<style>\n${css}\n</style>` : ''
   return `<!doctype html>\n<html><head><meta charset="utf-8">${head}</head>\n<body>\n${body}\n</body>\n</html>`
 }
@@ -224,6 +230,10 @@ export interface RenderDocOptions {
   breakBeforeH1?: boolean
   /** Embed local images as data: URIs (default true). HTML export may turn off. */
   embed?: boolean
+  /** Extra CSS appended after the print stylesheet (theme palette + export.user.css). */
+  themeCss?: string
+  /** Use the dark code-highlight stylesheet (when matching a dark theme). */
+  dark?: boolean
   /** Injectable for tests. */
   renderMermaidSvg?: (code: string) => Promise<string>
   embedImage?: (url: string) => Promise<string | null>
@@ -248,5 +258,5 @@ export async function renderDocumentHtml(
   if (opts.embed !== false) {
     await embedImages(doc, opts.docPath ?? null, opts.embedImage ?? fetchAsDataUri)
   }
-  return wrapHtml(doc.body.innerHTML, opts.styled !== false, opts.breakBeforeH1 === true)
+  return wrapHtml(doc.body.innerHTML, opts.styled !== false, opts)
 }

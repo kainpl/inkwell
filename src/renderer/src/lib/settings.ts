@@ -21,8 +21,12 @@ export interface Settings {
   editorLineHeight: number
   /** Width of the centred writing column, as a percentage of the editor width. */
   contentWidth: number
+  /** Auto-hide the native menu bar (Windows/Linux; press Alt to reveal). */
+  autoHideMenuBar: boolean
   /** Embed local images as data: URIs in exported HTML. */
   embedImages: boolean
+  /** Export CSS: the built-in print stylesheet, or the active editor theme. */
+  exportStyle: 'default' | 'theme'
 }
 
 export const FONT_STACKS: Record<EditorFont, string> = {
@@ -42,7 +46,9 @@ export const DEFAULT_SETTINGS: Settings = {
   editorFontSize: 17,
   editorLineHeight: 1.75,
   contentWidth: 80,
-  embedImages: true
+  autoHideMenuBar: false,
+  embedImages: true,
+  exportStyle: 'default'
 }
 
 const KEY = 'inkwell.settings'
@@ -55,6 +61,7 @@ function sanitize(s: Settings): Settings {
   return {
     ...s,
     theme: isKnownTheme(s.theme) ? s.theme : DEFAULT_SETTINGS.theme,
+    exportStyle: s.exportStyle === 'theme' ? 'theme' : 'default',
     editorFontSize: clamp(s.editorFontSize, 10, 40, DEFAULT_SETTINGS.editorFontSize),
     editorLineHeight: clamp(s.editorLineHeight, 1, 3, DEFAULT_SETTINGS.editorLineHeight),
     contentWidth: clamp(s.contentWidth, 40, 100, DEFAULT_SETTINGS.contentWidth)

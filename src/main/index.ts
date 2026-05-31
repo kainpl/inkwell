@@ -94,6 +94,15 @@ app.whenReady().then(() => {
   registerExportIpc()
   registerThemeIpc()
 
+  // Apply the renderer's auto-hide-menu-bar preference to its window.
+  ipcMain.on(IPC.setMenuBarAutoHide, (e, hide: boolean) => {
+    const w = BrowserWindow.fromWebContents(e.sender)
+    if (w) {
+      w.setAutoHideMenuBar(hide)
+      w.setMenuBarVisibility(!hide)
+    }
+  })
+
   const win = createWindow()
   buildMenu(win)
 

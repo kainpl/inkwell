@@ -15,7 +15,9 @@ function currentSettings(): Settings {
     editorFontSize: s.editorFontSize,
     editorLineHeight: s.editorLineHeight,
     contentWidth: s.contentWidth,
-    embedImages: s.embedImages
+    autoHideMenuBar: s.autoHideMenuBar,
+    embedImages: s.embedImages,
+    exportStyle: s.exportStyle
   }
 }
 
@@ -26,6 +28,11 @@ function applyTypography(s: Settings): void {
   root.setProperty('--ink-editor-size', `${s.editorFontSize}px`)
   root.setProperty('--ink-editor-leading', String(s.editorLineHeight))
   root.setProperty('--ink-content-width', `${s.contentWidth}%`)
+}
+
+/** Push the window-level preferences (menu bar) to the main process. */
+function applyWindow(s: Settings): void {
+  window.api.setMenuBarAutoHide(s.autoHideMenuBar)
 }
 
 function equal(a: Settings, b: Settings): boolean {
@@ -40,11 +47,13 @@ function equal(a: Settings, b: Settings): boolean {
 export function startSettingsSync(): () => void {
   let last = currentSettings()
   applyTypography(last)
+  applyWindow(last)
   return useAppStore.subscribe(() => {
     const cur = currentSettings()
     if (equal(cur, last)) return
     last = cur
     applyTypography(cur)
+    applyWindow(cur)
     saveSettings(cur)
   })
 }

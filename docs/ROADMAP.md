@@ -111,7 +111,7 @@ Auto Save & Version Control*) і з поточним кодом Inkwell.
 - ✅ **Export через pandoc**: Word (.docx) / OpenDocument (.odt) / RTF / EPUB / LaTeX — читає md-джерело `gfm+tex_math_dollars`, `--resource-path` для зображень
   - ✅ ⭐ **pandoc on-demand** (`main/pandoc.ts`): якщо немає на PATH — пропонує завантажити з офіційного GitHub-релізу, розпаковує системним `tar` (bsdtar: zip/tar.gz без зайвих залежностей), кешує в `userData/pandoc/`, валідує. Прогрес-оверлей у рендері. Перевірено наживо: завантаження 3.9.0.2 → кеш → конвертація md→docx. Прибирає ручну залежність — **перевага над Typora** (там pandoc ставиш сам)
 - ✅ підсвітка коду в експорті (highlight.js) — у рушії
-- 🟡 Налаштування експорту по форматах — 5.5: **вбудовування ресурсів** ✅ (перемикач *Embed images* у Preferences ▸ Export керує `embed` для Export HTML); CSS-тема по форматах — лишилось
+- ✅ Налаштування експорту — 5.5: **вбудовування ресурсів** (перемикач *Embed images*) + **CSS-тема експорту** (Preferences ▸ Export → *Default* / *Match theme*: експорт успадковує палітру активної теми через живі токени + github-dark для коду в темних темах; підхоплює `themes/export.user.css`). PDF/зображення йдуть із того ж HTML — один стиль на всі формати
 
 ## Фаза 6 — теми й оформлення
 - ✅ Світла/темна тема (CSS-змінні + перемикач)
@@ -119,7 +119,7 @@ Auto Save & Version Control*) і з поточним кодом Inkwell.
 - ✅ **Зовнішні `.css`-теми** — 6.3: тека `userData/themes/` (сід `README` + `example.css`), скан `*.css` у дропдаун (`main/ipc/themes.ts`), інжекція активної теми через `<style>`, **гаряче перезавантаження** (`fs.watch`). Конвенція — перевизначення тих самих токенів на `:root`; dark — за маркером `inkwell: dark`. Path-traversal id валідовано
 - ✅ Каскад `base.user.css` + `{theme}.user.css` — 6.3: `base.user.css` завжди поверх активної теми, `{theme}.user.css` — лише для неї (як у Typora). Перевірено наживо
 - ✅ **Типографіка**: шрифт редактора (serif/sans/mono), ширина «сторінки», міжрядковий інтервал, розмір — застосовуються живими CSS-змінними через CM-тему; зберігаються у `localStorage` (`lib/settings.ts` + `settingsSync.ts`)
-  - ⬜ auto-hide menu bar
+  - ✅ auto-hide menu bar (Windows/Linux; перемикач у Preferences ▸ Appearance, застосовується в main через IPC)
 - 🟡 Панель **Preferences** (Edit → Preferences…, `Ctrl/⌘ ,`): секції **Appearance / Editor / Image / Export** готові; **Markdown-прапорці** — у наступних підфазах (потребують умовного вмикання у livePreview)
 
 ## Фаза 7 — продуктивність і power-user

@@ -186,6 +186,8 @@ export const IPC = {
   // open document changed/removed on disk by another program
   fileChangedExternally: 'watch:changed',
   fileRemovedExternally: 'watch:removed',
+  // renderer -> main: apply the auto-hide-menu-bar preference to the window
+  setMenuBarAutoHide: 'app:setMenuBarAutoHide',
   // app lifecycle / unsaved-changes guard
   setDirty: 'app:setDirty',
   closeWindow: 'app:closeWindow',

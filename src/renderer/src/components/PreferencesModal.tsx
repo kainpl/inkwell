@@ -79,6 +79,10 @@ function Appearance(): JSX.Element {
           onChange={(e) => s.setContentWidth(Number(e.target.value))} />
         <span className="w-10 text-right text-sm tabular-nums text-ink">{s.contentWidth}%</span>
       </Row>
+      <Row label="Auto-hide menu bar" hint="Windows/Linux — press Alt to reveal">
+        <input type="checkbox" className="h-4 w-4 accent-accent" checked={s.autoHideMenuBar}
+          onChange={() => s.setAutoHideMenuBar(!s.autoHideMenuBar)} />
+      </Row>
     </>
   )
 }
@@ -120,6 +124,12 @@ function Export(): JSX.Element {
   const s = useAppStore()
   return (
     <>
+      <Row label="Export style" hint="match the editor theme, or the plain print stylesheet">
+        <select className={FIELD} value={s.exportStyle} onChange={(e) => s.setExportStyle(e.target.value as 'default' | 'theme')}>
+          <option value="default">Default (print)</option>
+          <option value="theme">Match theme</option>
+        </select>
+      </Row>
       <Row label="Embed images in exported HTML" hint="data: URIs make the .html self-contained">
         <input type="checkbox" className="h-4 w-4 accent-accent" checked={s.embedImages} onChange={() => s.setEmbedImages(!s.embedImages)} />
       </Row>

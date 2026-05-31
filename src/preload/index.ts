@@ -169,6 +169,9 @@ const api = {
     return () => ipcRenderer.removeListener(IPC.fileRemovedExternally, listener)
   },
 
+  /** Apply the auto-hide-menu-bar preference to this window (Windows/Linux). */
+  setMenuBarAutoHide: (hide: boolean): void => ipcRenderer.send(IPC.setMenuBarAutoHide, hide),
+
   /** Tell the main process whether the document has unsaved changes. */
   setDirty: (dirty: boolean): void => ipcRenderer.send(IPC.setDirty, dirty),
   /** Ask the main process to close the window (after the guard has passed). */

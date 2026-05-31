@@ -79,6 +79,12 @@ interface AppState {
   /** Embed local images as data: URIs in exported HTML. */
   embedImages: boolean
   setEmbedImages: (on: boolean) => void
+  /** Export CSS: built-in print stylesheet vs the active editor theme. */
+  exportStyle: 'default' | 'theme'
+  setExportStyle: (style: 'default' | 'theme') => void
+  /** Auto-hide the native menu bar (Windows/Linux). */
+  autoHideMenuBar: boolean
+  setAutoHideMenuBar: (on: boolean) => void
   toggleSidebar: () => void
   toggleOutline: () => void
   toggleFocusMode: () => void
@@ -221,11 +227,15 @@ export const useAppStore = create<AppState>((set) => ({
   editorLineHeight: s0.editorLineHeight,
   contentWidth: s0.contentWidth,
   embedImages: s0.embedImages,
+  exportStyle: s0.exportStyle,
+  autoHideMenuBar: s0.autoHideMenuBar,
   setEditorFont: (font) => set({ editorFont: font }),
   setEditorFontSize: (px) => set({ editorFontSize: px }),
   setEditorLineHeight: (lh) => set({ editorLineHeight: lh }),
   setContentWidth: (px) => set({ contentWidth: px }),
   setEmbedImages: (on) => set({ embedImages: on }),
+  setExportStyle: (exportStyle) => set({ exportStyle }),
+  setAutoHideMenuBar: (on) => set({ autoHideMenuBar: on }),
   pageSetup: loadPageSetup(),
   setPageSetup: (patch) =>
     set((s) => {

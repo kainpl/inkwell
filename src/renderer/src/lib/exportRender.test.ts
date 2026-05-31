@@ -120,6 +120,21 @@ describe('renderDocumentHtml', () => {
     expect(html).toContain('data:image/png;base64,AAAA')
   })
 
+  it('appends themeCss and swaps in the dark code stylesheet when dark', async () => {
+    const themed = await renderDocumentHtml('```js\nconst x = 1\n```', {
+      themeCss: ':root{ --accent: rgb(1 2 3); }',
+      dark: true
+    })
+    const light = await renderDocumentHtml('```js\nconst x = 1\n```', { dark: false })
+    expect(themed).toContain(':root{ --accent: rgb(1 2 3); }')
+    expect(themed).not.toEqual(light) // a different highlight.js stylesheet was used
+  })
+
+  it('ignores themeCss for an unstyled document', async () => {
+    const html = await renderDocumentHtml('# Hi', { styled: false, themeCss: 'body{background:#000}' })
+    expect(html).not.toContain('background:#000')
+  })
+
   it('keeps local image links when embed is off', async () => {
     const html = await renderDocumentHtml('![a](pic.png)', {
       docPath: '/docs/note.md',
