@@ -33,16 +33,22 @@ export async function newFolder(dir: string): Promise<void> {
   notifyChanged(dir)
 }
 
-/** Rename a file/folder; updates the open document if it was the renamed file. */
+/** Rename a file/folder; updates any open tab pointing at it (keeps unsaved edits). */
 export async function renameEntry(node: FileNode): Promise<void> {
   const name = await usePrompt.getState().ask('Rename', node.name)
   if (!name || name === node.name) return
   const newPath = await window.api.renamePath(node.path, name)
   notifyChanged(dirOf(node.path))
-  const doc = useAppStore.getState().doc
-  if (doc.path === node.path) {
-    useAppStore.getState().loadDoc({ path: newPath, name: baseName(newPath), content: doc.content })
-  }
+  useAppStore.getState().updateTabPath(node.path, newPath, baseName(newPath))
+}
+
+/** Move a file/folder into another folder (chosen via dialog); updates open tabs. */
+export async function moveEntry(node: FileNode): Promise<void> {
+  const newPath = await window.api.moveToFolder(node.path)
+  if (!newPath) return
+  notifyChanged(dirOf(node.path))
+  notifyChanged(dirOf(newPath))
+  useAppStore.getState().updateTabPath(node.path, newPath, baseName(newPath))
 }
 
 /** Duplicate a file (adds " copy"). */

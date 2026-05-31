@@ -7,6 +7,7 @@ import {
   newFile,
   newFolder,
   renameEntry,
+  moveEntry,
   duplicateEntry,
   deleteEntry,
   revealEntry
@@ -66,6 +67,7 @@ function ContextMenu({ menu, onClose }: { menu: MenuState; onClose: () => void }
         {item('New Folder', () => void newFolder(dir))}
         <div className="my-1 border-t border-line" />
         {item('Rename', () => void renameEntry(node))}
+        {item('Move To…', () => void moveEntry(node))}
         {!isDir && item('Duplicate', () => void duplicateEntry(node))}
         {item('Delete', () => void deleteEntry(node))}
         <div className="my-1 border-t border-line" />

@@ -57,6 +57,9 @@ const api = {
     ipcRenderer.invoke(IPC.createFolder, dirPath, name),
   renamePath: (oldPath: string, newName: string): Promise<string> =>
     ipcRenderer.invoke(IPC.renamePath, oldPath, newName),
+  /** Move a file/folder into a folder chosen via dialog; resolves to new path or null. */
+  moveToFolder: (srcPath: string): Promise<string | null> =>
+    ipcRenderer.invoke(IPC.moveToFolder, srcPath),
   duplicateFile: (path: string): Promise<string> =>
     ipcRenderer.invoke(IPC.duplicateFile, path),
   deletePath: (path: string): Promise<boolean> => ipcRenderer.invoke(IPC.deletePath, path),

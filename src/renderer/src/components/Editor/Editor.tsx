@@ -6,6 +6,7 @@ import { inkwellExtensions } from './markdownExtensions'
 import { setSourceMode, setTypewriter } from './editorModes'
 import { useAppStore } from '@renderer/store/useAppStore'
 import { useEditor } from '@renderer/store/useEditor'
+import { getCaret, setCaret } from '@renderer/lib/persistence'
 
 /** OutlinePanel dispatches this to jump the caret to a heading. */
 export const GOTO_EVENT = 'ink:goto'
@@ -27,6 +28,22 @@ export default function Editor(): JSX.Element {
 
   const focusMode = useAppStore((s) => s.focusMode)
   const activeId = useAppStore((s) => s.activeId)
+  const selVersion = useEditor((s) => s.selVersion)
+
+  // Jump to the caret remembered for the active file (after a fresh content load).
+  const restoreCaret = useCallback((view: EditorView): void => {
+    const path = useAppStore.getState().doc.path
+    if (!path) return
+    const off = getCaret(path)
+    if (off == null) return
+    const pos = Math.min(off, view.state.doc.length)
+    view.dispatch({ selection: { anchor: pos } })
+    try {
+      view.dispatch({ effects: EditorView.scrollIntoView(pos, { y: 'center' }) })
+    } catch {
+      /* no layout (headless) — selection set, skip the scroll */
+    }
+  }, [])
 
   // Build a fresh EditorState for `content` with the full extension stack. Stable
   // (reads the store via getState) so the mount/swap effects don't re-run.
@@ -73,6 +90,7 @@ export default function Editor(): JSX.Element {
       if (next !== lastPushed.current && next !== view.state.doc.toString()) {
         view.dispatch({ changes: { from: 0, to: view.state.doc.length, insert: next } })
         lastPushed.current = next
+        restoreCaret(view) // file (re)loaded in place → restore its remembered caret
       }
     })
 
@@ -82,7 +100,7 @@ export default function Editor(): JSX.Element {
       view.destroy()
       viewRef.current = null
     }
-  }, [makeState])
+  }, [makeState, restoreCaret])
 
   // Switch tabs: stash the outgoing tab's full state, restore (or build) the
   // incoming one, then re-apply the global view modes.
@@ -112,12 +130,17 @@ export default function Editor(): JSX.Element {
     suppress.current = false
     view.focus()
 
-    // Restore the incoming tab's scroll position (CodeMirror measures heights as needed).
-    const savedTop = scrollsRef.current.get(activeId)
-    if (savedTop != null && savedTop <= view.state.doc.length) {
-      view.dispatch({ effects: EditorView.scrollIntoView(savedTop, { y: 'start' }) })
+    if (saved) {
+      // Returning to an open tab — restore its in-memory scroll position.
+      const savedTop = scrollsRef.current.get(activeId)
+      if (savedTop != null && savedTop <= view.state.doc.length) {
+        view.dispatch({ effects: EditorView.scrollIntoView(savedTop, { y: 'start' }) })
+      }
+    } else {
+      // Freshly opened tab — jump to the remembered caret for this file.
+      restoreCaret(view)
     }
-  }, [activeId, makeState])
+  }, [activeId, makeState, restoreCaret])
 
   // Reconfigure Source Code / Typewriter modes when their store flags change.
   useEffect(() => {
@@ -153,6 +176,16 @@ export default function Editor(): JSX.Element {
     window.addEventListener(GOTO_EVENT, handler)
     return () => window.removeEventListener(GOTO_EVENT, handler)
   }, [])
+
+  // Remember the caret position per file (debounced) for restore on reopen.
+  useEffect(() => {
+    const view = viewRef.current
+    const path = useAppStore.getState().doc.path
+    if (!view || !path) return
+    const head = view.state.selection.main.head
+    const t = setTimeout(() => setCaret(path, head), 400)
+    return () => clearTimeout(t)
+  }, [selVersion])
 
   return (
     <div

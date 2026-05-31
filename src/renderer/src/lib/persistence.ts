@@ -7,6 +7,9 @@ import { addRecent, removeRecent } from './recentFiles'
 
 const RECENT_KEY = 'inkwell.recentFiles'
 const SESSION_KEY = 'inkwell.session'
+const CARET_KEY = 'inkwell.caret'
+/** Max remembered caret positions before the oldest are evicted. */
+const CARET_CAP = 200
 
 export interface Session {
   /** Last opened document path (null for an unsaved/Untitled doc). */
@@ -62,4 +65,20 @@ export function setSessionFile(filePath: string | null): void {
 
 export function setSessionFolder(folderPath: string | null): void {
   write(SESSION_KEY, { ...getSession(), folderPath })
+}
+
+/** Remembered caret offset for a file path, to restore on reopen. */
+export function getCaret(path: string): number | undefined {
+  return read<Record<string, number>>(CARET_KEY, {})[path]
+}
+
+/** Remember the caret offset for a file path (evicts oldest beyond the cap). */
+export function setCaret(path: string, offset: number): void {
+  const map = read<Record<string, number>>(CARET_KEY, {})
+  // Re-insert at the end so recently-used paths survive eviction.
+  delete map[path]
+  map[path] = offset
+  const keys = Object.keys(map)
+  for (const k of keys.slice(0, Math.max(0, keys.length - CARET_CAP))) delete map[k]
+  write(CARET_KEY, map)
 }

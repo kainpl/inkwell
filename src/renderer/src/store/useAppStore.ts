@@ -29,6 +29,8 @@ interface AppState {
   removeTab: (id: string) => void
   /** Collapse to a single fresh untitled tab (used by Close Folder). */
   resetTabs: () => void
+  /** Update the path+name of any open tab pointing at `oldPath` (rename / move). */
+  updateTabPath: (oldPath: string, newPath: string, name: string) => void
 
   // --- workspace ---
   root: FileNode | null
@@ -158,6 +160,13 @@ export const useAppStore = create<AppState>((set) => ({
     set(() => {
       const t = untitled()
       return { tabs: [t], activeId: t.id, doc: docOf(t) }
+    }),
+
+  updateTabPath: (oldPath, newPath, name) =>
+    set((s) => {
+      const tabs = s.tabs.map((t) => (t.path === oldPath ? { ...t, path: newPath, name } : t))
+      const active = tabs.find((t) => t.id === s.activeId)
+      return { tabs, doc: active ? { ...s.doc, path: active.path, name: active.name } : s.doc }
     }),
 
   root: null,

@@ -77,6 +77,22 @@ describe('tab actions', () => {
     expect(get().doc.path).toBe('/b.md')
   })
 
+  it('updateTabPath renames the matching tab and mirrors the active doc', () => {
+    get().openInTab({ path: '/a.md', name: 'a.md', content: 'A' })
+    get().updateTabPath('/a.md', '/sub/a.md', 'a.md')
+    expect(get().tabs[0].path).toBe('/sub/a.md')
+    expect(get().doc.path).toBe('/sub/a.md')
+  })
+
+  it('updateTabPath updates a background tab without touching the active doc', () => {
+    get().openInTab({ path: '/a.md', name: 'a.md', content: 'A' })
+    get().openInTab({ path: '/b.md', name: 'b.md', content: 'B' }) // active = b
+    const aId = get().tabs[0].id
+    get().updateTabPath('/a.md', '/moved/a.md', 'a.md')
+    expect(get().tabs.find((t) => t.id === aId)!.path).toBe('/moved/a.md')
+    expect(get().doc.path).toBe('/b.md')
+  })
+
   it('resetTabs collapses to a single untitled tab', () => {
     get().openInTab({ path: '/a.md', name: 'a.md', content: 'A' })
     get().openInTab({ path: '/b.md', name: 'b.md', content: 'B' })

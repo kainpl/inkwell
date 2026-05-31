@@ -3,6 +3,7 @@ import { undo } from '@codemirror/commands'
 import Editor from './Editor'
 import { useAppStore } from '@renderer/store/useAppStore'
 import { useEditor } from '@renderer/store/useEditor'
+import { setCaret } from '@renderer/lib/persistence'
 
 function resetStore(): void {
   useAppStore.setState({
@@ -38,4 +39,17 @@ it('preserves each tab content + undo history across switches', async () => {
   // …and so is its undo history (undo reverts the 'hello' insertion).
   act(() => undo(v))
   expect(v.state.doc.toString()).toBe('')
+})
+
+it('restores the remembered caret when a file is opened', async () => {
+  resetStore()
+  localStorage.clear()
+  setCaret('/a.md', 3)
+  render(<Editor />)
+  await act(async () => {
+    useAppStore.getState().openInTab({ path: '/a.md', name: 'a.md', content: 'AAAAA' })
+  })
+  const v = useEditor.getState().view!
+  expect(v.state.doc.toString()).toBe('AAAAA')
+  expect(v.state.selection.main.head).toBe(3)
 })

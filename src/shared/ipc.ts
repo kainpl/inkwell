@@ -82,6 +82,7 @@ export const IPC = {
   createFile: 'fs:createFile',
   createFolder: 'fs:createFolder',
   renamePath: 'fs:renamePath',
+  moveToFolder: 'fs:moveToFolder',
   duplicateFile: 'fs:duplicateFile',
   deletePath: 'fs:deletePath',
   revealPath: 'fs:revealPath',

@@ -1,6 +1,6 @@
 import { ipcMain, dialog, BrowserWindow, shell, app } from 'electron'
 import { promises as fs, watch as fsWatch, type FSWatcher } from 'fs'
-import { basename, dirname, extname, join } from 'path'
+import { basename, dirname, extname, join, sep } from 'path'
 import { execFile } from 'child_process'
 import {
   IPC,
@@ -313,6 +313,24 @@ export function registerFileIpc(): void {
   ipcMain.handle(IPC.renamePath, async (_e, oldPath: string, newName: string): Promise<string> => {
     const target = join(dirname(oldPath), newName)
     await fs.rename(oldPath, target)
+    return target
+  })
+
+  // Move a file/folder into a folder chosen via a dialog. Returns the new path,
+  // or null if canceled / the destination is the same folder or inside itself.
+  ipcMain.handle(IPC.moveToFolder, async (e, srcPath: string): Promise<string | null> => {
+    const win = BrowserWindow.fromWebContents(e.sender) ?? undefined
+    const { canceled, filePaths } = await dialog.showOpenDialog(win!, {
+      title: 'Move to folder…',
+      properties: ['openDirectory']
+    })
+    if (canceled || filePaths.length === 0) return null
+    const destDir = filePaths[0]
+    // No-op for the same folder; reject moving a folder into itself/its subtree.
+    if (destDir === dirname(srcPath)) return null
+    if (destDir === srcPath || destDir.startsWith(srcPath + sep)) return null
+    const target = await uniquePath(destDir, basename(srcPath))
+    await fs.rename(srcPath, target)
     return target
   })
 
