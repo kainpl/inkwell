@@ -45,6 +45,14 @@ export interface SearchFileResult {
   matches: SearchMatch[]
 }
 
+/** printToPDF options we set, kept electron-agnostic so the renderer can build them. */
+export interface PdfOptions {
+  landscape: boolean
+  printBackground: boolean
+  margins: { marginType: 'custom'; top: number; bottom: number; left: number; right: number }
+  pageSize: string | { width: number; height: number }
+}
+
 /** One entry in a document's local version history ("Browse All Versions"). */
 export interface VersionEntry {
   /** When the snapshot was taken (ms since epoch); also its filename stem. */
@@ -101,6 +109,10 @@ export const IPC = {
   watchFile: 'watch:file',
   // read the bundled welcome document from disk (first-launch sample)
   getWelcome: 'app:getWelcome',
+  // export / print
+  exportHtml: 'export:html',
+  exportPdf: 'export:pdf',
+  printDoc: 'export:print',
   // main -> renderer (send/on)
   menuNewFile: 'menu:newFile',
   menuOpenFile: 'menu:openFile',
@@ -126,6 +138,11 @@ export const IPC = {
   menuSetLineEndingCrlf: 'menu:setLineEndingCrlf',
   menuToggleFinalNewline: 'menu:toggleFinalNewline',
   menuBrowseVersions: 'menu:browseVersions',
+  menuExportHtml: 'menu:exportHtml',
+  menuExportHtmlPlain: 'menu:exportHtmlPlain',
+  menuExportPdf: 'menu:exportPdf',
+  menuPrint: 'menu:print',
+  menuPageSetup: 'menu:pageSetup',
   menuFormat: 'menu:format',
   // open document changed/removed on disk by another program
   fileChangedExternally: 'watch:changed',

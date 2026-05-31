@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import type { FileNode } from '@shared/ipc'
 import { type Tab, findByPath, isReplaceable, closeTab } from '@renderer/lib/tabsModel'
+import { type PageSetup, loadPageSetup, savePageSetup } from '@renderer/lib/pageSetup'
 
 export interface DocState {
   path: string | null
@@ -56,6 +57,9 @@ interface AppState {
   insertFinalNewline: boolean
   /** Shell command for image upload (Typora-style); configured in Preferences. */
   imageUploadCommand: string
+  /** Print / Export-PDF page setup (persisted to localStorage). */
+  pageSetup: PageSetup
+  setPageSetup: (patch: Partial<PageSetup>) => void
   toggleSidebar: () => void
   toggleOutline: () => void
   toggleFocusMode: () => void
@@ -187,6 +191,13 @@ export const useAppStore = create<AppState>((set) => ({
   lineEnding: 'lf',
   insertFinalNewline: true,
   imageUploadCommand: '',
+  pageSetup: loadPageSetup(),
+  setPageSetup: (patch) =>
+    set((s) => {
+      const next = { ...s.pageSetup, ...patch }
+      savePageSetup(next)
+      return { pageSetup: next }
+    }),
   toggleSidebar: () => set((s) => ({ sidebarOpen: !s.sidebarOpen })),
   toggleOutline: () => set((s) => ({ outlineOpen: !s.outlineOpen })),
   toggleFocusMode: () => set((s) => ({ focusMode: !s.focusMode })),

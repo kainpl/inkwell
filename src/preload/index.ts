@@ -6,7 +6,8 @@ import {
   type ArticleEntry,
   type SearchFileResult,
   type DraftEntry,
-  type VersionEntry
+  type VersionEntry,
+  type PdfOptions
 } from '../shared/ipc'
 
 const menuChannels = [
@@ -30,6 +31,11 @@ const menuChannels = [
   IPC.menuReopenClosed,
   IPC.menuClose,
   IPC.menuCloseFolder,
+  IPC.menuExportHtml,
+  IPC.menuExportHtmlPlain,
+  IPC.menuExportPdf,
+  IPC.menuPrint,
+  IPC.menuPageSetup,
   IPC.menuSetLineEndingLf,
   IPC.menuSetLineEndingCrlf,
   IPC.menuToggleFinalNewline,
@@ -51,6 +57,15 @@ const api = {
   readFile: (path: string): Promise<OpenedFile> => ipcRenderer.invoke(IPC.readFile, path),
   /** Read the bundled welcome document (first-launch sample). */
   getWelcome: (): Promise<string> => ipcRenderer.invoke(IPC.getWelcome),
+
+  /** Export the rendered document HTML to a file (save dialog). */
+  exportHtml: (html: string, defaultName: string): Promise<boolean> =>
+    ipcRenderer.invoke(IPC.exportHtml, html, defaultName),
+  /** Render the HTML to PDF via an offscreen window + save dialog. */
+  exportPdf: (html: string, pdfOptions: PdfOptions, defaultName: string): Promise<boolean> =>
+    ipcRenderer.invoke(IPC.exportPdf, html, pdfOptions, defaultName),
+  /** Print the rendered document HTML (system print dialog). */
+  printDoc: (html: string): Promise<boolean> => ipcRenderer.invoke(IPC.printDoc, html),
   createFile: (dirPath: string, name: string): Promise<string> =>
     ipcRenderer.invoke(IPC.createFile, dirPath, name),
   createFolder: (dirPath: string, name: string): Promise<string> =>

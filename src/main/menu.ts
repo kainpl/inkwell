@@ -44,6 +44,17 @@ export function buildMenu(win: BrowserWindow): void {
           click: send(IPC.menuToggleFinalNewline)
         },
         { type: 'separator' },
+        {
+          label: 'Export',
+          submenu: [
+            { label: 'HTML (with styles)…', click: send(IPC.menuExportHtml) },
+            { label: 'HTML (without styles)…', click: send(IPC.menuExportHtmlPlain) },
+            { label: 'PDF…', click: send(IPC.menuExportPdf) }
+          ]
+        },
+        { label: 'Page Setup…', click: send(IPC.menuPageSetup) },
+        { label: 'Print…', click: send(IPC.menuPrint) },
+        { type: 'separator' },
         { label: 'Browse All Versions…', click: send(IPC.menuBrowseVersions) },
         { type: 'separator' },
         isMac ? { role: 'close' } : { role: 'quit' }

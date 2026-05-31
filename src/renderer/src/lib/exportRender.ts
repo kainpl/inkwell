@@ -180,8 +180,10 @@ async function defaultMermaid(code: string): Promise<string> {
   return svg ?? ''
 }
 
-function wrapHtml(body: string, styled: boolean): string {
-  const head = styled ? `<style>\n${katexCss}\n${EXPORT_CSS}\n</style>` : ''
+function wrapHtml(body: string, styled: boolean, breakBeforeH1: boolean): string {
+  let css = styled ? `${katexCss}\n${EXPORT_CSS}` : ''
+  if (breakBeforeH1) css += '\nh1:not(:first-of-type){break-before:page;}'
+  const head = css ? `<style>\n${css}\n</style>` : ''
   return `<!doctype html>\n<html><head><meta charset="utf-8">${head}</head>\n<body>\n${body}\n</body>\n</html>`
 }
 
@@ -190,6 +192,8 @@ export interface RenderDocOptions {
   docPath?: string | null
   /** Embed the print stylesheet (HTML "with styles" / print / PDF). Default true. */
   styled?: boolean
+  /** Add a CSS page break before each H1 (except the first) — for print/PDF. */
+  breakBeforeH1?: boolean
   /** Injectable for tests. */
   renderMermaidSvg?: (code: string) => Promise<string>
   embedImage?: (url: string) => Promise<string | null>
@@ -212,5 +216,5 @@ export async function renderDocumentHtml(
   applyToc(doc)
   await applyMermaid(doc, opts.renderMermaidSvg ?? defaultMermaid)
   await embedImages(doc, opts.docPath ?? null, opts.embedImage ?? fetchAsDataUri)
-  return wrapHtml(doc.body.innerHTML, opts.styled !== false)
+  return wrapHtml(doc.body.innerHTML, opts.styled !== false, opts.breakBeforeH1 === true)
 }

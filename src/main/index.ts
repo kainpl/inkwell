@@ -2,6 +2,7 @@ import { app, shell, BrowserWindow, ipcMain, protocol, net, type IpcMainEvent } 
 import { join } from 'path'
 import { pathToFileURL } from 'url'
 import { registerFileIpc } from './ipc/files'
+import { registerExportIpc } from './ipc/export'
 import { buildMenu } from './menu'
 import { IPC } from '../shared/ipc'
 
@@ -89,6 +90,7 @@ function createWindow(): BrowserWindow {
 app.whenReady().then(() => {
   protocol.handle('inkfile', handleInkfile)
   registerFileIpc()
+  registerExportIpc()
 
   const win = createWindow()
   buildMenu(win)

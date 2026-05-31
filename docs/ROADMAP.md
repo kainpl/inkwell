@@ -100,13 +100,17 @@ Auto Save & Version Control*) і з поточним кодом Inkwell.
 - ✅ **Стеження за змінами файлу на диску** + перезавантаження/конфлікт: `fs.watch` у main (ігнорує власні записи через `lastWritten`); чистий буфер тихо перезавантажується, «брудний» — питає Reload/Keep Mine; видалення файлу робить буфер «брудним» (чистий `externalChangeAction` з тестами)
 
 ## Фаза 5 — експорт і друк
-- ⬜ **Export HTML** (зі стилями теми та «without styles»)
-- ⬜ **Export PDF** (`printToPDF`) + **Page Setup** + **Print**
-- ⬜ **Export Word/docx** через **pandoc** (детект pandoc, підказка встановити)
-- ⬜ **Export Image** (PNG документа)
-- ⬜ **Export інше через pandoc** (RTF, epub, LaTeX, OpenDocument, MediaWiki…) — діаграми/math входять у HTML/PDF/epub/docx
-- ⬜ **Copy as Markdown / HTML / Plain Text / Image**, **Copy to MS Word**
-- ⬜ Налаштування експорту по форматах (CSS-тема, вбудовування ресурсів)
+> **Фундамент (5.1):** рушій `doc → standalone HTML` (`exportRender.ts`: markdown-it
+> + плагіни footnote/task-lists/sub/sup/mark/texmath-KaTeX + власні rules emoji/
+> alerts/`[toc]`/mermaid→SVG + вбудовування зображень у data-URI + DOMPurify),
+> світла `export.css`. Реюзають усі виходи нижче.
+- ✅ **Export HTML** (with styles / without styles) — меню File → Export ▸; самодостатній HTML
+- ✅ **Export PDF** (`printToPDF` в offscreen-вікні) + **Page Setup** (папір A4/Letter/A5/Custom, поля, орієнтація, розрив на H1 — модалка + стан у сторі) + **Print** (системний діалог). Чисті `pageSetup`/`exportRender` з тестами; PDF-пайплайн перевірено наживо
+- ⬜ **Copy as Markdown / HTML / Plain Text / Image**, **Copy to MS Word** — 5.2
+- ⬜ **Export Image** (PNG документа) — 5.3
+- ⬜ **Export Word/docx** + **інше через pandoc** (RTF, epub, LaTeX, OpenDocument, MediaWiki…; детект pandoc) — 5.4
+- ⬜ Налаштування експорту по форматах (CSS-тема, вбудовування ресурсів) — 5.5
+- ⬜ підсвітка коду в експорті (highlight.js)
 
 ## Фаза 6 — теми й оформлення
 - ✅ Світла/темна тема (CSS-змінні + перемикач)
