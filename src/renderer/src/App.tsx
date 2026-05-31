@@ -23,10 +23,12 @@ import { runFormatAction } from '@renderer/lib/runFormatAction'
 import {
   exportHtmlFile,
   exportPdfFile,
+  exportImageFile,
   printDocument,
   copyAsMarkdown,
   copyAsHtml,
-  copyAsPlainText
+  copyAsPlainText,
+  copyAsImage
 } from '@renderer/lib/exportActions'
 import { startAutoSave } from '@renderer/lib/autoSave'
 import { startDraftAutoSave } from '@renderer/lib/draftAutoSave'
@@ -87,9 +89,11 @@ export default function App(): JSX.Element {
       window.api.onMenu(IPC.menuExportHtmlPlain, () => void exportHtmlFile(false)),
       window.api.onMenu(IPC.menuExportPdf, () => void exportPdfFile()),
       window.api.onMenu(IPC.menuPrint, () => void printDocument()),
+      window.api.onMenu(IPC.menuExportImage, () => void exportImageFile()),
       window.api.onMenu(IPC.menuCopyMarkdown, () => void copyAsMarkdown()),
       window.api.onMenu(IPC.menuCopyHtml, () => void copyAsHtml()),
       window.api.onMenu(IPC.menuCopyPlain, () => void copyAsPlainText()),
+      window.api.onMenu(IPC.menuCopyImage, () => void copyAsImage()),
       window.api.onMenu(IPC.menuJumpTop, () => {
         const view = useEditor.getState().view
         if (view) {

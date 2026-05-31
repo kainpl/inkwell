@@ -43,6 +43,20 @@ export async function copyAsPlainText(): Promise<void> {
   await window.api.clipboardWrite({ text: renderPlainText(useAppStore.getState().doc.content) })
 }
 
+/** Export the rendered document as a PNG image. */
+export async function exportImageFile(): Promise<void> {
+  const { doc } = useAppStore.getState()
+  const html = await renderDocumentHtml(doc.content, { docPath: doc.path, styled: true })
+  await window.api.exportImage(html, outName('png'))
+}
+
+/** Copy the rendered document as a PNG image to the clipboard. */
+export async function copyAsImage(): Promise<void> {
+  const { doc } = useAppStore.getState()
+  const html = await renderDocumentHtml(doc.content, { docPath: doc.path, styled: true })
+  await window.api.copyImage(html)
+}
+
 /** Print the current document (system print dialog). */
 export async function printDocument(): Promise<void> {
   const { doc, pageSetup } = useAppStore.getState()

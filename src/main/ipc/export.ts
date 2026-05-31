@@ -27,10 +27,52 @@ async function offscreen(html: string): Promise<{ win: BrowserWindow; cleanup: (
   }
 }
 
+/** Render static HTML to a full-document PNG via a hidden window + capturePage. */
+async function renderToImage(html: string): Promise<Electron.NativeImage> {
+  const WIDTH = 932 // body max-width (820) + horizontal padding (2×56)
+  const tmp = join(app.getPath('temp'), `inkwell-img-${Date.now()}.html`)
+  await fs.writeFile(tmp, html, 'utf-8')
+  const win = new BrowserWindow({
+    show: false,
+    width: WIDTH,
+    height: 800,
+    webPreferences: { sandbox: true }
+  })
+  try {
+    await win.loadFile(tmp)
+    const h: number = await win.webContents.executeJavaScript(
+      'Math.min(Math.ceil(document.documentElement.scrollHeight), 16000)'
+    )
+    win.setContentSize(WIDTH, Math.max(1, h))
+    await new Promise((r) => setTimeout(r, 250)) // let layout + paint settle
+    return await win.webContents.capturePage()
+  } finally {
+    if (!win.isDestroyed()) win.destroy()
+    void fs.unlink(tmp).catch(() => undefined)
+  }
+}
+
 export function registerExportIpc(): void {
   // Write text and/or HTML to the system clipboard (Copy as Markdown/HTML/Plain).
   ipcMain.handle(IPC.clipboardWrite, (_e, data: { text?: string; html?: string }): boolean => {
     clipboard.write(data)
+    return true
+  })
+
+  ipcMain.handle(IPC.exportImage, async (e, html: string, defaultName: string): Promise<boolean> => {
+    const parent = BrowserWindow.fromWebContents(e.sender) ?? undefined
+    const { canceled, filePath } = await dialog.showSaveDialog(parent!, {
+      defaultPath: defaultName,
+      filters: [{ name: 'PNG image', extensions: ['png'] }]
+    })
+    if (canceled || !filePath) return false
+    const img = await renderToImage(html)
+    await fs.writeFile(filePath, img.toPNG())
+    return true
+  })
+
+  ipcMain.handle(IPC.copyImage, async (_e, html: string): Promise<boolean> => {
+    clipboard.writeImage(await renderToImage(html))
     return true
   })
 

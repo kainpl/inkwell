@@ -106,9 +106,8 @@ Auto Save & Version Control*) і з поточним кодом Inkwell.
 > світла `export.css`. Реюзають усі виходи нижче.
 - ✅ **Export HTML** (with styles / without styles) — меню File → Export ▸; самодостатній HTML
 - ✅ **Export PDF** (`printToPDF` в offscreen-вікні) + **Page Setup** (папір A4/Letter/A5/Custom, поля, орієнтація, розрив на H1 — модалка + стан у сторі) + **Print** (системний діалог). Чисті `pageSetup`/`exportRender` з тестами; PDF-пайплайн перевірено наживо
-- 🟡 **Copy as** (Edit → Copy As): **Markdown** / **HTML** (формат переноситься у Word/Docs) / **Plain Text** (markdown знято) — через системний clipboard (`clipboard.write`); чистий `renderPlainText` з тестом
-  - ⬜ **Copy as Image** — разом з Export Image у 5.3
-- ⬜ **Export Image** (PNG документа) + **Copy as Image** — 5.3
+- ✅ **Copy as** (Edit → Copy As): **Markdown** / **HTML** (формат у Word/Docs) / **Plain Text** (`renderPlainText`) / **Image** (PNG у буфер) — через системний clipboard
+- ✅ **Export Image** (PNG): повний-сторінковий PNG через offscreen-вікно + `capturePage` (вся висота документа, з DPI-масштабом); File → Export ▸ Image. Спільний `renderToImage` для експорту й Copy as Image
 - ⬜ **Export Word/docx** + **інше через pandoc** (RTF, epub, LaTeX, OpenDocument, MediaWiki…; детект pandoc) — 5.4
 - ⬜ Налаштування експорту по форматах (CSS-тема, вбудовування ресурсів) — 5.5
 - ⬜ підсвітка коду в експорті (highlight.js)

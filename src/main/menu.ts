@@ -49,7 +49,8 @@ export function buildMenu(win: BrowserWindow): void {
           submenu: [
             { label: 'HTML (with styles)…', click: send(IPC.menuExportHtml) },
             { label: 'HTML (without styles)…', click: send(IPC.menuExportHtmlPlain) },
-            { label: 'PDF…', click: send(IPC.menuExportPdf) }
+            { label: 'PDF…', click: send(IPC.menuExportPdf) },
+            { label: 'Image (PNG)…', click: send(IPC.menuExportImage) }
           ]
         },
         { label: 'Page Setup…', click: send(IPC.menuPageSetup) },
@@ -76,7 +77,8 @@ export function buildMenu(win: BrowserWindow): void {
           submenu: [
             { label: 'Markdown', click: send(IPC.menuCopyMarkdown) },
             { label: 'HTML', click: send(IPC.menuCopyHtml) },
-            { label: 'Plain Text', click: send(IPC.menuCopyPlain) }
+            { label: 'Plain Text', click: send(IPC.menuCopyPlain) },
+            { label: 'Image', click: send(IPC.menuCopyImage) }
           ]
         }
       ]

@@ -39,6 +39,8 @@ const menuChannels = [
   IPC.menuCopyMarkdown,
   IPC.menuCopyHtml,
   IPC.menuCopyPlain,
+  IPC.menuCopyImage,
+  IPC.menuExportImage,
   IPC.menuSetLineEndingLf,
   IPC.menuSetLineEndingCrlf,
   IPC.menuToggleFinalNewline,
@@ -67,6 +69,11 @@ const api = {
   /** Render the HTML to PDF via an offscreen window + save dialog. */
   exportPdf: (html: string, pdfOptions: PdfOptions, defaultName: string): Promise<boolean> =>
     ipcRenderer.invoke(IPC.exportPdf, html, pdfOptions, defaultName),
+  /** Render the HTML to a PNG image and save it (save dialog). */
+  exportImage: (html: string, defaultName: string): Promise<boolean> =>
+    ipcRenderer.invoke(IPC.exportImage, html, defaultName),
+  /** Render the HTML to a PNG image and copy it to the clipboard. */
+  copyImage: (html: string): Promise<boolean> => ipcRenderer.invoke(IPC.copyImage, html),
   /** Render to PDF and open it in the OS viewer for preview + print. */
   printDoc: (html: string, pdfOptions: PdfOptions): Promise<boolean> =>
     ipcRenderer.invoke(IPC.printDoc, html, pdfOptions),
