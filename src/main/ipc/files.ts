@@ -2,7 +2,13 @@ import { ipcMain, dialog, BrowserWindow } from 'electron'
 import { promises as fs } from 'fs'
 import { basename, dirname, extname, join } from 'path'
 import { execFile } from 'child_process'
-import { IPC, type FileNode, type OpenedFile, type ArticleEntry } from '../../shared/ipc'
+import {
+  IPC,
+  type FileNode,
+  type OpenedFile,
+  type ArticleEntry,
+  type SearchFileResult
+} from '../../shared/ipc'
 
 const MD_EXTENSIONS = ['.md', '.markdown', '.mdown', '.mkd', '.txt']
 
@@ -75,12 +81,8 @@ export function registerFileIpc(): void {
   ipcMain.handle(IPC.listArticles, async (_e, dirPath: string): Promise<ArticleEntry[]> => {
     const out: ArticleEntry[] = []
     async function walk(dir: string): Promise<void> {
-      let entries: Awaited<ReturnType<typeof fs.readdir>>
-      try {
-        entries = await fs.readdir(dir, { withFileTypes: true })
-      } catch {
-        return
-      }
+      const entries = await fs.readdir(dir, { withFileTypes: true }).catch(() => null)
+      if (!entries) return
       for (const entry of entries) {
         if (isHidden(entry.name) || entry.name === 'node_modules') continue
         const full = join(dir, entry.name)
@@ -99,6 +101,56 @@ export function registerFileIpc(): void {
     await walk(dirPath)
     return out
   })
+
+  // Global search: scan every markdown file under `dirPath` for `query`,
+  // returning matching lines grouped by file. Plain (case-insensitive)
+  // substring match; capped to keep the UI responsive on large trees.
+  ipcMain.handle(
+    IPC.searchInFolder,
+    async (_e, dirPath: string, query: string): Promise<SearchFileResult[]> => {
+      const needle = query.toLowerCase()
+      if (needle.trim() === '') return []
+      const results: SearchFileResult[] = []
+      let totalMatches = 0
+      const MAX_MATCHES = 500
+
+      async function walk(dir: string): Promise<void> {
+        if (totalMatches >= MAX_MATCHES) return
+        const entries = await fs.readdir(dir, { withFileTypes: true }).catch(() => null)
+        if (!entries) return
+        for (const entry of entries) {
+          if (totalMatches >= MAX_MATCHES) return
+          if (isHidden(entry.name) || entry.name === 'node_modules') continue
+          const full = join(dir, entry.name)
+          if (entry.isDirectory()) {
+            await walk(full)
+          } else if (MD_EXTENSIONS.some((ext) => entry.name.toLowerCase().endsWith(ext))) {
+            let content: string
+            try {
+              content = await fs.readFile(full, 'utf-8')
+            } catch {
+              continue
+            }
+            const fileMatches: SearchFileResult['matches'] = []
+            let offset = 0
+            const lines = content.split('\n')
+            for (let i = 0; i < lines.length; i++) {
+              if (lines[i].toLowerCase().includes(needle)) {
+                fileMatches.push({ line: i + 1, offset, text: lines[i].trim().slice(0, 200) })
+                if (++totalMatches >= MAX_MATCHES) break
+              }
+              offset += lines[i].length + 1
+            }
+            if (fileMatches.length) {
+              results.push({ path: full, name: basename(full), matches: fileMatches })
+            }
+          }
+        }
+      }
+      await walk(dirPath)
+      return results
+    }
+  )
 
   ipcMain.handle(IPC.readFile, async (_e, path: string): Promise<OpenedFile> => {
     const content = await fs.readFile(path, 'utf-8')

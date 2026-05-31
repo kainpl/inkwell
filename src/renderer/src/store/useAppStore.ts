@@ -25,6 +25,9 @@ interface AppState {
   theme: 'light' | 'dark'
   toggleTheme: () => void
   sidebarOpen: boolean
+  /** Which sidebar tab is shown when it's open. */
+  sidebarTab: 'files' | 'articles'
+  setSidebarTab: (tab: 'files' | 'articles') => void
   outlineOpen: boolean
   focusMode: boolean
   typewriterMode: boolean

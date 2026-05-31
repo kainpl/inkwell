@@ -72,7 +72,7 @@ export default function Editor(): JSX.Element {
   useEffect(() => {
     let lastSource = useAppStore.getState().sourceMode
     let lastTypewriter = useAppStore.getState().typewriterMode
-    return useAppStore.subscribe((s) => {
+    const unsub = useAppStore.subscribe((s) => {
       const view = viewRef.current
       if (!view) return
       if (s.sourceMode !== lastSource) {
@@ -84,6 +84,7 @@ export default function Editor(): JSX.Element {
         setTypewriter(view, lastTypewriter)
       }
     })
+    return unsub
   }, [])
 
   // Jump-to-offset from the outline panel.

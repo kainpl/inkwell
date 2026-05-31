@@ -23,6 +23,8 @@ import Editor from '@renderer/components/Editor/Editor'
 import Toolbar from '@renderer/components/Toolbar'
 import FloatingToolbar from '@renderer/components/FloatingToolbar'
 import ImageZoom from '@renderer/components/ImageZoom'
+import QuickOpen from '@renderer/components/QuickOpen'
+import GlobalSearch from '@renderer/components/GlobalSearch'
 import ConfirmUnsavedModal from '@renderer/components/ConfirmUnsavedModal'
 
 export default function App(): JSX.Element {
@@ -115,6 +117,8 @@ export default function App(): JSX.Element {
       <StatusBar />
       <FloatingToolbar />
       <ImageZoom />
+      <QuickOpen />
+      <GlobalSearch />
       <ConfirmUnsavedModal />
     </div>
   )

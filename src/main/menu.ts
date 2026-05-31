@@ -16,6 +16,7 @@ export function buildMenu(win: BrowserWindow): void {
         { label: 'New', accelerator: 'CmdOrCtrl+N', click: send(IPC.menuNewFile) },
         { label: 'Open File…', accelerator: 'CmdOrCtrl+O', click: send(IPC.menuOpenFile) },
         { label: 'Open Folder…', accelerator: 'CmdOrCtrl+Shift+O', click: send(IPC.menuOpenFolder) },
+        { label: 'Open Quickly…', accelerator: 'CmdOrCtrl+P', click: send(IPC.menuOpenQuickly) },
         { type: 'separator' },
         { label: 'Save', accelerator: 'CmdOrCtrl+S', click: send(IPC.menuSave) },
         { label: 'Save As…', accelerator: 'CmdOrCtrl+Shift+S', click: send(IPC.menuSaveAs) },
@@ -87,8 +88,14 @@ export function buildMenu(win: BrowserWindow): void {
         { label: 'Toggle Sidebar', accelerator: 'CmdOrCtrl+\\', click: send(IPC.menuToggleSidebar) },
         { label: 'Toggle Outline', accelerator: 'CmdOrCtrl+/', click: send(IPC.menuToggleOutline) },
         {
-          label: 'Toggle Focus Mode',
+          label: 'Search in Folder…',
           accelerator: 'CmdOrCtrl+Shift+F',
+          click: send(IPC.menuGlobalSearch)
+        },
+        { type: 'separator' },
+        {
+          label: 'Toggle Focus Mode',
+          accelerator: 'F8',
           click: send(IPC.menuToggleFocusMode)
         },
         {

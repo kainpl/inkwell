@@ -28,6 +28,23 @@ export interface ArticleEntry {
   mtime: number
 }
 
+/** One matching line within a file, for global search results. */
+export interface SearchMatch {
+  /** 1-based line number. */
+  line: number
+  /** Character offset of the line start in the document. */
+  offset: number
+  /** The full matching line's text (trimmed for display). */
+  text: string
+}
+
+/** Search results grouped by file. */
+export interface SearchFileResult {
+  path: string
+  name: string
+  matches: SearchMatch[]
+}
+
 /** IPC channel names. One source of truth for both sides. */
 export const IPC = {
   // renderer -> main (invoke/handle)
@@ -38,6 +55,7 @@ export const IPC = {
   saveFileAs: 'fs:saveFileAs',
   readDir: 'fs:readDir',
   listArticles: 'fs:listArticles',
+  searchInFolder: 'fs:searchInFolder',
   saveImage: 'fs:saveImage',
   uploadImage: 'fs:uploadImage',
   // main -> renderer (send/on)
@@ -54,6 +72,8 @@ export const IPC = {
   menuToggleFormatBar: 'menu:toggleFormatBar',
   menuJumpTop: 'menu:jumpTop',
   menuJumpBottom: 'menu:jumpBottom',
+  menuOpenQuickly: 'menu:openQuickly',
+  menuGlobalSearch: 'menu:globalSearch',
   menuFormat: 'menu:format',
   // app lifecycle / unsaved-changes guard
   setDirty: 'app:setDirty',
