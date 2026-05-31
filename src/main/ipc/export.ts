@@ -1,4 +1,4 @@
-import { ipcMain, dialog, BrowserWindow, app } from 'electron'
+import { ipcMain, dialog, BrowserWindow, app, shell } from 'electron'
 import { promises as fs } from 'fs'
 import { join } from 'path'
 import { IPC, type PdfOptions } from '../../shared/ipc'
@@ -59,13 +59,19 @@ export function registerExportIpc(): void {
     }
   )
 
-  ipcMain.handle(IPC.printDoc, async (_e, html: string): Promise<boolean> => {
+  // Print: render to a PDF and open it in the OS viewer, which gives a real
+  // print preview + print. Electron's webContents.print() goes straight to the
+  // system dialog with no preview ("application does not support preview").
+  ipcMain.handle(IPC.printDoc, async (_e, html: string, pdfOptions: PdfOptions): Promise<boolean> => {
     const { win, cleanup } = await offscreen(html)
-    return new Promise<boolean>((resolve) => {
-      win.webContents.print({ printBackground: true }, (success) => {
-        cleanup()
-        resolve(success)
-      })
-    })
+    try {
+      const pdf = await win.webContents.printToPDF(pdfOptions as Electron.PrintToPDFOptions)
+      const out = join(app.getPath('temp'), `inkwell-print-${Date.now()}.pdf`)
+      await fs.writeFile(out, pdf)
+      await shell.openPath(out)
+    } finally {
+      cleanup()
+    }
+    return true
   })
 }

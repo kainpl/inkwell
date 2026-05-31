@@ -64,8 +64,9 @@ const api = {
   /** Render the HTML to PDF via an offscreen window + save dialog. */
   exportPdf: (html: string, pdfOptions: PdfOptions, defaultName: string): Promise<boolean> =>
     ipcRenderer.invoke(IPC.exportPdf, html, pdfOptions, defaultName),
-  /** Print the rendered document HTML (system print dialog). */
-  printDoc: (html: string): Promise<boolean> => ipcRenderer.invoke(IPC.printDoc, html),
+  /** Render to PDF and open it in the OS viewer for preview + print. */
+  printDoc: (html: string, pdfOptions: PdfOptions): Promise<boolean> =>
+    ipcRenderer.invoke(IPC.printDoc, html, pdfOptions),
   createFile: (dirPath: string, name: string): Promise<string> =>
     ipcRenderer.invoke(IPC.createFile, dirPath, name),
   createFolder: (dirPath: string, name: string): Promise<string> =>

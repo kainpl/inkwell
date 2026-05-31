@@ -34,5 +34,5 @@ export async function printDocument(): Promise<void> {
     styled: true,
     breakBeforeH1: pageSetup.breakBeforeH1
   })
-  await window.api.printDoc(html)
+  await window.api.printDoc(html, pdfOptions(pageSetup))
 }
