@@ -23,7 +23,9 @@ const menuChannels = [
   IPC.menuJumpBottom,
   IPC.menuOpenQuickly,
   IPC.menuGlobalSearch,
-  IPC.menuToggleAutoSave
+  IPC.menuToggleAutoSave,
+  IPC.menuOpenRecent,
+  IPC.menuReopenClosed
 ] as const
 
 type MenuChannel = (typeof menuChannels)[number]
@@ -32,6 +34,8 @@ const api = {
   openFileDialog: (): Promise<OpenedFile | null> => ipcRenderer.invoke(IPC.openFileDialog),
   openFolderDialog: (): Promise<FileNode | null> => ipcRenderer.invoke(IPC.openFolderDialog),
   readDir: (path: string): Promise<FileNode[]> => ipcRenderer.invoke(IPC.readDir, path),
+  readFolder: (path: string): Promise<FileNode | null> =>
+    ipcRenderer.invoke(IPC.readFolder, path),
   listArticles: (path: string): Promise<ArticleEntry[]> =>
     ipcRenderer.invoke(IPC.listArticles, path),
   searchInFolder: (path: string, query: string): Promise<SearchFileResult[]> =>

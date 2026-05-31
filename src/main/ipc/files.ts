@@ -76,6 +76,23 @@ export function registerFileIpc(): void {
     return readDirTree(dirPath, 0)
   })
 
+  // Open a folder by path (no dialog) — used to restore the last session.
+  // Returns null if the path no longer exists or isn't a directory.
+  ipcMain.handle(IPC.readFolder, async (_e, dirPath: string): Promise<FileNode | null> => {
+    try {
+      const st = await fs.stat(dirPath)
+      if (!st.isDirectory()) return null
+      return {
+        path: dirPath,
+        name: basename(dirPath),
+        type: 'directory',
+        children: await readDirTree(dirPath, 1)
+      }
+    } catch {
+      return null
+    }
+  })
+
   // Recursively collect every markdown file under `dirPath` with its mtime,
   // for the Articles list and quick-open. Skips hidden dirs and node_modules.
   ipcMain.handle(IPC.listArticles, async (_e, dirPath: string): Promise<ArticleEntry[]> => {

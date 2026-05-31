@@ -85,8 +85,10 @@ Auto Save & Version Control*) і з поточним кодом Inkwell.
 - [x] **Автозбереження** (debounce 1.5s → `fs.writeFile`; лише для збереженого файлу, перемикач у меню File + статус-бар; чистий `autoSave` з тестами)
 - [ ] **Recover Unsaved Drafts** — бекапи `{date}-{filename}.md` при краху/виході
 - [ ] **Browse All Versions** — локальна історія версій документа
-- [ ] **Open Recent / Recent Locations**, **Reopen Closed File**, **Save All**, **New Window**
-- [ ] **Відновлення сесії** (останній документ/тека/каретка) при старті
+- [x] **Open Recent** (File → Open Recent, пікер) + **Reopen Closed File** (`Ctrl+Shift+T`) — список у localStorage, чистий `recentFiles` з тестами
+  - [ ] **Recent Locations** (нещодавні теки), **Save All**, **New Window** — потребують мульти-док/мульти-вікно (Фаза 9)
+- [x] **Відновлення сесії** (останній документ + тека при старті через localStorage)
+  - [ ] відновлення позиції каретки — додамо разом із per-file станом
 - [ ] Дії над файлами в дереві: New File/Folder, Rename, Duplicate, Move To, Delete, Reveal in File Tree / Open File Location
 - [ ] Reopen with Encoding; **Line Endings** CRLF/LF; Insert Final New Line On Save
 - [ ] **Стеження за змінами файлу на диску** + перезавантаження/конфлікт

@@ -54,6 +54,7 @@ export const IPC = {
   saveFile: 'fs:saveFile',
   saveFileAs: 'fs:saveFileAs',
   readDir: 'fs:readDir',
+  readFolder: 'fs:readFolder',
   listArticles: 'fs:listArticles',
   searchInFolder: 'fs:searchInFolder',
   saveImage: 'fs:saveImage',
@@ -75,6 +76,8 @@ export const IPC = {
   menuOpenQuickly: 'menu:openQuickly',
   menuGlobalSearch: 'menu:globalSearch',
   menuToggleAutoSave: 'menu:toggleAutoSave',
+  menuOpenRecent: 'menu:openRecent',
+  menuReopenClosed: 'menu:reopenClosed',
   menuFormat: 'menu:format',
   // app lifecycle / unsaved-changes guard
   setDirty: 'app:setDirty',

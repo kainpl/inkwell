@@ -6,6 +6,8 @@ import {
   newDocument,
   openFileFromDialog,
   openFolderFromDialog,
+  reopenClosedFile,
+  restoreSession,
   saveDoc,
   saveDocAs
 } from '@renderer/lib/docActions'
@@ -26,6 +28,7 @@ import FloatingToolbar from '@renderer/components/FloatingToolbar'
 import ImageZoom from '@renderer/components/ImageZoom'
 import QuickOpen from '@renderer/components/QuickOpen'
 import GlobalSearch from '@renderer/components/GlobalSearch'
+import RecentFiles from '@renderer/components/RecentFiles'
 import ConfirmUnsavedModal from '@renderer/components/ConfirmUnsavedModal'
 
 export default function App(): JSX.Element {
@@ -53,6 +56,7 @@ export default function App(): JSX.Element {
       window.api.onMenu(IPC.menuToggleSourceMode, () => useAppStore.getState().toggleSourceMode()),
       window.api.onMenu(IPC.menuToggleFormatBar, () => useAppStore.getState().toggleFormatBar()),
       window.api.onMenu(IPC.menuToggleAutoSave, () => useAppStore.getState().toggleAutoSave()),
+      window.api.onMenu(IPC.menuReopenClosed, () => void reopenClosedFile()),
       window.api.onMenu(IPC.menuJumpTop, () => {
         const view = useEditor.getState().view
         if (view) {
@@ -108,6 +112,11 @@ export default function App(): JSX.Element {
   // Debounced auto-save (no-op until the user enables it).
   useEffect(() => startAutoSave(), [])
 
+  // Reopen the last session's folder/document on launch.
+  useEffect(() => {
+    void restoreSession()
+  }, [])
+
   return (
     <div className="flex h-full w-full flex-col bg-paper">
       <TitleBar />
@@ -124,6 +133,7 @@ export default function App(): JSX.Element {
       <ImageZoom />
       <QuickOpen />
       <GlobalSearch />
+      <RecentFiles />
       <ConfirmUnsavedModal />
     </div>
   )

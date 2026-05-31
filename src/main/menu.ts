@@ -17,6 +17,12 @@ export function buildMenu(win: BrowserWindow): void {
         { label: 'Open File…', accelerator: 'CmdOrCtrl+O', click: send(IPC.menuOpenFile) },
         { label: 'Open Folder…', accelerator: 'CmdOrCtrl+Shift+O', click: send(IPC.menuOpenFolder) },
         { label: 'Open Quickly…', accelerator: 'CmdOrCtrl+P', click: send(IPC.menuOpenQuickly) },
+        { label: 'Open Recent…', click: send(IPC.menuOpenRecent) },
+        {
+          label: 'Reopen Closed File',
+          accelerator: 'CmdOrCtrl+Shift+T',
+          click: send(IPC.menuReopenClosed)
+        },
         { type: 'separator' },
         { label: 'Save', accelerator: 'CmdOrCtrl+S', click: send(IPC.menuSave) },
         { label: 'Save As…', accelerator: 'CmdOrCtrl+Shift+S', click: send(IPC.menuSaveAs) },
