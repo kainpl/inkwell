@@ -1,4 +1,4 @@
-import { ipcMain, dialog, BrowserWindow, app, shell } from 'electron'
+import { ipcMain, dialog, BrowserWindow, app } from 'electron'
 import { promises as fs } from 'fs'
 import { join } from 'path'
 import { IPC, type PdfOptions } from '../../shared/ipc'
@@ -59,19 +59,32 @@ export function registerExportIpc(): void {
     }
   )
 
-  // Print: render to a PDF and open it in the OS viewer, which gives a real
-  // print preview + print. Electron's webContents.print() goes straight to the
-  // system dialog with no preview ("application does not support preview").
-  ipcMain.handle(IPC.printDoc, async (_e, html: string, pdfOptions: PdfOptions): Promise<boolean> => {
+  // Print: render to a PDF and show it in an in-app window using Chromium's
+  // built-in PDF viewer (zoom + print). Electron's webContents.print() goes
+  // straight to the system dialog with no preview pane.
+  ipcMain.handle(IPC.printDoc, async (e, html: string, pdfOptions: PdfOptions): Promise<boolean> => {
     const { win, cleanup } = await offscreen(html)
+    let pdf: Buffer
     try {
-      const pdf = await win.webContents.printToPDF(pdfOptions as Electron.PrintToPDFOptions)
-      const out = join(app.getPath('temp'), `inkwell-print-${Date.now()}.pdf`)
-      await fs.writeFile(out, pdf)
-      await shell.openPath(out)
+      pdf = await win.webContents.printToPDF(pdfOptions as Electron.PrintToPDFOptions)
     } finally {
       cleanup()
     }
+    const out = join(app.getPath('temp'), `inkwell-print-${Date.now()}.pdf`)
+    await fs.writeFile(out, pdf)
+
+    const preview = new BrowserWindow({
+      width: 880,
+      height: 1000,
+      title: 'Print Preview',
+      parent: BrowserWindow.fromWebContents(e.sender) ?? undefined,
+      autoHideMenuBar: true,
+      show: false,
+      webPreferences: { sandbox: true, plugins: true }
+    })
+    preview.on('closed', () => void fs.unlink(out).catch(() => undefined))
+    await preview.loadFile(out)
+    preview.show()
     return true
   })
 }
