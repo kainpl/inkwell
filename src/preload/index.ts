@@ -22,7 +22,8 @@ const menuChannels = [
   IPC.menuJumpTop,
   IPC.menuJumpBottom,
   IPC.menuOpenQuickly,
-  IPC.menuGlobalSearch
+  IPC.menuGlobalSearch,
+  IPC.menuToggleAutoSave
 ] as const
 
 type MenuChannel = (typeof menuChannels)[number]

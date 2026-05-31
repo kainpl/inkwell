@@ -74,6 +74,7 @@ export const IPC = {
   menuJumpBottom: 'menu:jumpBottom',
   menuOpenQuickly: 'menu:openQuickly',
   menuGlobalSearch: 'menu:globalSearch',
+  menuToggleAutoSave: 'menu:toggleAutoSave',
   menuFormat: 'menu:format',
   // app lifecycle / unsaved-changes guard
   setDirty: 'app:setDirty',

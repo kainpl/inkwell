@@ -33,6 +33,8 @@ interface AppState {
   typewriterMode: boolean
   sourceMode: boolean
   formatBarOpen: boolean
+  /** Auto-save the document a short while after edits stop (only when it has a path). */
+  autoSave: boolean
   /** Shell command for image upload (Typora-style); configured in Preferences. */
   imageUploadCommand: string
   toggleSidebar: () => void
@@ -41,6 +43,7 @@ interface AppState {
   toggleTypewriter: () => void
   toggleSourceMode: () => void
   toggleFormatBar: () => void
+  toggleAutoSave: () => void
   setImageUploadCommand: (command: string) => void
 }
 
@@ -204,6 +207,7 @@ export const useAppStore = create<AppState>((set) => ({
   typewriterMode: false,
   sourceMode: false,
   formatBarOpen: true,
+  autoSave: false,
   imageUploadCommand: '',
   toggleSidebar: () => set((s) => ({ sidebarOpen: !s.sidebarOpen })),
   toggleOutline: () => set((s) => ({ outlineOpen: !s.outlineOpen })),
@@ -211,5 +215,6 @@ export const useAppStore = create<AppState>((set) => ({
   toggleTypewriter: () => set((s) => ({ typewriterMode: !s.typewriterMode })),
   toggleSourceMode: () => set((s) => ({ sourceMode: !s.sourceMode })),
   toggleFormatBar: () => set((s) => ({ formatBarOpen: !s.formatBarOpen })),
+  toggleAutoSave: () => set((s) => ({ autoSave: !s.autoSave })),
   setImageUploadCommand: (command) => set({ imageUploadCommand: command })
 }))

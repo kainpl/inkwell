@@ -8,9 +8,11 @@ export default function StatusBar(): JSX.Element {
   const focusMode = useAppStore((s) => s.focusMode)
   const typewriter = useAppStore((s) => s.typewriterMode)
   const sourceMode = useAppStore((s) => s.sourceMode)
+  const autoSave = useAppStore((s) => s.autoSave)
   const toggleFocusMode = useAppStore((s) => s.toggleFocusMode)
   const toggleTypewriter = useAppStore((s) => s.toggleTypewriter)
   const toggleSourceMode = useAppStore((s) => s.toggleSourceMode)
+  const toggleAutoSave = useAppStore((s) => s.toggleAutoSave)
 
   const stats = useMemo(() => computeStats(content), [content])
 
@@ -24,6 +26,13 @@ export default function StatusBar(): JSX.Element {
       </div>
       <div className="flex items-center gap-3">
         <button
+          onClick={toggleAutoSave}
+          title="Auto-save after edits (saved files only)"
+          className={'hover:text-ink ' + (autoSave ? 'text-accent' : '')}
+        >
+          Auto-save
+        </button>
+        <button
           onClick={toggleSourceMode}
           title="Show raw Markdown (Ctrl+Shift+E)"
           className={'hover:text-ink ' + (sourceMode ? 'text-accent' : '')}
@@ -32,7 +41,7 @@ export default function StatusBar(): JSX.Element {
         </button>
         <button
           onClick={toggleFocusMode}
-          title="Dim all but the active line (Ctrl+Shift+F)"
+          title="Dim all but the active line (F8)"
           className={'hover:text-ink ' + (focusMode ? 'text-accent' : '')}
         >
           Focus

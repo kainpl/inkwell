@@ -15,6 +15,7 @@ import { useEditor } from '@renderer/store/useEditor'
 import { applyFormat, type FormatAction } from '@renderer/lib/formatCommands'
 import { uploadCurrentImage } from '@renderer/lib/uploadImage'
 import { applyTable, type TableAction } from '@renderer/lib/tableCommands'
+import { startAutoSave } from '@renderer/lib/autoSave'
 import TitleBar from '@renderer/components/TitleBar'
 import Sidebar from '@renderer/components/Sidebar'
 import OutlinePanel from '@renderer/components/OutlinePanel'
@@ -51,6 +52,7 @@ export default function App(): JSX.Element {
       window.api.onMenu(IPC.menuToggleTypewriter, () => useAppStore.getState().toggleTypewriter()),
       window.api.onMenu(IPC.menuToggleSourceMode, () => useAppStore.getState().toggleSourceMode()),
       window.api.onMenu(IPC.menuToggleFormatBar, () => useAppStore.getState().toggleFormatBar()),
+      window.api.onMenu(IPC.menuToggleAutoSave, () => useAppStore.getState().toggleAutoSave()),
       window.api.onMenu(IPC.menuJumpTop, () => {
         const view = useEditor.getState().view
         if (view) {
@@ -102,6 +104,9 @@ export default function App(): JSX.Element {
       })
     })
   }, [])
+
+  // Debounced auto-save (no-op until the user enables it).
+  useEffect(() => startAutoSave(), [])
 
   return (
     <div className="flex h-full w-full flex-col bg-paper">

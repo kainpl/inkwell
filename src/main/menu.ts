@@ -20,6 +20,7 @@ export function buildMenu(win: BrowserWindow): void {
         { type: 'separator' },
         { label: 'Save', accelerator: 'CmdOrCtrl+S', click: send(IPC.menuSave) },
         { label: 'Save As…', accelerator: 'CmdOrCtrl+Shift+S', click: send(IPC.menuSaveAs) },
+        { label: 'Auto Save', type: 'checkbox', checked: false, click: send(IPC.menuToggleAutoSave) },
         { type: 'separator' },
         isMac ? { role: 'close' } : { role: 'quit' }
       ]
