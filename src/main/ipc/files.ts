@@ -301,11 +301,19 @@ export function registerFileIpc(): void {
   // --- Crash-recovery drafts (snapshots under userData/drafts) -------------
   const draftsDir = (): string => join(app.getPath('userData'), 'drafts')
 
+  // The draft id becomes a filename, so it must never contain path separators
+  // or traversal sequences (it arrives over IPC and cannot be trusted).
+  const draftFile = (dir: string, id: string): string => {
+    if (!/^[A-Za-z0-9_-]{1,128}$/.test(id)) throw new Error('invalid draft id')
+    return join(dir, id + '.json')
+  }
+
   // Save a draft snapshot keyed by id; the meta (path/name) rides in the file.
   ipcMain.handle(IPC.saveDraft, async (_e, draft: DraftEntry): Promise<boolean> => {
     const dir = draftsDir()
+    const file = draftFile(dir, draft.id)
     await fs.mkdir(dir, { recursive: true })
-    await fs.writeFile(join(dir, draft.id + '.json'), JSON.stringify(draft), 'utf-8')
+    await fs.writeFile(file, JSON.stringify(draft), 'utf-8')
     return true
   })
 
@@ -332,8 +340,14 @@ export function registerFileIpc(): void {
 
   // Remove a draft once its document has been cleanly saved or discarded.
   ipcMain.handle(IPC.clearDraft, async (_e, id: string): Promise<boolean> => {
+    let file: string
     try {
-      await fs.unlink(join(draftsDir(), id + '.json'))
+      file = draftFile(draftsDir(), id) // rejects ids with path separators
+    } catch {
+      return false
+    }
+    try {
+      await fs.unlink(file)
     } catch {
       /* already gone */
     }
