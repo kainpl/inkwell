@@ -33,12 +33,31 @@ function Appearance(): JSX.Element {
     <>
       <Row label="Theme">
         <select className={FIELD} value={s.theme} onChange={(e) => s.setTheme(e.target.value)}>
-          {THEMES.map((t) => (
-            <option key={t.id} value={t.id}>
-              {t.label}
-            </option>
-          ))}
+          <optgroup label="Built-in">
+            {THEMES.map((t) => (
+              <option key={t.id} value={t.id}>
+                {t.label}
+              </option>
+            ))}
+          </optgroup>
+          {s.externalThemes.length > 0 && (
+            <optgroup label="Custom">
+              {s.externalThemes.map((t) => (
+                <option key={t.id} value={t.id}>
+                  {t.label}
+                </option>
+              ))}
+            </optgroup>
+          )}
         </select>
+      </Row>
+      <Row label="Custom themes" hint="drop .css files here — they hot-reload">
+        <button
+          className="rounded border border-line px-2 py-1 text-sm text-ink hover:bg-ink/5"
+          onClick={() => void window.api.openThemesFolder()}
+        >
+          Open themes folder…
+        </button>
       </Row>
       <Row label="Editor font">
         <select className={FIELD} value={s.editorFont} onChange={(e) => s.setEditorFont(e.target.value as EditorFont)}>

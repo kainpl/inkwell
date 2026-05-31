@@ -61,6 +61,26 @@ export interface VersionEntry {
   size: number
 }
 
+/** An external theme found in the user's themes folder. */
+export interface ExternalTheme {
+  /** Filename without `.css` — also the selectable theme id. */
+  id: string
+  /** Humanised display name. */
+  label: string
+  /** Dark-based (opted in via an `inkwell: dark` marker in the file). */
+  dark: boolean
+}
+
+/** A theme's CSS plus the user-override cascade (each null when absent). */
+export interface ThemeCss {
+  /** The external theme file's CSS (null for built-in themes). */
+  theme: string | null
+  /** `base.user.css` — always applied, over any theme. */
+  base: string | null
+  /** `{id}.user.css` — applied when this theme is active. */
+  themeUser: string | null
+}
+
 /** A recoverable autosaved draft (crash recovery). */
 export interface DraftEntry {
   /** Stable id derived from the document path (or "untitled"). */
@@ -109,6 +129,12 @@ export const IPC = {
   watchFile: 'watch:file',
   // read the bundled welcome document from disk (first-launch sample)
   getWelcome: 'app:getWelcome',
+  // external themes (userData/themes)
+  listThemes: 'theme:list',
+  readThemeCss: 'theme:readCss',
+  openThemesFolder: 'theme:openFolder',
+  // main -> renderer: the themes folder changed (added/edited/removed a file)
+  themesChanged: 'theme:changed',
   // export / print
   exportHtml: 'export:html',
   exportPdf: 'export:pdf',

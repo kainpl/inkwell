@@ -16,7 +16,7 @@ import {
   saveDocAs
 } from '@renderer/lib/docActions'
 import { setSessionFile } from '@renderer/lib/persistence'
-import { isDarkTheme } from '@renderer/lib/themes'
+import { startThemeSync } from '@renderer/lib/themeApply'
 import { EditorView } from '@codemirror/view'
 import { cursorDocStart, cursorDocEnd } from '@codemirror/commands'
 import { useEditor } from '@renderer/store/useEditor'
@@ -56,16 +56,7 @@ import PromptModal from '@renderer/components/PromptModal'
 import ConfirmUnsavedModal from '@renderer/components/ConfirmUnsavedModal'
 
 export default function App(): JSX.Element {
-  const theme = useAppStore((s) => s.theme)
   const formatBarOpen = useAppStore((s) => s.formatBarOpen)
-
-  // Apply the active theme to <html>: `data-theme` selects the palette block in
-  // index.css, and `.dark` stays toggled for component-level dark styling.
-  useEffect(() => {
-    const root = document.documentElement
-    root.dataset.theme = theme
-    root.classList.toggle('dark', isDarkTheme(theme))
-  }, [theme])
 
   // Wire main-process menu commands (file ops route through the unsaved guard).
   useEffect(() => {
@@ -169,11 +160,13 @@ export default function App(): JSX.Element {
     const stopDrafts = startDraftAutoSave()
     const stopDiskWatch = startDiskWatch()
     const stopSettings = startSettingsSync()
+    const stopThemes = startThemeSync()
     return () => {
       stopAutoSave()
       stopDrafts()
       stopDiskWatch()
       stopSettings()
+      stopThemes()
     }
   }, [])
 

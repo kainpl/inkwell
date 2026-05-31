@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import type { FileNode } from '@shared/ipc'
+import type { FileNode, ExternalTheme } from '@shared/ipc'
 import { type Tab, findByPath, isReplaceable, closeTab } from '@renderer/lib/tabsModel'
 import { type PageSetup, loadPageSetup, savePageSetup } from '@renderer/lib/pageSetup'
 import { type EditorFont, loadSettings } from '@renderer/lib/settings'
@@ -65,6 +65,9 @@ interface AppState {
   setPageSetup: (patch: Partial<PageSetup>) => void
   // --- appearance / typography (persisted via settingsSync) ---
   setTheme: (theme: string) => void
+  /** Themes discovered in the user's themes folder (see lib/themeApply.ts). */
+  externalThemes: ExternalTheme[]
+  setExternalThemes: (themes: ExternalTheme[]) => void
   editorFont: EditorFont
   editorFontSize: number
   editorLineHeight: number
@@ -198,6 +201,8 @@ export const useAppStore = create<AppState>((set) => ({
   theme: s0.theme,
   toggleTheme: () => set((s) => ({ theme: isDarkTheme(s.theme) ? 'light' : 'dark' })),
   setTheme: (theme) => set({ theme }),
+  externalThemes: [],
+  setExternalThemes: (externalThemes) => set({ externalThemes }),
 
   sidebarOpen: true,
   sidebarTab: 'files',

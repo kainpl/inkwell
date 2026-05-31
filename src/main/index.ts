@@ -3,6 +3,7 @@ import { join } from 'path'
 import { pathToFileURL } from 'url'
 import { registerFileIpc } from './ipc/files'
 import { registerExportIpc } from './ipc/export'
+import { registerThemeIpc } from './ipc/themes'
 import { buildMenu } from './menu'
 import { IPC } from '../shared/ipc'
 
@@ -91,6 +92,7 @@ app.whenReady().then(() => {
   protocol.handle('inkfile', handleInkfile)
   registerFileIpc()
   registerExportIpc()
+  registerThemeIpc()
 
   const win = createWindow()
   buildMenu(win)

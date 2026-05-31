@@ -116,8 +116,8 @@ Auto Save & Version Control*) і з поточним кодом Inkwell.
 ## Фаза 6 — теми й оформлення
 - ✅ Світла/темна тема (CSS-змінні + перемикач)
 - ✅ Кілька **вбудованих тем** — 6.2: реєстр `lib/themes.ts` (`[data-theme]`-палітри в `index.css`) + перемикач у Preferences ▸ Appearance і швидкий light↔dark у TitleBar. Готові: **Light / Dark / GitHub / Newsprint / Night / Pixyll** (кожна — набір CSS-токенів `--paper`/`--ink`/`--accent`/`--syn-*`). Невідомий id у настройках мігрує на `light`
-- 🟡 Кастомні теми: механізм `[data-theme]` задіяно (вбудовані теми); лишилось **завантаження зовнішніх `.css`** із теки тем + перемикач у UI — 6.3
-- ⬜ Каскад `base.user.css` + `{theme}.user.css` для правок без втрати при оновленні (як у Typora)
+- ✅ **Зовнішні `.css`-теми** — 6.3: тека `userData/themes/` (сід `README` + `example.css`), скан `*.css` у дропдаун (`main/ipc/themes.ts`), інжекція активної теми через `<style>`, **гаряче перезавантаження** (`fs.watch`). Конвенція — перевизначення тих самих токенів на `:root`; dark — за маркером `inkwell: dark`. Path-traversal id валідовано
+- ✅ Каскад `base.user.css` + `{theme}.user.css` — 6.3: `base.user.css` завжди поверх активної теми, `{theme}.user.css` — лише для неї (як у Typora). Перевірено наживо
 - ✅ **Типографіка**: шрифт редактора (serif/sans/mono), ширина «сторінки», міжрядковий інтервал, розмір — застосовуються живими CSS-змінними через CM-тему; зберігаються у `localStorage` (`lib/settings.ts` + `settingsSync.ts`)
   - ⬜ auto-hide menu bar
 - 🟡 Панель **Preferences** (Edit → Preferences…, `Ctrl/⌘ ,`): секції **Appearance / Editor / Image / Export** готові; **Markdown-прапорці** — у наступних підфазах (потребують умовного вмикання у livePreview)

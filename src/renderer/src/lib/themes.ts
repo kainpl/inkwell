@@ -30,3 +30,16 @@ export function isDarkTheme(id: string): boolean {
 export function isKnownTheme(id: string): boolean {
   return THEMES.some((t) => t.id === id)
 }
+
+/**
+ * Resolve dark-ness across built-in and external themes: built-ins win, then the
+ * external list (from the themes folder). Unknown → false.
+ */
+export function isDarkThemeResolved(
+  id: string,
+  external: { id: string; dark: boolean }[] = []
+): boolean {
+  const builtIn = THEMES.find((t) => t.id === id)
+  if (builtIn) return builtIn.dark
+  return external.find((t) => t.id === id)?.dark ?? false
+}

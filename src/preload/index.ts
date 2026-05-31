@@ -7,7 +7,9 @@ import {
   type SearchFileResult,
   type DraftEntry,
   type VersionEntry,
-  type PdfOptions
+  type PdfOptions,
+  type ExternalTheme,
+  type ThemeCss
 } from '../shared/ipc'
 
 const menuChannels = [
@@ -140,6 +142,17 @@ const api = {
   listVersions: (id: string): Promise<VersionEntry[]> => ipcRenderer.invoke(IPC.listVersions, id),
   readVersion: (id: string, savedAt: number): Promise<string | null> =>
     ipcRenderer.invoke(IPC.readVersion, id, savedAt),
+
+  /** External themes (userData/themes). */
+  listThemes: (): Promise<ExternalTheme[]> => ipcRenderer.invoke(IPC.listThemes),
+  readThemeCss: (id: string): Promise<ThemeCss> => ipcRenderer.invoke(IPC.readThemeCss, id),
+  openThemesFolder: (): Promise<void> => ipcRenderer.invoke(IPC.openThemesFolder),
+  /** The themes folder changed on disk (file added/edited/removed). */
+  onThemesChanged: (handler: () => void): (() => void) => {
+    const listener = (): void => handler()
+    ipcRenderer.on(IPC.themesChanged, listener)
+    return () => ipcRenderer.removeListener(IPC.themesChanged, listener)
+  },
 
   /** Watch the open document for external changes (pass null to stop). */
   watchFile: (path: string | null): Promise<void> => ipcRenderer.invoke(IPC.watchFile, path),
