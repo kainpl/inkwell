@@ -1,4 +1,4 @@
-import { renderMarkdownBody } from './exportRender'
+import { renderMarkdownBody, renderDocumentHtml } from './exportRender'
 
 describe('renderMarkdownBody', () => {
   it('renders headings, emphasis and inline code', () => {
@@ -52,5 +52,54 @@ describe('renderMarkdownBody', () => {
     expect(html).toContain('katex')
     // KaTeX emits the source in an annotation, proving it rendered (not raw $).
     expect(html).not.toContain('$E=mc^2$')
+  })
+
+  it('renders :shortcode: emoji', () => {
+    expect(renderMarkdownBody('hi :rocket:')).toContain('🚀')
+  })
+})
+
+describe('renderDocumentHtml', () => {
+  it('wraps the body in a full HTML document, with styles by default', async () => {
+    const html = await renderDocumentHtml('# Hi')
+    expect(html).toContain('<!doctype html>')
+    expect(html).toContain('<style>')
+    expect(html).toContain('<h1>Hi</h1>')
+  })
+
+  it('omits styles when styled is false', async () => {
+    const html = await renderDocumentHtml('# Hi', { styled: false })
+    expect(html).not.toContain('<style>')
+    expect(html).toContain('<h1>Hi</h1>')
+  })
+
+  it('converts GitHub alerts into styled blockquotes', async () => {
+    const html = await renderDocumentHtml('> [!NOTE]\n> careful')
+    expect(html).toContain('ink-alert-note')
+    expect(html).toContain('ink-alert-label')
+    expect(html).not.toContain('[!NOTE]')
+  })
+
+  it('expands [toc] into a table of contents from headings', async () => {
+    const html = await renderDocumentHtml('# One\n\n[toc]\n\n## Two')
+    expect(html).toContain('ink-toc')
+    expect(html).toContain('href="#two"')
+  })
+
+  it('renders mermaid blocks via the injected renderer', async () => {
+    const html = await renderDocumentHtml('```mermaid\ngraph LR\nA-->B\n```', {
+      renderMermaidSvg: async () => '<svg id="m"></svg>'
+    })
+    expect(html).toContain('ink-mermaid')
+    expect(html).toContain('<svg')
+    expect(html).not.toContain('language-mermaid')
+  })
+
+  it('embeds local images via the injected embedder', async () => {
+    const html = await renderDocumentHtml('![a](pic.png)', {
+      docPath: '/docs/note.md',
+      embedImage: async () => 'data:image/png;base64,AAAA'
+    })
+    expect(html).toContain('data:image/png;base64,AAAA')
   })
 })
