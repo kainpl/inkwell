@@ -48,6 +48,7 @@ import GlobalSearch from '@renderer/components/GlobalSearch'
 import RecentFiles from '@renderer/components/RecentFiles'
 import BrowseVersions from '@renderer/components/BrowseVersions'
 import PageSetupModal from '@renderer/components/PageSetupModal'
+import PandocDownload from '@renderer/components/PandocDownload'
 import PromptModal from '@renderer/components/PromptModal'
 import ConfirmUnsavedModal from '@renderer/components/ConfirmUnsavedModal'
 
@@ -196,6 +197,7 @@ export default function App(): JSX.Element {
       <RecentFiles />
       <BrowseVersions />
       <PageSetupModal />
+      <PandocDownload />
       <PromptModal />
       <ConfirmUnsavedModal />
     </div>

@@ -1,8 +1,8 @@
 import { ipcMain, dialog, BrowserWindow, app, clipboard } from 'electron'
 import { promises as fs } from 'fs'
 import { join, dirname } from 'path'
-import { execFile } from 'child_process'
 import { IPC, type PdfOptions } from '../../shared/ipc'
+import { resolvePandoc, downloadPandoc, runPandoc } from '../pandoc'
 
 /**
  * Export / print. The renderer produces fully static, sanitized HTML (math and
@@ -53,21 +53,6 @@ async function renderToImage(html: string): Promise<Electron.NativeImage> {
   }
 }
 
-/** Whether pandoc is on PATH. */
-function pandocAvailable(): Promise<boolean> {
-  return new Promise((resolve) => execFile('pandoc', ['--version'], (err) => resolve(!err)))
-}
-
-/** Run pandoc with args; rejects with its stderr on failure. */
-function runPandoc(args: string[]): Promise<void> {
-  return new Promise((resolve, reject) => {
-    execFile('pandoc', args, { timeout: 120_000 }, (err, _out, errOut) => {
-      if (err) reject(new Error(errOut || err.message))
-      else resolve()
-    })
-  })
-}
-
 export function registerExportIpc(): void {
   // Write text and/or HTML to the system clipboard (Copy as Markdown/HTML/Plain).
   ipcMain.handle(IPC.clipboardWrite, (_e, data: { text?: string; html?: string }): boolean => {
@@ -104,13 +89,33 @@ export function registerExportIpc(): void {
       defaultName: string
     ): Promise<boolean> => {
       const parent = BrowserWindow.fromWebContents(e.sender) ?? undefined
-      if (!(await pandocAvailable())) {
-        await dialog.showMessageBox(parent!, {
-          type: 'info',
-          message: 'Pandoc is not installed',
-          detail: 'Install pandoc from https://pandoc.org to export to this format.'
+      let bin = await resolvePandoc()
+      if (!bin) {
+        const { response } = await dialog.showMessageBox(parent!, {
+          type: 'question',
+          buttons: ['Download', 'Cancel'],
+          defaultId: 0,
+          cancelId: 1,
+          message: 'Pandoc is required for this export',
+          detail: 'Inkwell can download pandoc (~40 MB) and keep it for next time.'
         })
-        return false
+        if (response !== 0) return false
+        try {
+          bin = await downloadPandoc((pct) => {
+            if (!e.sender.isDestroyed()) e.sender.send(IPC.pandocProgress, pct)
+          })
+        } catch {
+          bin = null
+        }
+        if (!e.sender.isDestroyed()) e.sender.send(IPC.pandocProgress, -1)
+        if (!bin) {
+          await dialog.showMessageBox(parent!, {
+            type: 'error',
+            message: 'Could not download pandoc',
+            detail: 'Install pandoc manually from https://pandoc.org and try again.'
+          })
+          return false
+        }
       }
       const { canceled, filePath } = await dialog.showSaveDialog(parent!, {
         defaultPath: defaultName,
@@ -122,7 +127,7 @@ export function registerExportIpc(): void {
       const args = ['-f', 'gfm+tex_math_dollars', '-t', format, '-o', filePath, tmp]
       if (docPath) args.push('--resource-path', dirname(docPath))
       try {
-        await runPandoc(args)
+        await runPandoc(bin, args)
         return true
       } catch (err) {
         await dialog.showMessageBox(parent!, {

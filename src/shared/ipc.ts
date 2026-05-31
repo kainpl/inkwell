@@ -117,6 +117,8 @@ export const IPC = {
   clipboardWrite: 'export:clipboardWrite',
   copyImage: 'export:copyImage',
   exportPandoc: 'export:pandoc',
+  // main -> renderer: pandoc download progress (0–100, or -1 on error/cancel)
+  pandocProgress: 'export:pandocProgress',
   // main -> renderer (send/on)
   menuNewFile: 'menu:newFile',
   menuOpenFile: 'menu:openFile',

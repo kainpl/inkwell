@@ -89,6 +89,12 @@ const api = {
     ipcRenderer.on(IPC.menuExportPandoc, listener)
     return () => ipcRenderer.removeListener(IPC.menuExportPandoc, listener)
   },
+  /** Pandoc download progress (0–100; -1 means done/cancelled/error → hide). */
+  onPandocProgress: (handler: (pct: number) => void): (() => void) => {
+    const listener = (_e: unknown, pct: number): void => handler(pct)
+    ipcRenderer.on(IPC.pandocProgress, listener)
+    return () => ipcRenderer.removeListener(IPC.pandocProgress, listener)
+  },
   /** Render to PDF and open it in the OS viewer for preview + print. */
   printDoc: (html: string, pdfOptions: PdfOptions): Promise<boolean> =>
     ipcRenderer.invoke(IPC.printDoc, html, pdfOptions),

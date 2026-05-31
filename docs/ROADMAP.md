@@ -108,7 +108,8 @@ Auto Save & Version Control*) і з поточним кодом Inkwell.
 - ✅ **Export PDF** (`printToPDF` в offscreen-вікні) + **Page Setup** (папір A4/Letter/A5/Custom, поля, орієнтація, розрив на H1 — модалка + стан у сторі) + **Print** (системний діалог). Чисті `pageSetup`/`exportRender` з тестами; PDF-пайплайн перевірено наживо
 - ✅ **Copy as** (Edit → Copy As): **Markdown** / **HTML** (формат у Word/Docs) / **Plain Text** (`renderPlainText`) / **Image** (PNG у буфер) — через системний clipboard
 - ✅ **Export Image** (PNG): повний-сторінковий PNG через offscreen-вікно + `capturePage` (вся висота документа, з DPI-масштабом); File → Export ▸ Image. Спільний `renderToImage` для експорту й Copy as Image
-- ✅ **Export через pandoc**: Word (.docx) / OpenDocument (.odt) / RTF / EPUB / LaTeX — детект pandoc (повідомлення «встанови з pandoc.org», якщо немає); читає md-джерело `gfm+tex_math_dollars`, `--resource-path` для зображень. *(саму конвертацію не тестовано наживо — pandoc не встановлено на машині)*
+- ✅ **Export через pandoc**: Word (.docx) / OpenDocument (.odt) / RTF / EPUB / LaTeX — читає md-джерело `gfm+tex_math_dollars`, `--resource-path` для зображень
+  - ✅ ⭐ **pandoc on-demand** (`main/pandoc.ts`): якщо немає на PATH — пропонує завантажити з офіційного GitHub-релізу, розпаковує системним `tar` (bsdtar: zip/tar.gz без зайвих залежностей), кешує в `userData/pandoc/`, валідує. Прогрес-оверлей у рендері. Перевірено наживо: завантаження 3.9.0.2 → кеш → конвертація md→docx. Прибирає ручну залежність — **перевага над Typora** (там pandoc ставиш сам)
 - ✅ підсвітка коду в експорті (highlight.js) — у рушії
 - ⬜ Налаштування експорту по форматах (CSS-тема, вбудовування ресурсів) — 5.5 (краще разом із панеллю Preferences, Фаза 6)
 
@@ -162,7 +163,7 @@ Auto Save & Version Control*) і з поточним кодом Inkwell.
 **Наші важелі (зробити краще за Typora):**
 
 - ⭐ **KaTeX замість MathJax** — швидший рендер; цього давно просять користувачі Typora.
-- ⭐ **Вбудований експортер** (docx/epub/…) — прибрати ручну залежність від pandoc.
+- ✅⭐ **Вбудований експортер** (docx/epub/…) — pandoc тягнеться on-demand, ручна залежність прибрана (Фаза 5.4).
 - ⭐ Решта — Фаза 8 (plugin API, wiki-links + backlinks + граф, git, AI, відкритий код).
 
 > Веб-пас не зміг адъюдикувати (0-0, мертві URL) частину пунктів, але **локальні
