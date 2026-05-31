@@ -57,6 +57,12 @@ export const IPC = {
   readFolder: 'fs:readFolder',
   listArticles: 'fs:listArticles',
   searchInFolder: 'fs:searchInFolder',
+  createFile: 'fs:createFile',
+  createFolder: 'fs:createFolder',
+  renamePath: 'fs:renamePath',
+  duplicateFile: 'fs:duplicateFile',
+  deletePath: 'fs:deletePath',
+  revealPath: 'fs:revealPath',
   saveImage: 'fs:saveImage',
   uploadImage: 'fs:uploadImage',
   // main -> renderer (send/on)

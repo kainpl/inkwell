@@ -29,6 +29,7 @@ import ImageZoom from '@renderer/components/ImageZoom'
 import QuickOpen from '@renderer/components/QuickOpen'
 import GlobalSearch from '@renderer/components/GlobalSearch'
 import RecentFiles from '@renderer/components/RecentFiles'
+import PromptModal from '@renderer/components/PromptModal'
 import ConfirmUnsavedModal from '@renderer/components/ConfirmUnsavedModal'
 
 export default function App(): JSX.Element {
@@ -134,6 +135,7 @@ export default function App(): JSX.Element {
       <QuickOpen />
       <GlobalSearch />
       <RecentFiles />
+      <PromptModal />
       <ConfirmUnsavedModal />
     </div>
   )

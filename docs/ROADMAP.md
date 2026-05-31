@@ -89,7 +89,8 @@ Auto Save & Version Control*) і з поточним кодом Inkwell.
   - [ ] **Recent Locations** (нещодавні теки), **Save All**, **New Window** — потребують мульти-док/мульти-вікно (Фаза 9)
 - [x] **Відновлення сесії** (останній документ + тека при старті через localStorage)
   - [ ] відновлення позиції каретки — додамо разом із per-file станом
-- [ ] Дії над файлами в дереві: New File/Folder, Rename, Duplicate, Move To, Delete, Reveal in File Tree / Open File Location
+- [x] Дії над файлами в дереві (контекст-меню): New File/Folder, Rename, Duplicate, Delete (у кошик ОС), Reveal in File Manager; in-app prompt для імен, авто-оновлення дерева
+  - [ ] **Move To** (перемістити в іншу теку) — потребує folder-picker, додамо за потреби
 - [ ] Reopen with Encoding; **Line Endings** CRLF/LF; Insert Final New Line On Save
 - [ ] **Стеження за змінами файлу на диску** + перезавантаження/конфлікт
 

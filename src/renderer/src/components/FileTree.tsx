@@ -1,7 +1,16 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import type { FileNode } from '@shared/ipc'
 import { useAppStore } from '@renderer/store/useAppStore'
 import { openPath } from '@renderer/lib/docActions'
+import {
+  TREE_CHANGED,
+  newFile,
+  newFolder,
+  renameEntry,
+  duplicateEntry,
+  deleteEntry,
+  revealEntry
+} from '@renderer/lib/fileOps'
 
 function ChevronIcon({ open }: { open: boolean }): JSX.Element {
   return (
@@ -19,7 +28,62 @@ function ChevronIcon({ open }: { open: boolean }): JSX.Element {
   )
 }
 
-function TreeRow({ node, depth }: { node: FileNode; depth: number }): JSX.Element {
+interface MenuState {
+  x: number
+  y: number
+  node: FileNode
+}
+
+/** Right-click context menu for a tree node. */
+function ContextMenu({ menu, onClose }: { menu: MenuState; onClose: () => void }): JSX.Element {
+  const { node } = menu
+  const isDir = node.type === 'directory'
+  // For a directory, "new" targets it; for a file, its parent directory.
+  const dir = isDir
+    ? node.path
+    : node.path.slice(0, Math.max(node.path.lastIndexOf('/'), node.path.lastIndexOf('\\')))
+
+  const item = (label: string, fn: () => void): JSX.Element => (
+    <button
+      onClick={() => {
+        onClose()
+        fn()
+      }}
+      className="block w-full px-3 py-1 text-left text-[13px] text-ink/80 hover:bg-ink/5"
+    >
+      {label}
+    </button>
+  )
+
+  return (
+    <>
+      <div className="fixed inset-0 z-40" onMouseDown={onClose} onContextMenu={(e) => { e.preventDefault(); onClose() }} />
+      <div
+        className="fixed z-50 min-w-44 rounded-md border border-line bg-paper py-1 shadow-xl"
+        style={{ top: menu.y, left: menu.x }}
+      >
+        {item('New File', () => void newFile(dir))}
+        {item('New Folder', () => void newFolder(dir))}
+        <div className="my-1 border-t border-line" />
+        {item('Rename', () => void renameEntry(node))}
+        {!isDir && item('Duplicate', () => void duplicateEntry(node))}
+        {item('Delete', () => void deleteEntry(node))}
+        <div className="my-1 border-t border-line" />
+        {item('Reveal in File Manager', () => void revealEntry(node))}
+      </div>
+    </>
+  )
+}
+
+function TreeRow({
+  node,
+  depth,
+  onMenu
+}: {
+  node: FileNode
+  depth: number
+  onMenu: (m: MenuState) => void
+}): JSX.Element {
   const [open, setOpen] = useState(false)
   const [children, setChildren] = useState<FileNode[] | undefined>(node.children)
   const activePath = useAppStore((s) => s.doc.path)
@@ -27,15 +91,29 @@ function TreeRow({ node, depth }: { node: FileNode; depth: number }): JSX.Elemen
   const isDir = node.type === 'directory'
   const isActive = !isDir && activePath === node.path
 
+  const loadChildren = async (): Promise<void> => {
+    setChildren(await window.api.readDir(node.path))
+  }
+
+  // Refresh this directory's children when something inside it changed. setState
+  // runs only inside the (async) window-event callback, never synchronously here.
+  /* eslint-disable react-hooks/set-state-in-effect, react-hooks/exhaustive-deps */
+  useEffect(() => {
+    if (!isDir) return
+    const handler = (e: Event): void => {
+      if ((e as CustomEvent<string>).detail === node.path && open) void loadChildren()
+    }
+    window.addEventListener(TREE_CHANGED, handler)
+    return () => window.removeEventListener(TREE_CHANGED, handler)
+  }, [isDir, node.path, open])
+  /* eslint-enable react-hooks/set-state-in-effect, react-hooks/exhaustive-deps */
+
   const onClick = async (): Promise<void> => {
     if (isDir) {
       const next = !open
       setOpen(next)
-      if (next && !children) {
-        setChildren(await window.api.readDir(node.path))
-      }
+      if (next && !children) await loadChildren()
     } else {
-      // Routes through the unsaved-changes guard.
       await openPath(node.path)
     }
   }
@@ -44,6 +122,10 @@ function TreeRow({ node, depth }: { node: FileNode; depth: number }): JSX.Elemen
     <div>
       <button
         onClick={onClick}
+        onContextMenu={(e) => {
+          e.preventDefault()
+          onMenu({ x: e.clientX, y: e.clientY, node })
+        }}
         title={node.name}
         className={
           'flex w-full items-center gap-1.5 rounded px-2 py-1 text-left text-[13px] ' +
@@ -58,7 +140,7 @@ function TreeRow({ node, depth }: { node: FileNode; depth: number }): JSX.Elemen
       {isDir && open && children && (
         <div>
           {children.map((c) => (
-            <TreeRow key={c.path} node={c} depth={depth + 1} />
+            <TreeRow key={c.path} node={c} depth={depth + 1} onMenu={onMenu} />
           ))}
         </div>
       )}
@@ -68,6 +150,22 @@ function TreeRow({ node, depth }: { node: FileNode; depth: number }): JSX.Elemen
 
 export default function FileTree(): JSX.Element {
   const root = useAppStore((s) => s.root)
+  const setRoot = useAppStore((s) => s.setRoot)
+  const [menu, setMenu] = useState<MenuState | null>(null)
+
+  // Refresh top-level entries when the root directory itself changed.
+  useEffect(() => {
+    if (!root) return
+    const handler = (e: Event): void => {
+      if ((e as CustomEvent<string>).detail === root.path) {
+        void window.api.readFolder(root.path).then((node) => {
+          if (node) setRoot(node)
+        })
+      }
+    }
+    window.addEventListener(TREE_CHANGED, handler)
+    return () => window.removeEventListener(TREE_CHANGED, handler)
+  }, [root, setRoot])
 
   if (!root) {
     return (
@@ -81,12 +179,19 @@ export default function FileTree(): JSX.Element {
 
   return (
     <div className="py-1">
-      <div className="truncate px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-faint">
+      <div
+        className="truncate px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-faint"
+        onContextMenu={(e) => {
+          e.preventDefault()
+          setMenu({ x: e.clientX, y: e.clientY, node: root })
+        }}
+      >
         {root.name}
       </div>
       {root.children?.map((c) => (
-        <TreeRow key={c.path} node={c} depth={0} />
+        <TreeRow key={c.path} node={c} depth={0} onMenu={setMenu} />
       ))}
+      {menu && <ContextMenu menu={menu} onClose={() => setMenu(null)} />}
     </div>
   )
 }

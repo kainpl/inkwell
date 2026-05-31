@@ -1,4 +1,4 @@
-import { ipcMain, dialog, BrowserWindow } from 'electron'
+import { ipcMain, dialog, BrowserWindow, shell } from 'electron'
 import { promises as fs } from 'fs'
 import { basename, dirname, extname, join } from 'path'
 import { execFile } from 'child_process'
@@ -242,4 +242,58 @@ export function registerFileIpc(): void {
       return url
     }
   )
+
+  // --- File-tree mutations -------------------------------------------------
+
+  /** Return a path under `dir` for `name` that doesn't collide (adds " 2", …). */
+  async function uniquePath(dir: string, name: string): Promise<string> {
+    const ext = extname(name)
+    const stem = basename(name, ext)
+    let candidate = name
+    let n = 2
+    for (;;) {
+      try {
+        await fs.access(join(dir, candidate))
+        candidate = `${stem} ${n++}${ext}`
+      } catch {
+        return join(dir, candidate)
+      }
+    }
+  }
+
+  ipcMain.handle(IPC.createFile, async (_e, dirPath: string, name: string): Promise<string> => {
+    const path = await uniquePath(dirPath, name)
+    await fs.writeFile(path, '', 'utf-8')
+    return path
+  })
+
+  ipcMain.handle(IPC.createFolder, async (_e, dirPath: string, name: string): Promise<string> => {
+    const path = await uniquePath(dirPath, name)
+    await fs.mkdir(path)
+    return path
+  })
+
+  ipcMain.handle(IPC.renamePath, async (_e, oldPath: string, newName: string): Promise<string> => {
+    const target = join(dirname(oldPath), newName)
+    await fs.rename(oldPath, target)
+    return target
+  })
+
+  ipcMain.handle(IPC.duplicateFile, async (_e, path: string): Promise<string> => {
+    const ext = extname(path)
+    const stem = basename(path, ext)
+    const target = await uniquePath(dirname(path), `${stem} copy${ext}`)
+    await fs.copyFile(path, target)
+    return target
+  })
+
+  // Move to OS trash (recoverable), not a hard delete.
+  ipcMain.handle(IPC.deletePath, async (_e, path: string): Promise<boolean> => {
+    await shell.trashItem(path)
+    return true
+  })
+
+  ipcMain.handle(IPC.revealPath, async (_e, path: string): Promise<void> => {
+    shell.showItemInFolder(path)
+  })
 }

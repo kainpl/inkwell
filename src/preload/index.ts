@@ -41,6 +41,16 @@ const api = {
   searchInFolder: (path: string, query: string): Promise<SearchFileResult[]> =>
     ipcRenderer.invoke(IPC.searchInFolder, path, query),
   readFile: (path: string): Promise<OpenedFile> => ipcRenderer.invoke(IPC.readFile, path),
+  createFile: (dirPath: string, name: string): Promise<string> =>
+    ipcRenderer.invoke(IPC.createFile, dirPath, name),
+  createFolder: (dirPath: string, name: string): Promise<string> =>
+    ipcRenderer.invoke(IPC.createFolder, dirPath, name),
+  renamePath: (oldPath: string, newName: string): Promise<string> =>
+    ipcRenderer.invoke(IPC.renamePath, oldPath, newName),
+  duplicateFile: (path: string): Promise<string> =>
+    ipcRenderer.invoke(IPC.duplicateFile, path),
+  deletePath: (path: string): Promise<boolean> => ipcRenderer.invoke(IPC.deletePath, path),
+  revealPath: (path: string): Promise<void> => ipcRenderer.invoke(IPC.revealPath, path),
   saveFile: (path: string, content: string): Promise<boolean> =>
     ipcRenderer.invoke(IPC.saveFile, path, content),
   saveFileAs: (content: string): Promise<OpenedFile | null> =>
