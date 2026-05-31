@@ -14,6 +14,22 @@ export function extFromMime(mime: string): string {
   return MIME_EXT[mime] ?? 'png'
 }
 
+const EXT_MIME: Record<string, string> = {
+  png: 'image/png',
+  jpg: 'image/jpeg',
+  jpeg: 'image/jpeg',
+  gif: 'image/gif',
+  webp: 'image/webp',
+  svg: 'image/svg+xml',
+  bmp: 'image/bmp'
+}
+
+/** MIME type inferred from a file name's extension; defaults to image/png. */
+export function mimeFromName(name: string): string {
+  const ext = name.split('.').pop()?.toLowerCase() ?? ''
+  return EXT_MIME[ext] ?? 'image/png'
+}
+
 /** Stable-ish file name for a pasted image (no original name available). */
 export function pastedName(mime: string, stamp: number): string {
   return `pasted-${stamp}.${extFromMime(mime)}`

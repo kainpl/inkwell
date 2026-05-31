@@ -5,7 +5,8 @@ import {
   type OpenedFile,
   type ArticleEntry,
   type SearchFileResult,
-  type DraftEntry
+  type DraftEntry,
+  type VersionEntry
 } from '../shared/ipc'
 
 const menuChannels = [
@@ -27,9 +28,12 @@ const menuChannels = [
   IPC.menuToggleAutoSave,
   IPC.menuOpenRecent,
   IPC.menuReopenClosed,
+  IPC.menuClose,
+  IPC.menuCloseFolder,
   IPC.menuSetLineEndingLf,
   IPC.menuSetLineEndingCrlf,
-  IPC.menuToggleFinalNewline
+  IPC.menuToggleFinalNewline,
+  IPC.menuBrowseVersions
 ] as const
 
 type MenuChannel = (typeof menuChannels)[number]
@@ -45,6 +49,8 @@ const api = {
   searchInFolder: (path: string, query: string): Promise<SearchFileResult[]> =>
     ipcRenderer.invoke(IPC.searchInFolder, path, query),
   readFile: (path: string): Promise<OpenedFile> => ipcRenderer.invoke(IPC.readFile, path),
+  /** Read the bundled welcome document (first-launch sample). */
+  getWelcome: (): Promise<string> => ipcRenderer.invoke(IPC.getWelcome),
   createFile: (dirPath: string, name: string): Promise<string> =>
     ipcRenderer.invoke(IPC.createFile, dirPath, name),
   createFolder: (dirPath: string, name: string): Promise<string> =>
@@ -62,6 +68,9 @@ const api = {
   /** Save image bytes to the doc's assets folder; returns the relative path or null. */
   saveImage: (docPath: string | null, name: string, data: Uint8Array): Promise<string | null> =>
     ipcRenderer.invoke(IPC.saveImage, docPath, name, data),
+  /** Open a file dialog to pick a local image; resolves to its name + bytes. */
+  pickImage: (): Promise<{ name: string; data: Uint8Array } | null> =>
+    ipcRenderer.invoke(IPC.pickImage),
   /** Upload an image via a configured shell command; resolves to the URL. */
   uploadImage: (command: string, filePath: string): Promise<string> =>
     ipcRenderer.invoke(IPC.uploadImage, command, filePath),
@@ -70,6 +79,28 @@ const api = {
   saveDraft: (draft: DraftEntry): Promise<boolean> => ipcRenderer.invoke(IPC.saveDraft, draft),
   listDrafts: (): Promise<DraftEntry[]> => ipcRenderer.invoke(IPC.listDrafts),
   clearDraft: (id: string): Promise<boolean> => ipcRenderer.invoke(IPC.clearDraft, id),
+
+  /** Local version history. */
+  saveVersion: (id: string, content: string): Promise<boolean> =>
+    ipcRenderer.invoke(IPC.saveVersion, id, content),
+  listVersions: (id: string): Promise<VersionEntry[]> => ipcRenderer.invoke(IPC.listVersions, id),
+  readVersion: (id: string, savedAt: number): Promise<string | null> =>
+    ipcRenderer.invoke(IPC.readVersion, id, savedAt),
+
+  /** Watch the open document for external changes (pass null to stop). */
+  watchFile: (path: string | null): Promise<void> => ipcRenderer.invoke(IPC.watchFile, path),
+  /** Open file was changed on disk by another program; handler gets the new content. */
+  onFileChangedExternally: (handler: (content: string) => void): (() => void) => {
+    const listener = (_e: unknown, content: string): void => handler(content)
+    ipcRenderer.on(IPC.fileChangedExternally, listener)
+    return () => ipcRenderer.removeListener(IPC.fileChangedExternally, listener)
+  },
+  /** Open file was deleted/moved on disk. */
+  onFileRemovedExternally: (handler: () => void): (() => void) => {
+    const listener = (): void => handler()
+    ipcRenderer.on(IPC.fileRemovedExternally, listener)
+    return () => ipcRenderer.removeListener(IPC.fileRemovedExternally, listener)
+  },
 
   /** Tell the main process whether the document has unsaved changes. */
   setDirty: (dirty: boolean): void => ipcRenderer.send(IPC.setDirty, dirty),

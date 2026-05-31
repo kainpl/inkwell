@@ -6,6 +6,9 @@ directories:
 files:
   - out/**/*
   - package.json
+extraResources:
+  - from: resources/Welcome.md
+    to: Welcome.md
 mac:
   category: public.app-category.productivity
   target: [dmg]

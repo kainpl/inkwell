@@ -1,8 +1,28 @@
-import { app, shell, BrowserWindow, ipcMain, type IpcMainEvent } from 'electron'
+import { app, shell, BrowserWindow, ipcMain, protocol, net, type IpcMainEvent } from 'electron'
 import { join } from 'path'
+import { pathToFileURL } from 'url'
 import { registerFileIpc } from './ipc/files'
 import { buildMenu } from './menu'
 import { IPC } from '../shared/ipc'
+
+// Local images are referenced via a custom `inkfile://` scheme instead of raw
+// `file://`: Chromium blocks `file://` subresources when the page is served
+// over http (electron-vite dev), so local images wouldn't load in development.
+// A registered protocol serves them in both dev and packaged builds.
+protocol.registerSchemesAsPrivileged([
+  {
+    scheme: 'inkfile',
+    privileges: { standard: true, secure: true, supportFetchAPI: true, stream: true, bypassCSP: true }
+  }
+])
+
+/** Map an `inkfile://` request to the file on disk it points at. */
+function handleInkfile(request: Request): Promise<Response> {
+  let p = decodeURIComponent(new URL(request.url).pathname)
+  // Windows paths arrive as "/D:/dir/file.png" — drop the leading slash.
+  if (process.platform === 'win32' && /^\/[a-zA-Z]:/.test(p)) p = p.slice(1)
+  return net.fetch(pathToFileURL(p).toString())
+}
 
 function createWindow(): BrowserWindow {
   const win = new BrowserWindow({
@@ -67,6 +87,7 @@ function createWindow(): BrowserWindow {
 }
 
 app.whenReady().then(() => {
+  protocol.handle('inkfile', handleInkfile)
   registerFileIpc()
 
   const win = createWindow()

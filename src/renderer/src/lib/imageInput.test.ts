@@ -1,5 +1,6 @@
 import {
   extFromMime,
+  mimeFromName,
   pastedName,
   imageMarkdown,
   dataUrl,
@@ -14,6 +15,12 @@ describe('imageInput helpers', () => {
     expect(extFromMime('image/jpeg')).toBe('jpg')
     expect(extFromMime('image/svg+xml')).toBe('svg')
     expect(extFromMime('image/unknown')).toBe('png')
+  })
+
+  it('infers MIME type from a file name, defaulting to png', () => {
+    expect(mimeFromName('photo.JPG')).toBe('image/jpeg')
+    expect(mimeFromName('icon.svg')).toBe('image/svg+xml')
+    expect(mimeFromName('noext')).toBe('image/png')
   })
 
   it('builds a pasted file name from MIME + stamp', () => {

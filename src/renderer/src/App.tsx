@@ -2,7 +2,10 @@ import { useEffect } from 'react'
 import { IPC } from '@shared/ipc'
 import { useAppStore } from '@renderer/store/useAppStore'
 import {
+  closeDocument,
+  closeFolder,
   guardUnsaved,
+  loadWelcome,
   newDocument,
   openFileFromDialog,
   openFolderFromDialog,
@@ -15,11 +18,10 @@ import {
 import { EditorView } from '@codemirror/view'
 import { cursorDocStart, cursorDocEnd } from '@codemirror/commands'
 import { useEditor } from '@renderer/store/useEditor'
-import { applyFormat, type FormatAction } from '@renderer/lib/formatCommands'
-import { uploadCurrentImage } from '@renderer/lib/uploadImage'
-import { applyTable, type TableAction } from '@renderer/lib/tableCommands'
+import { runFormatAction } from '@renderer/lib/runFormatAction'
 import { startAutoSave } from '@renderer/lib/autoSave'
 import { startDraftAutoSave } from '@renderer/lib/draftAutoSave'
+import { startDiskWatch } from '@renderer/lib/diskWatch'
 import TitleBar from '@renderer/components/TitleBar'
 import Sidebar from '@renderer/components/Sidebar'
 import OutlinePanel from '@renderer/components/OutlinePanel'
@@ -31,6 +33,7 @@ import ImageZoom from '@renderer/components/ImageZoom'
 import QuickOpen from '@renderer/components/QuickOpen'
 import GlobalSearch from '@renderer/components/GlobalSearch'
 import RecentFiles from '@renderer/components/RecentFiles'
+import BrowseVersions from '@renderer/components/BrowseVersions'
 import PromptModal from '@renderer/components/PromptModal'
 import ConfirmUnsavedModal from '@renderer/components/ConfirmUnsavedModal'
 
@@ -67,6 +70,8 @@ export default function App(): JSX.Element {
         useAppStore.getState().toggleFinalNewline()
       ),
       window.api.onMenu(IPC.menuReopenClosed, () => void reopenClosedFile()),
+      window.api.onMenu(IPC.menuClose, () => void closeDocument()),
+      window.api.onMenu(IPC.menuCloseFolder, () => void closeFolder()),
       window.api.onMenu(IPC.menuJumpTop, () => {
         const view = useEditor.getState().view
         if (view) {
@@ -91,10 +96,7 @@ export default function App(): JSX.Element {
   useEffect(() => {
     return window.api.onFormat((action) => {
       const view = useEditor.getState().view
-      if (!view) return
-      if (action === 'uploadImage') void uploadCurrentImage(view)
-      else if (action.startsWith('table:')) applyTable(view, action.slice(6) as TableAction)
-      else applyFormat(view, action as FormatAction)
+      if (view) runFormatAction(view, action)
     })
   }, [])
 
@@ -123,15 +125,20 @@ export default function App(): JSX.Element {
   useEffect(() => {
     const stopAutoSave = startAutoSave()
     const stopDrafts = startDraftAutoSave()
+    const stopDiskWatch = startDiskWatch()
     return () => {
       stopAutoSave()
       stopDrafts()
+      stopDiskWatch()
     }
   }, [])
 
-  // Reopen the last session, then offer to recover any crash-recovery draft.
+  // Reopen the last session (or show the welcome doc on first launch), then
+  // offer to recover any crash-recovery draft.
   useEffect(() => {
-    void restoreSession().then(() => recoverDrafts())
+    void restoreSession()
+      .then((restored) => (restored ? undefined : loadWelcome()))
+      .then(() => recoverDrafts())
   }, [])
 
   return (
@@ -151,6 +158,7 @@ export default function App(): JSX.Element {
       <QuickOpen />
       <GlobalSearch />
       <RecentFiles />
+      <BrowseVersions />
       <PromptModal />
       <ConfirmUnsavedModal />
     </div>

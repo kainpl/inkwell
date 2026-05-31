@@ -24,6 +24,9 @@ export function buildMenu(win: BrowserWindow): void {
           click: send(IPC.menuReopenClosed)
         },
         { type: 'separator' },
+        { label: 'Close', click: send(IPC.menuClose) },
+        { label: 'Close Folder', click: send(IPC.menuCloseFolder) },
+        { type: 'separator' },
         { label: 'Save', accelerator: 'CmdOrCtrl+S', click: send(IPC.menuSave) },
         { label: 'Save As…', accelerator: 'CmdOrCtrl+Shift+S', click: send(IPC.menuSaveAs) },
         { label: 'Auto Save', type: 'checkbox', checked: false, click: send(IPC.menuToggleAutoSave) },
@@ -40,6 +43,8 @@ export function buildMenu(win: BrowserWindow): void {
           checked: true,
           click: send(IPC.menuToggleFinalNewline)
         },
+        { type: 'separator' },
+        { label: 'Browse All Versions…', click: send(IPC.menuBrowseVersions) },
         { type: 'separator' },
         isMac ? { role: 'close' } : { role: 'quit' }
       ]
@@ -75,7 +80,7 @@ export function buildMenu(win: BrowserWindow): void {
         { label: 'Quote', click: fmt('quote') },
         { type: 'separator' },
         { label: 'Link', accelerator: 'CmdOrCtrl+K', click: fmt('link') },
-        { label: 'Image', click: fmt('image') },
+        { label: 'Insert Image…', click: fmt('image') },
         { label: 'Table', accelerator: 'CmdOrCtrl+T', click: fmt('table') },
         { label: 'Code Block', click: fmt('codeblock') },
         { label: 'Horizontal Rule', click: fmt('hr') },

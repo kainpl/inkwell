@@ -187,15 +187,21 @@ describe('resolveImageSrc', () => {
   })
 
   it('resolves a relative path against the Windows document folder', () => {
-    expect(resolveImageSrc('img/a.png', 'D:\\docs\\f.md')).toBe('file:///D:/docs/img/a.png')
+    expect(resolveImageSrc('img/a.png', 'D:\\docs\\f.md')).toBe('inkfile:///D:/docs/img/a.png')
   })
 
   it('resolves ../ segments', () => {
-    expect(resolveImageSrc('../pics/a.png', 'D:\\docs\\sub\\f.md')).toBe('file:///D:/docs/pics/a.png')
+    expect(resolveImageSrc('../pics/a.png', 'D:\\docs\\sub\\f.md')).toBe(
+      'inkfile:///D:/docs/pics/a.png'
+    )
   })
 
   it('resolves a relative path against a POSIX document folder', () => {
-    expect(resolveImageSrc('a.png', '/home/u/f.md')).toBe('file:///home/u/a.png')
+    expect(resolveImageSrc('a.png', '/home/u/f.md')).toBe('inkfile:///home/u/a.png')
+  })
+
+  it('serves an explicit file: URL through the inkfile protocol', () => {
+    expect(resolveImageSrc('file:///C:/x/a.png', null)).toBe('inkfile:///C:/x/a.png')
   })
 
   it('returns the raw src when there is no document path', () => {
@@ -456,6 +462,19 @@ describe('buildDecorations — math', () => {
 
   it('ignores a lone dollar sign', () => {
     expect(mathWidgets('costs $5 today')).toHaveLength(0)
+  })
+
+  it('keeps a real multi-line $$ block (no blank line inside)', () => {
+    const w = mathWidgets('$$\n\\int_0^1 x\\,dx\n$$')
+    expect(w).toHaveLength(1)
+    expect(w[0].block).toBe(true)
+  })
+
+  it('does NOT join two stray $$ across a blank line (would hide paragraphs)', () => {
+    // Two unrelated `$$` (e.g. prices) separated by a blank line must not be
+    // treated as one block that swallows everything between them.
+    const doc = 'price is $$ here\n\nlots of text\n\nand $$ there'
+    expect(mathWidgets(doc)).toHaveLength(0)
   })
 })
 

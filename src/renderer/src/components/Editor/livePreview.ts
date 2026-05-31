@@ -1,12 +1,5 @@
-import {
-  Decoration,
-  type DecorationSet,
-  EditorView,
-  ViewPlugin,
-  type ViewUpdate,
-  WidgetType
-} from '@codemirror/view'
-import { Range, type EditorState, type Text } from '@codemirror/state'
+import { Decoration, type DecorationSet, EditorView, WidgetType } from '@codemirror/view'
+import { Range, StateField, type EditorState, type Text } from '@codemirror/state'
 import { syntaxTree } from '@codemirror/language'
 import type { SyntaxNode, SyntaxNodeRef } from '@lezer/common'
 import { parseOutline } from '@renderer/lib/outline'
@@ -132,14 +125,16 @@ function dirOf(p: string): string {
 }
 
 /**
- * Resolve an image `src` to something the renderer can load. Remote/data/file
- * URLs pass through; a local path is resolved relative to the document's folder
- * and returned as a `file://` URL (allowed by the renderer CSP). Returns the
+ * Resolve an image `src` to something the renderer can load. Remote/data/blob
+ * URLs pass through; local paths (relative to the document's folder, or an
+ * explicit `file:`) are served via the custom `inkfile://` scheme, because
+ * Chromium blocks raw `file://` subresources on the http dev origin. Returns the
  * raw src when there is no document path to resolve against.
  */
 export function resolveImageSrc(src: string, docPath: string | null): string {
   const s = src.trim()
-  if (/^(https?|data|file|blob):/i.test(s)) return s
+  if (/^(https?|data|blob|inkfile):/i.test(s)) return s
+  if (/^file:/i.test(s)) return s.replace(/^file:/i, 'inkfile:')
   if (!docPath) return s
 
   const combined = (dirOf(docPath) + '/' + s).replace(/\\/g, '/')
@@ -153,8 +148,8 @@ export function resolveImageSrc(src: string, docPath: string | null): string {
     else out.push(part)
   }
   const joined = encodeURI(out.join('/'))
-  if (isWinDrive) return 'file:///' + joined
-  return 'file://' + (unixAbs ? '/' : '') + joined
+  if (isWinDrive) return 'inkfile:///' + joined
+  return 'inkfile://' + (unixAbs ? '/' : '') + joined
 }
 
 /** Fired when a rendered image is clicked, to open the zoom overlay. */
@@ -520,11 +515,11 @@ function listDepth(node: SyntaxNodeRef): number {
 }
 
 /** Line numbers (1-based) that contain part of a selection range. */
-export function activeLines(view: EditorView): Set<number> {
+export function activeLines(state: EditorState): Set<number> {
   const lines = new Set<number>()
-  for (const range of view.state.selection.ranges) {
-    const a = view.state.doc.lineAt(range.from).number
-    const b = view.state.doc.lineAt(range.to).number
+  for (const range of state.selection.ranges) {
+    const a = state.doc.lineAt(range.from).number
+    const b = state.doc.lineAt(range.to).number
     for (let n = a; n <= b; n++) lines.add(n)
   }
   return lines
@@ -659,12 +654,15 @@ function mathDecos(
   MATH_BLOCK_RE.lastIndex = 0
   let m: RegExpExecArray | null
   while ((m = MATH_BLOCK_RE.exec(text)) !== null) {
+    const tex = m[1].trim()
+    // Two stray `$$` (e.g. prices "$$", shell vars) must NOT be treated as one
+    // math block — that would hide everything between them. Real display math
+    // never contains a blank line, so a blank line means these aren't a pair.
+    if (!tex || /\n[ \t]*\n/.test(m[1])) continue
     const start = base + m.index
     const end = start + m[0].length
     blocked.push([m.index, m.index + m[0].length])
     if (rangeActive(start, end, active, doc)) continue
-    const tex = m[1].trim()
-    if (!tex) continue
     out.push(Decoration.replace({ widget: new MathWidget(tex, true) }).range(start, end))
   }
 
@@ -1151,24 +1149,24 @@ export function buildDecorations(
   return Decoration.set(decos, true)
 }
 
-export const livePreview = ViewPlugin.fromClass(
-  class {
-    decorations: DecorationSet
-    constructor(view: EditorView) {
-      const docPath = useAppStore.getState().doc.path
-      this.decorations = buildDecorations(view.state, view.visibleRanges, activeLines(view), docPath)
-    }
-    update(update: ViewUpdate) {
-      if (update.docChanged || update.selectionSet || update.viewportChanged) {
-        const docPath = useAppStore.getState().doc.path
-        this.decorations = buildDecorations(
-          update.view.state,
-          update.view.visibleRanges,
-          activeLines(update.view),
-          docPath
-        )
-      }
-    }
+/**
+ * Live-preview decorations are provided as a `StateField`, NOT a `ViewPlugin`.
+ * CodeMirror forbids block widgets and line-break-spanning replacements (our
+ * tables, mermaid/HTML blocks and multi-line `$$` math) from view plugins — it
+ * throws at render time, breaking the view. Fields are computed before layout,
+ * so block decorations are allowed there. We decorate the whole document (no
+ * `visibleRanges`) and rebuild on doc or selection changes.
+ */
+function computeDecorations(state: EditorState): DecorationSet {
+  const docPath = useAppStore.getState().doc.path
+  return buildDecorations(state, [{ from: 0, to: state.doc.length }], activeLines(state), docPath)
+}
+
+export const livePreview = StateField.define<DecorationSet>({
+  create: (state) => computeDecorations(state),
+  update(value, tr) {
+    if (!tr.docChanged && !tr.selection) return value
+    return computeDecorations(tr.state)
   },
-  { decorations: (v) => v.decorations }
-)
+  provide: (f) => EditorView.decorations.from(f)
+})

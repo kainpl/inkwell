@@ -1,25 +1,10 @@
 import { EditorView } from '@codemirror/view'
-import { useAppStore } from '@renderer/store/useAppStore'
-import { dataUrl, imageMarkdown, pastedName } from '@renderer/lib/imageInput'
+import { insertImageBytes } from '@renderer/lib/imageInsert'
 
-/**
- * Insert an image File at `pos`: copy it into the document's `assets/` folder
- * (via the main process) and insert a relative-path image; if the document is
- * unsaved, embed the bytes as a data: URL instead.
- */
+/** Insert an image File (from paste / drag-drop) at `pos`. */
 async function insertImageFile(view: EditorView, file: File, pos: number): Promise<void> {
   const bytes = new Uint8Array(await file.arrayBuffer())
-  const docPath = useAppStore.getState().doc.path
-  const name = file.name && file.name !== 'image.png' ? file.name : pastedName(file.type, Date.now())
-  const alt = name.replace(/\.[^.]+$/, '')
-
-  let src: string | null = null
-  if (docPath) src = await window.api.saveImage(docPath, name, bytes)
-  if (!src) src = dataUrl(file.type || 'image/png', bytes)
-
-  const md = imageMarkdown(src, alt)
-  view.dispatch({ changes: { from: pos, insert: md }, selection: { anchor: pos + md.length } })
-  view.focus()
+  await insertImageBytes(view, file.name, file.type, bytes, pos)
 }
 
 /** Image files from a clipboard's DataTransferItemList. */

@@ -1,5 +1,5 @@
 import { ipcMain, dialog, BrowserWindow, shell, app } from 'electron'
-import { promises as fs } from 'fs'
+import { promises as fs, watch as fsWatch, type FSWatcher } from 'fs'
 import { basename, dirname, extname, join } from 'path'
 import { execFile } from 'child_process'
 import {
@@ -8,10 +8,16 @@ import {
   type OpenedFile,
   type ArticleEntry,
   type SearchFileResult,
-  type DraftEntry
+  type DraftEntry,
+  type VersionEntry
 } from '../../shared/ipc'
+import { MAX_VERSIONS, shouldSnapshot, versionsToPrune } from '../../shared/versions'
 
 const MD_EXTENSIONS = ['.md', '.markdown', '.mdown', '.mkd', '.txt']
+
+// The exact bytes we last wrote per path, so the disk watcher can tell our own
+// saves apart from edits made by another program (and not fire a false alarm).
+const lastWritten = new Map<string, string>()
 
 function isHidden(name: string): boolean {
   return name.startsWith('.')
@@ -175,8 +181,19 @@ export function registerFileIpc(): void {
     return { path, name: basename(path), content }
   })
 
+  // Read the bundled welcome document, loaded as the first-launch doc. In dev it
+  // sits at <project>/resources/Welcome.md (main bundles to out/main); when
+  // packaged it's copied next to the app via electron-builder `extraResources`.
+  ipcMain.handle(IPC.getWelcome, async (): Promise<string> => {
+    const file = app.isPackaged
+      ? join(process.resourcesPath, 'Welcome.md')
+      : join(__dirname, '../../resources/Welcome.md')
+    return fs.readFile(file, 'utf-8').catch(() => '')
+  })
+
   ipcMain.handle(IPC.saveFile, async (_e, path: string, content: string): Promise<boolean> => {
     await fs.writeFile(path, content, 'utf-8')
+    lastWritten.set(path, content)
     return true
   })
 
@@ -190,6 +207,7 @@ export function registerFileIpc(): void {
       })
       if (canceled || !filePath) return null
       await fs.writeFile(filePath, content, 'utf-8')
+      lastWritten.set(filePath, content)
       return { path: filePath, name: basename(filePath), content }
     }
   )
@@ -219,6 +237,24 @@ export function registerFileIpc(): void {
       }
       await fs.writeFile(join(dir, candidate), Buffer.from(data))
       return 'assets/' + candidate
+    }
+  )
+
+  // Open a file dialog to pick a local image; return its name + bytes so the
+  // renderer can copy it into the document's assets/ folder (Format → Image).
+  ipcMain.handle(
+    IPC.pickImage,
+    async (e): Promise<{ name: string; data: Uint8Array } | null> => {
+      const win = BrowserWindow.fromWebContents(e.sender) ?? undefined
+      const { canceled, filePaths } = await dialog.showOpenDialog(win!, {
+        properties: ['openFile'],
+        filters: [
+          { name: 'Images', extensions: ['png', 'jpg', 'jpeg', 'gif', 'webp', 'svg', 'bmp'] }
+        ]
+      })
+      if (canceled || filePaths.length === 0) return null
+      const data = await fs.readFile(filePaths[0])
+      return { name: basename(filePaths[0]), data }
     }
   )
 
@@ -352,5 +388,138 @@ export function registerFileIpc(): void {
       /* already gone */
     }
     return true
+  })
+
+  // --- Local version history (snapshots under userData/versions/<id>) ------
+  // The id arrives over IPC and becomes a folder name, so it can't be trusted.
+  const versionDir = (id: string): string => {
+    if (!/^[A-Za-z0-9_-]{1,128}$/.test(id)) throw new Error('invalid version id')
+    return join(app.getPath('userData'), 'versions', id)
+  }
+
+  // Read the timestamp stems of a doc's snapshots, newest first.
+  const versionStems = async (dir: string): Promise<number[]> => {
+    const names = await fs.readdir(dir).catch(() => [] as string[])
+    return names
+      .filter((n) => n.endsWith('.md'))
+      .map((n) => Number(basename(n, '.md')))
+      .filter((t) => Number.isFinite(t))
+      .sort((a, b) => b - a)
+  }
+
+  // Snapshot the saved content as a new version, unless it duplicates the most
+  // recent one; prune the oldest beyond MAX_VERSIONS. Returns true if written.
+  ipcMain.handle(IPC.saveVersion, async (_e, id: string, content: string): Promise<boolean> => {
+    let dir: string
+    try {
+      dir = versionDir(id)
+    } catch {
+      return false
+    }
+    await fs.mkdir(dir, { recursive: true })
+    const stems = await versionStems(dir)
+    const latest =
+      stems.length > 0
+        ? await fs.readFile(join(dir, `${stems[0]}.md`), 'utf-8').catch(() => null)
+        : null
+    if (!shouldSnapshot(content, latest)) return false
+
+    await fs.writeFile(join(dir, `${Date.now()}.md`), content, 'utf-8')
+
+    const after = await versionStems(dir)
+    for (const stem of versionsToPrune(after, MAX_VERSIONS)) {
+      await fs.unlink(join(dir, `${stem}.md`)).catch(() => undefined)
+    }
+    return true
+  })
+
+  // List a document's saved versions (newest first), each with its size.
+  ipcMain.handle(IPC.listVersions, async (_e, id: string): Promise<VersionEntry[]> => {
+    let dir: string
+    try {
+      dir = versionDir(id)
+    } catch {
+      return []
+    }
+    const stems = await versionStems(dir)
+    const out: VersionEntry[] = []
+    for (const savedAt of stems) {
+      const st = await fs.stat(join(dir, `${savedAt}.md`)).catch(() => null)
+      out.push({ savedAt, size: st ? st.size : 0 })
+    }
+    return out
+  })
+
+  // Read back the content of one specific version.
+  ipcMain.handle(
+    IPC.readVersion,
+    async (_e, id: string, savedAt: number): Promise<string | null> => {
+      let dir: string
+      try {
+        dir = versionDir(id)
+      } catch {
+        return null
+      }
+      if (!Number.isFinite(savedAt)) return null
+      return fs.readFile(join(dir, `${Math.trunc(savedAt)}.md`), 'utf-8').catch(() => null)
+    }
+  )
+
+  // --- Disk watcher: notify the renderer when the open file changes outside --
+  let watcher: FSWatcher | null = null
+  let watchedPath: string | null = null
+  let watchTimer: ReturnType<typeof setTimeout> | null = null
+
+  const stopWatch = (): void => {
+    if (watcher) {
+      watcher.close()
+      watcher = null
+    }
+    if (watchTimer) {
+      clearTimeout(watchTimer)
+      watchTimer = null
+    }
+    watchedPath = null
+  }
+
+  // Watch a single path for the calling window. Passing null (or a new path)
+  // stops the previous watch. fs.watch fires in bursts, so we debounce, then
+  // diff against `lastWritten` to ignore the event caused by our own save.
+  const armWatch = (path: string, wc: Electron.WebContents): void => {
+    try {
+      watcher = fsWatch(path, () => {
+        if (watchTimer) clearTimeout(watchTimer)
+        watchTimer = setTimeout(() => void onChange(path, wc), 150)
+      })
+    } catch {
+      /* file may not exist yet (unsaved doc) — nothing to watch */
+    }
+  }
+
+  const onChange = async (path: string, wc: Electron.WebContents): Promise<void> => {
+    if (watchedPath !== path || wc.isDestroyed()) return
+    let content: string
+    try {
+      content = await fs.readFile(path, 'utf-8')
+    } catch {
+      if (!wc.isDestroyed()) wc.send(IPC.fileRemovedExternally)
+      return
+    }
+    // Re-arm: an atomic save (write-temp + rename over) can invalidate the
+    // original handle after one event, so re-establish the watch each time.
+    if (watcher) {
+      watcher.close()
+      watcher = null
+    }
+    armWatch(path, wc)
+    if (content === lastWritten.get(path)) return // our own save
+    if (!wc.isDestroyed()) wc.send(IPC.fileChangedExternally, content)
+  }
+
+  ipcMain.handle(IPC.watchFile, (e, path: string | null): void => {
+    stopWatch()
+    if (!path) return
+    watchedPath = path
+    armWatch(path, e.sender)
   })
 }

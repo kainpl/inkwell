@@ -45,6 +45,14 @@ export interface SearchFileResult {
   matches: SearchMatch[]
 }
 
+/** One entry in a document's local version history ("Browse All Versions"). */
+export interface VersionEntry {
+  /** When the snapshot was taken (ms since epoch); also its filename stem. */
+  savedAt: number
+  /** Byte length of the snapshot, for display. */
+  size: number
+}
+
 /** A recoverable autosaved draft (crash recovery). */
 export interface DraftEntry {
   /** Stable id derived from the document path (or "untitled"). */
@@ -78,11 +86,20 @@ export const IPC = {
   deletePath: 'fs:deletePath',
   revealPath: 'fs:revealPath',
   saveImage: 'fs:saveImage',
+  pickImage: 'fs:pickImage',
   uploadImage: 'fs:uploadImage',
   // crash-recovery drafts (autosaved snapshots in userData)
   saveDraft: 'draft:save',
   listDrafts: 'draft:list',
   clearDraft: 'draft:clear',
+  // local version history (snapshots in userData/versions)
+  saveVersion: 'version:save',
+  listVersions: 'version:list',
+  readVersion: 'version:read',
+  // watch the open document for external changes on disk
+  watchFile: 'watch:file',
+  // read the bundled welcome document from disk (first-launch sample)
+  getWelcome: 'app:getWelcome',
   // main -> renderer (send/on)
   menuNewFile: 'menu:newFile',
   menuOpenFile: 'menu:openFile',
@@ -102,10 +119,16 @@ export const IPC = {
   menuToggleAutoSave: 'menu:toggleAutoSave',
   menuOpenRecent: 'menu:openRecent',
   menuReopenClosed: 'menu:reopenClosed',
+  menuClose: 'menu:close',
+  menuCloseFolder: 'menu:closeFolder',
   menuSetLineEndingLf: 'menu:setLineEndingLf',
   menuSetLineEndingCrlf: 'menu:setLineEndingCrlf',
   menuToggleFinalNewline: 'menu:toggleFinalNewline',
+  menuBrowseVersions: 'menu:browseVersions',
   menuFormat: 'menu:format',
+  // open document changed/removed on disk by another program
+  fileChangedExternally: 'watch:changed',
+  fileRemovedExternally: 'watch:removed',
   // app lifecycle / unsaved-changes guard
   setDirty: 'app:setDirty',
   closeWindow: 'app:closeWindow',

@@ -9,7 +9,7 @@ import {
   setSessionFolder
 } from './persistence'
 import { normalizeForSave } from './saveOptions'
-import { isRecoverable, newestDraft } from './drafts'
+import { draftId, isRecoverable, newestDraft } from './drafts'
 
 /** Content shaped for disk per the user's line-ending / final-newline settings. */
 function contentForDisk(): string {
@@ -32,12 +32,19 @@ function rememberFile(path: string): void {
   setSessionFile(path)
 }
 
+/** Append a snapshot to the document's local version history (best-effort). */
+function snapshotVersion(path: string, content: string): void {
+  void window.api.saveVersion(draftId(path), content)
+}
+
 /** Save to the current path, or fall back to Save As. Returns false if canceled. */
 export async function saveDoc(): Promise<boolean> {
   const { doc, markSaved } = useAppStore.getState()
   if (doc.path) {
-    await window.api.saveFile(doc.path, contentForDisk())
+    const content = contentForDisk()
+    await window.api.saveFile(doc.path, content)
     markSaved()
+    snapshotVersion(doc.path, content)
     return true
   }
   return saveDocAs()
@@ -46,10 +53,12 @@ export async function saveDoc(): Promise<boolean> {
 /** Save As via a native dialog. Returns false if the user cancels the dialog. */
 export async function saveDocAs(): Promise<boolean> {
   const { markSaved } = useAppStore.getState()
-  const result = await window.api.saveFileAs(contentForDisk())
+  const content = contentForDisk()
+  const result = await window.api.saveFileAs(content)
   if (!result) return false
   markSaved(result.path, result.name)
   rememberFile(result.path)
+  snapshotVersion(result.path, content)
   return true
 }
 
@@ -153,9 +162,10 @@ export async function reopenClosedFile(): Promise<void> {
 
 /**
  * On launch, reopen the last session's folder and document if they still exist.
- * Failures (deleted/moved paths) are ignored so startup never breaks.
+ * Failures (deleted/moved paths) are ignored so startup never breaks. Returns
+ * true when a document was restored (so the caller can skip the welcome doc).
  */
-export async function restoreSession(): Promise<void> {
+export async function restoreSession(): Promise<boolean> {
   const { folderPath, filePath } = getSession()
   if (folderPath) {
     const node = await window.api.readFolder(folderPath).catch(() => null)
@@ -163,6 +173,45 @@ export async function restoreSession(): Promise<void> {
   }
   if (filePath) {
     const file = await window.api.readFile(filePath).catch(() => null)
-    if (file) useAppStore.getState().loadDoc(file)
+    if (file) {
+      useAppStore.getState().loadDoc(file)
+      return true
+    }
   }
+  return false
+}
+
+/**
+ * Load the bundled welcome document from disk (resources/Welcome.md). Shown on
+ * first launch when there's no session to restore, and by the Close commands;
+ * loaded path-less so editing it prompts Save As rather than overwriting the
+ * shipped sample.
+ */
+export async function loadWelcome(): Promise<void> {
+  const content = await window.api.getWelcome()
+  useAppStore.getState().loadDoc({ path: null, name: 'Welcome.md', content })
+}
+
+/**
+ * Close the current document (guarding unsaved changes) and return to the
+ * welcome doc. The folder/sidebar stays open; the restorable session file is
+ * cleared so a relaunch doesn't reopen it.
+ */
+export async function closeDocument(): Promise<void> {
+  if (!(await guardUnsaved())) return
+  setSessionFile(null)
+  await loadWelcome()
+}
+
+/**
+ * Close the open folder and document, returning to a fresh welcome state: the
+ * sidebar tree is emptied and the whole restorable session (folder + file) is
+ * cleared, so the next launch starts clean.
+ */
+export async function closeFolder(): Promise<void> {
+  if (!(await guardUnsaved())) return
+  useAppStore.getState().setRoot(null)
+  setSessionFolder(null)
+  setSessionFile(null)
+  await loadWelcome()
 }

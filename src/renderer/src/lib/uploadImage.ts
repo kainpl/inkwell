@@ -19,7 +19,7 @@ export async function uploadCurrentImage(view: EditorView): Promise<void> {
   if (/^https?:/i.test(src)) return // already remote
 
   const docPath = useAppStore.getState().doc.path
-  const filePath = resolveImageSrc(src, docPath).replace(/^file:\/\/\/?/, '')
+  const filePath = resolveImageSrc(src, docPath).replace(/^(?:inkfile|file):\/\/\/?/, '')
   try {
     const url = await window.api.uploadImage(command, decodeURI(filePath))
     setImageSrc(view, url)

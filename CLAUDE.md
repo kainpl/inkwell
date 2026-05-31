@@ -71,9 +71,12 @@ docs/                           ARCHITECTURE / FEATURES / ROADMAP / DECISIONS
 
 ## How the editor works (the important part)
 
-`livePreview.ts` is a CodeMirror `ViewPlugin` that, on every doc/selection
-change, walks the Lezer Markdown syntax tree over the **visible range** and
-emits decorations:
+`livePreview.ts` provides decorations via a CodeMirror **`StateField`** (NOT a
+`ViewPlugin`): block widgets and line-break-spanning replacements — tables,
+mermaid/HTML blocks, multi-line `$$` math — are illegal from view plugins (CM
+throws at render time and breaks the view), so they must come from a field.
+On every doc/selection change it walks the Lezer Markdown syntax tree over the
+**whole document** (`buildDecorations`) and emits decorations:
 
 1. **Heading lines** get a CSS class (`ink-h1`…`ink-h6`) → resized by `index.css`.
 2. **Inline content** (`StrongEmphasis`, `Emphasis`, `Strikethrough`,
@@ -125,7 +128,10 @@ editable when focused). This is the standard Typora-style approach.
 - The editor↔store sync in `Editor.tsx` guards against echo loops with
   `lastPushed`. When you add programmatic edits, route them through CM
   `dispatch`, not by mutating store content directly, or you'll fight the sync.
-- `livePreview` iterates only `view.visibleRanges` for performance — don't
-  assume the whole document is decorated.
+- `livePreview` is a `StateField` and decorates the **whole document**. Block
+  widgets / line-break-spanning replacements MUST be emitted here (a field),
+  never from a `ViewPlugin` — CM throws "Block decorations may not be specified
+  via plugins" at render time. `rendercheck.test.ts` mounts a real view to guard
+  this (unit tests over `buildDecorations` alone won't catch it).
 - macOS uses `titleBarStyle: 'hiddenInset'`; the drag region is set on
   `TitleBar` via `WebkitAppRegion`. Buttons opt out with `no-drag`.

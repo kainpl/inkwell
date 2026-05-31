@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useEditor } from '@renderer/store/useEditor'
-import { applyFormat, type FormatAction } from '@renderer/lib/formatCommands'
+import { type FormatAction } from '@renderer/lib/formatCommands'
+import { runFormatAction } from '@renderer/lib/runFormatAction'
 import EmojiPicker from './EmojiPicker'
 
 interface Btn {
@@ -39,7 +40,7 @@ const GROUPS: Btn[][] = [
 
 function run(action: FormatAction): void {
   const view = useEditor.getState().view
-  if (view) applyFormat(view, action)
+  if (view) runFormatAction(view, action)
 }
 
 function ToolButton({ label, glyph, onClick }: { label: string; glyph: string; onClick: () => void }): JSX.Element {
