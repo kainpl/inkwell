@@ -131,8 +131,8 @@ Auto Save & Version Control*) і з поточним кодом Inkwell.
 - ⬜ **Кастомні гарячі клавіші** (`keyBinding`) і **кастомні Search Services** (контекст-меню «Search With…»)
 - ✅ **Мультикурсор**: `drawSelection` + `allowMultipleSelections` у CM-стеку; Alt-клік додає курсор, `Ctrl/⌘ D` (наступне входження), `Ctrl/⌘ Alt ↑/↓` (курсор вище/нижче) — також у командній палітрі. Перевірено наживо (3 карети)
 - ✅ **Clear Format** (зняти інлайн-форматування з виділення) + **Prettify Source** (підрівняти джерело: хвостові пробіли, відступ заголовків, злиття порожніх рядків, фінальний newline; код-фенси недоторкані) — у Format-меню й палітрі; чисті хелпери з тестами
-  - ⬜ **TTS** (Start/Stop Speaking)
-- ⬜ **Сніпети/шаблони** документів
+  - ✅ **TTS** (View ▸ Start/Stop Speaking + палітра): читає виділення або весь документ через Web Speech API (`speechSynthesis`, без залежностей), Markdown знятий (`renderPlainText`). Перевірено наживо (speaking on/off)
+- ✅ **Шаблони документів**: тека `userData/templates/*.md` (сід *Meeting Notes* + *Blog Post*), **File ▸ New from Template…** + палітра → fuzzy-пікер створює новий чернетковий документ із вмісту шаблону; токен `{date}` підставляється. `main/ipc/templates.ts`, path-traversal валідовано
 
 ## Фаза 9 — «понад Typora» (наші диференціатори ⭐)
 > Вкладки, кілька вікон і історія версій у Typora **вже є** — це паритет (фази 3–4),

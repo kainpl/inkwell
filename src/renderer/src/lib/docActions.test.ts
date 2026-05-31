@@ -1,4 +1,4 @@
-import { closeDocument, closeFolder, guardUnsaved } from './docActions'
+import { closeDocument, closeFolder, guardUnsaved, fillTemplate } from './docActions'
 import { useAppStore } from '@renderer/store/useAppStore'
 import { useConfirm, type ConfirmChoice } from '@renderer/store/useConfirm'
 import type { FileNode } from '@shared/ipc'
@@ -13,6 +13,17 @@ function setDoc(dirty: boolean, path: string | null = '/tmp/x.md'): void {
 function mockChoice(choice: ConfirmChoice): void {
   vi.spyOn(useConfirm.getState(), 'ask').mockResolvedValue(choice)
 }
+
+describe('fillTemplate', () => {
+  it('substitutes the {date} token', () => {
+    expect(fillTemplate('Written {date}, draft {date}.', '2026-05-31')).toBe(
+      'Written 2026-05-31, draft 2026-05-31.'
+    )
+  })
+  it('leaves text without tokens unchanged', () => {
+    expect(fillTemplate('# Plain', '2026-05-31')).toBe('# Plain')
+  })
+})
 
 describe('guardUnsaved', () => {
   beforeEach(() => {

@@ -23,6 +23,7 @@ function fmt(id: string, title: string): Command {
 export const COMMANDS: Command[] = [
   // File
   { id: 'file.new', title: 'New File', category: 'File', channel: IPC.menuNewFile },
+  { id: 'file.newTemplate', title: 'New from Template…', category: 'File', channel: IPC.menuNewFromTemplate },
   { id: 'file.open', title: 'Open File…', category: 'File', channel: IPC.menuOpenFile },
   { id: 'file.openFolder', title: 'Open Folder…', category: 'File', channel: IPC.menuOpenFolder },
   { id: 'file.save', title: 'Save', category: 'File', channel: IPC.menuSave },
@@ -84,6 +85,8 @@ export const COMMANDS: Command[] = [
   { id: 'view.focus', title: 'Toggle Focus Mode', category: 'View', channel: IPC.menuToggleFocusMode },
   { id: 'view.typewriter', title: 'Toggle Typewriter Mode', category: 'View', channel: IPC.menuToggleTypewriter },
   { id: 'view.source', title: 'Toggle Source Code Mode', category: 'View', channel: IPC.menuToggleSourceMode },
+  { id: 'view.speak', title: 'Start Speaking', category: 'View', channel: IPC.menuStartSpeaking },
+  { id: 'view.stopSpeak', title: 'Stop Speaking', category: 'View', channel: IPC.menuStopSpeaking },
 
   // Go
   { id: 'go.file', title: 'Go to File…', category: 'Go', channel: IPC.menuOpenQuickly },

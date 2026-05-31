@@ -78,6 +78,18 @@ export function newDocument(): void {
   useAppStore.getState().newTab()
 }
 
+/** Substitute template tokens (currently just `{date}`). Pure for testing. */
+export function fillTemplate(content: string, date: string): string {
+  return content.replace(/\{date\}/g, date)
+}
+
+/** Create a new untitled (dirty) document seeded with a template's content. */
+export function newDocumentFromTemplate(content: string): void {
+  const store = useAppStore.getState()
+  store.newTab()
+  store.setContent(fillTemplate(content, new Date().toLocaleDateString()))
+}
+
 export async function openFileFromDialog(): Promise<void> {
   const file = await window.api.openFileDialog()
   if (file) {

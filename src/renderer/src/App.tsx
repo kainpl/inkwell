@@ -17,6 +17,7 @@ import {
 } from '@renderer/lib/docActions'
 import { setSessionFile } from '@renderer/lib/persistence'
 import { startThemeSync } from '@renderer/lib/themeApply'
+import { startSpeaking, stopSpeaking } from '@renderer/lib/tts'
 import { EditorView } from '@codemirror/view'
 import { cursorDocStart, cursorDocEnd } from '@codemirror/commands'
 import { useEditor } from '@renderer/store/useEditor'
@@ -47,6 +48,7 @@ import FloatingToolbar from '@renderer/components/FloatingToolbar'
 import ImageZoom from '@renderer/components/ImageZoom'
 import QuickOpen from '@renderer/components/QuickOpen'
 import CommandPalette from '@renderer/components/CommandPalette'
+import TemplatePicker from '@renderer/components/TemplatePicker'
 import GlobalSearch from '@renderer/components/GlobalSearch'
 import RecentFiles from '@renderer/components/RecentFiles'
 import BrowseVersions from '@renderer/components/BrowseVersions'
@@ -85,6 +87,8 @@ export default function App(): JSX.Element {
       window.api.onMenu(IPC.menuReopenClosed, () => void reopenClosedFile()),
       window.api.onMenu(IPC.menuClose, () => void closeDocument()),
       window.api.onMenu(IPC.menuCloseFolder, () => void closeFolder()),
+      window.api.onMenu(IPC.menuStartSpeaking, () => startSpeaking()),
+      window.api.onMenu(IPC.menuStopSpeaking, () => stopSpeaking()),
       window.api.onMenu(IPC.menuExportHtml, () => void exportHtmlFile(true)),
       window.api.onMenu(IPC.menuExportHtmlPlain, () => void exportHtmlFile(false)),
       window.api.onMenu(IPC.menuExportPdf, () => void exportPdfFile()),
@@ -196,6 +200,7 @@ export default function App(): JSX.Element {
       <ImageZoom />
       <QuickOpen />
       <CommandPalette />
+      <TemplatePicker />
       <GlobalSearch />
       <RecentFiles />
       <BrowseVersions />

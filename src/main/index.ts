@@ -4,6 +4,7 @@ import { pathToFileURL } from 'url'
 import { registerFileIpc } from './ipc/files'
 import { registerExportIpc } from './ipc/export'
 import { registerThemeIpc } from './ipc/themes'
+import { registerTemplateIpc } from './ipc/templates'
 import { buildMenu } from './menu'
 import { IPC } from '../shared/ipc'
 
@@ -93,6 +94,7 @@ app.whenReady().then(() => {
   registerFileIpc()
   registerExportIpc()
   registerThemeIpc()
+  registerTemplateIpc()
 
   // Command palette: re-fire a menu channel back to the sender's renderer.
   ipcMain.on(IPC.triggerMenu, (e, channel: string, arg?: string) => {

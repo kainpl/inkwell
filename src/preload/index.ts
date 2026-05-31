@@ -9,7 +9,8 @@ import {
   type VersionEntry,
   type PdfOptions,
   type ExternalTheme,
-  type ThemeCss
+  type ThemeCss,
+  type TemplateEntry
 } from '../shared/ipc'
 
 const menuChannels = [
@@ -45,6 +46,9 @@ const menuChannels = [
   IPC.menuExportImage,
   IPC.menuPreferences,
   IPC.menuCommandPalette,
+  IPC.menuNewFromTemplate,
+  IPC.menuStartSpeaking,
+  IPC.menuStopSpeaking,
   IPC.menuSetLineEndingLf,
   IPC.menuSetLineEndingCrlf,
   IPC.menuToggleFinalNewline,
@@ -143,6 +147,11 @@ const api = {
   listVersions: (id: string): Promise<VersionEntry[]> => ipcRenderer.invoke(IPC.listVersions, id),
   readVersion: (id: string, savedAt: number): Promise<string | null> =>
     ipcRenderer.invoke(IPC.readVersion, id, savedAt),
+
+  /** Document templates (userData/templates). */
+  listTemplates: (): Promise<TemplateEntry[]> => ipcRenderer.invoke(IPC.listTemplates),
+  readTemplate: (id: string): Promise<string> => ipcRenderer.invoke(IPC.readTemplate, id),
+  openTemplatesFolder: (): Promise<void> => ipcRenderer.invoke(IPC.openTemplatesFolder),
 
   /** External themes (userData/themes). */
   listThemes: (): Promise<ExternalTheme[]> => ipcRenderer.invoke(IPC.listThemes),

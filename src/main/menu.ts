@@ -15,6 +15,7 @@ export function buildMenu(win: BrowserWindow): void {
       label: 'File',
       submenu: [
         { label: 'New', accelerator: 'CmdOrCtrl+N', click: send(IPC.menuNewFile) },
+        { label: 'New from Template…', click: send(IPC.menuNewFromTemplate) },
         { label: 'Open File…', accelerator: 'CmdOrCtrl+O', click: send(IPC.menuOpenFile) },
         { label: 'Open Folder…', accelerator: 'CmdOrCtrl+Shift+O', click: send(IPC.menuOpenFolder) },
         { label: 'Open Quickly…', accelerator: 'CmdOrCtrl+P', click: send(IPC.menuOpenQuickly) },
@@ -169,6 +170,9 @@ export function buildMenu(win: BrowserWindow): void {
           accelerator: 'CmdOrCtrl+Shift+E',
           click: send(IPC.menuToggleSourceMode)
         },
+        { type: 'separator' },
+        { label: 'Start Speaking', click: send(IPC.menuStartSpeaking) },
+        { label: 'Stop Speaking', click: send(IPC.menuStopSpeaking) },
         { type: 'separator' },
         { label: 'Jump to Top', accelerator: 'CmdOrCtrl+Home', click: send(IPC.menuJumpTop) },
         { label: 'Jump to Bottom', accelerator: 'CmdOrCtrl+End', click: send(IPC.menuJumpBottom) },

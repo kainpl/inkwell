@@ -83,6 +83,14 @@ export interface ThemeCss {
   themeUser: string | null
 }
 
+/** A document template found in the user's templates folder. */
+export interface TemplateEntry {
+  /** Filename without `.md` — also the template id. */
+  id: string
+  /** Display name. */
+  name: string
+}
+
 /** A recoverable autosaved draft (crash recovery). */
 export interface DraftEntry {
   /** Stable id derived from the document path (or "untitled"). */
@@ -137,6 +145,10 @@ export const IPC = {
   openThemesFolder: 'theme:openFolder',
   // main -> renderer: the themes folder changed (added/edited/removed a file)
   themesChanged: 'theme:changed',
+  // document templates (userData/templates)
+  listTemplates: 'template:list',
+  readTemplate: 'template:read',
+  openTemplatesFolder: 'template:openFolder',
   // export / print
   exportHtml: 'export:html',
   exportPdf: 'export:pdf',
@@ -185,6 +197,9 @@ export const IPC = {
   menuExportPandoc: 'menu:exportPandoc',
   menuPreferences: 'menu:preferences',
   menuCommandPalette: 'menu:commandPalette',
+  menuNewFromTemplate: 'menu:newFromTemplate',
+  menuStartSpeaking: 'menu:startSpeaking',
+  menuStopSpeaking: 'menu:stopSpeaking',
   menuFormat: 'menu:format',
   // renderer -> main: re-fire a menu channel back to the renderer (command palette)
   triggerMenu: 'menu:trigger',
