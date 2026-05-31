@@ -1,4 +1,4 @@
-import { renderMarkdownBody, renderDocumentHtml } from './exportRender'
+import { renderMarkdownBody, renderDocumentHtml, renderPlainText } from './exportRender'
 
 describe('renderMarkdownBody', () => {
   it('renders headings, emphasis and inline code', () => {
@@ -56,6 +56,17 @@ describe('renderMarkdownBody', () => {
 
   it('renders :shortcode: emoji', () => {
     expect(renderMarkdownBody('hi :rocket:')).toContain('🚀')
+  })
+})
+
+describe('renderPlainText', () => {
+  it('strips markdown markers and puts blocks on their own lines', () => {
+    const text = renderPlainText('# Title\n\nSome **bold** text.\n\n- a\n- b')
+    expect(text).toContain('Title')
+    expect(text).toContain('Some bold text.')
+    expect(text).not.toContain('#')
+    expect(text).not.toContain('**')
+    expect(text.split('\n').filter((l) => l.trim()).length).toBeGreaterThanOrEqual(4)
   })
 })
 

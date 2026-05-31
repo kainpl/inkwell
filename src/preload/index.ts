@@ -36,6 +36,9 @@ const menuChannels = [
   IPC.menuExportPdf,
   IPC.menuPrint,
   IPC.menuPageSetup,
+  IPC.menuCopyMarkdown,
+  IPC.menuCopyHtml,
+  IPC.menuCopyPlain,
   IPC.menuSetLineEndingLf,
   IPC.menuSetLineEndingCrlf,
   IPC.menuToggleFinalNewline,
@@ -67,6 +70,9 @@ const api = {
   /** Render to PDF and open it in the OS viewer for preview + print. */
   printDoc: (html: string, pdfOptions: PdfOptions): Promise<boolean> =>
     ipcRenderer.invoke(IPC.printDoc, html, pdfOptions),
+  /** Write text and/or HTML to the system clipboard (Copy as…). */
+  clipboardWrite: (data: { text?: string; html?: string }): Promise<boolean> =>
+    ipcRenderer.invoke(IPC.clipboardWrite, data),
   createFile: (dirPath: string, name: string): Promise<string> =>
     ipcRenderer.invoke(IPC.createFile, dirPath, name),
   createFolder: (dirPath: string, name: string): Promise<string> =>

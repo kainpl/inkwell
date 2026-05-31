@@ -56,6 +56,15 @@ export function renderMarkdownBody(markdown: string): string {
   return DOMPurify.sanitize(md.render(markdown), PURIFY_OPTS)
 }
 
+/** Plain text of the document (markdown stripped), with blocks on their own lines. */
+export function renderPlainText(markdown: string): string {
+  const doc = new DOMParser().parseFromString(renderMarkdownBody(markdown), 'text/html')
+  doc.body
+    .querySelectorAll('p,h1,h2,h3,h4,h5,h6,li,blockquote,pre,tr,br,hr')
+    .forEach((el) => el.append('\n'))
+  return (doc.body.textContent ?? '').replace(/\n{3,}/g, '\n\n').trim()
+}
+
 // ---- Document-level post-processing (operates on a parsed DOM) -------------
 
 function slugify(text: string): string {

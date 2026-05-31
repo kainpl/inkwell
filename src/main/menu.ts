@@ -69,7 +69,16 @@ export function buildMenu(win: BrowserWindow): void {
         { role: 'cut' },
         { role: 'copy' },
         { role: 'paste' },
-        { role: 'selectAll' }
+        { role: 'selectAll' },
+        { type: 'separator' },
+        {
+          label: 'Copy As',
+          submenu: [
+            { label: 'Markdown', click: send(IPC.menuCopyMarkdown) },
+            { label: 'HTML', click: send(IPC.menuCopyHtml) },
+            { label: 'Plain Text', click: send(IPC.menuCopyPlain) }
+          ]
+        }
       ]
     },
     {

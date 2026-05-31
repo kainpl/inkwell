@@ -1,5 +1,5 @@
 import { useAppStore } from '@renderer/store/useAppStore'
-import { renderDocumentHtml } from './exportRender'
+import { renderDocumentHtml, renderPlainText } from './exportRender'
 import { pdfOptions } from './pageSetup'
 
 /** Output file name derived from the current document name (or "document"). */
@@ -24,6 +24,23 @@ export async function exportPdfFile(): Promise<void> {
     breakBeforeH1: pageSetup.breakBeforeH1
   })
   await window.api.exportPdf(html, pdfOptions(pageSetup), outName('pdf'))
+}
+
+/** Copy the raw Markdown source to the clipboard. */
+export async function copyAsMarkdown(): Promise<void> {
+  await window.api.clipboardWrite({ text: useAppStore.getState().doc.content })
+}
+
+/** Copy the rendered document as HTML (formatting carries into Word / Docs). */
+export async function copyAsHtml(): Promise<void> {
+  const { doc } = useAppStore.getState()
+  const html = await renderDocumentHtml(doc.content, { docPath: doc.path, styled: true })
+  await window.api.clipboardWrite({ html, text: renderPlainText(doc.content) })
+}
+
+/** Copy the document as plain text (Markdown markers stripped). */
+export async function copyAsPlainText(): Promise<void> {
+  await window.api.clipboardWrite({ text: renderPlainText(useAppStore.getState().doc.content) })
 }
 
 /** Print the current document (system print dialog). */

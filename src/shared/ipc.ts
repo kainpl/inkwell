@@ -113,6 +113,7 @@ export const IPC = {
   exportHtml: 'export:html',
   exportPdf: 'export:pdf',
   printDoc: 'export:print',
+  clipboardWrite: 'export:clipboardWrite',
   // main -> renderer (send/on)
   menuNewFile: 'menu:newFile',
   menuOpenFile: 'menu:openFile',
@@ -143,6 +144,9 @@ export const IPC = {
   menuExportPdf: 'menu:exportPdf',
   menuPrint: 'menu:print',
   menuPageSetup: 'menu:pageSetup',
+  menuCopyMarkdown: 'menu:copyMarkdown',
+  menuCopyHtml: 'menu:copyHtml',
+  menuCopyPlain: 'menu:copyPlain',
   menuFormat: 'menu:format',
   // open document changed/removed on disk by another program
   fileChangedExternally: 'watch:changed',

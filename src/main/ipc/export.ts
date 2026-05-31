@@ -1,4 +1,4 @@
-import { ipcMain, dialog, BrowserWindow, app } from 'electron'
+import { ipcMain, dialog, BrowserWindow, app, clipboard } from 'electron'
 import { promises as fs } from 'fs'
 import { join } from 'path'
 import { IPC, type PdfOptions } from '../../shared/ipc'
@@ -28,6 +28,12 @@ async function offscreen(html: string): Promise<{ win: BrowserWindow; cleanup: (
 }
 
 export function registerExportIpc(): void {
+  // Write text and/or HTML to the system clipboard (Copy as Markdown/HTML/Plain).
+  ipcMain.handle(IPC.clipboardWrite, (_e, data: { text?: string; html?: string }): boolean => {
+    clipboard.write(data)
+    return true
+  })
+
   ipcMain.handle(IPC.exportHtml, async (e, html: string, defaultName: string): Promise<boolean> => {
     const win = BrowserWindow.fromWebContents(e.sender) ?? undefined
     const { canceled, filePath } = await dialog.showSaveDialog(win!, {
