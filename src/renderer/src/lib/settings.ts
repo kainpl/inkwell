@@ -36,6 +36,8 @@ export interface Settings {
   exportStyle: 'default' | 'theme'
   /** Toggleable Markdown features (live editor + export). */
   markdownFeatures: MarkdownFeatures
+  /** Convert straight quotes/dashes/ellipsis to typographic ones as you type. */
+  smartPunctuation: boolean
 }
 
 export const FONT_STACKS: Record<EditorFont, string> = {
@@ -60,7 +62,8 @@ export const DEFAULT_SETTINGS: Settings = {
   autoHideMenuBar: false,
   embedImages: true,
   exportStyle: 'default',
-  markdownFeatures: DEFAULT_MARKDOWN_FEATURES
+  markdownFeatures: DEFAULT_MARKDOWN_FEATURES,
+  smartPunctuation: false
 }
 
 const KEY = 'inkwell.settings'

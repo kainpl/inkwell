@@ -120,6 +120,9 @@ function Editor(): JSX.Element {
       <Row label="Show formatting bar">
         <input type="checkbox" className="h-4 w-4 accent-accent" checked={s.formatBarOpen} onChange={() => s.toggleFormatBar()} />
       </Row>
+      <Row label="Smart punctuation" hint="straight quotes/dashes/ellipsis → typographic as you type">
+        <input type="checkbox" className="h-4 w-4 accent-accent" checked={s.smartPunctuation} onChange={() => s.setSmartPunctuation(!s.smartPunctuation)} />
+      </Row>
     </>
   )
 }

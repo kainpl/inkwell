@@ -19,7 +19,8 @@ function currentSettings(): Settings {
     autoHideMenuBar: s.autoHideMenuBar,
     embedImages: s.embedImages,
     exportStyle: s.exportStyle,
-    markdownFeatures: s.markdownFeatures
+    markdownFeatures: s.markdownFeatures,
+    smartPunctuation: s.smartPunctuation
   }
 }
 

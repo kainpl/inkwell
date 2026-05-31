@@ -126,7 +126,7 @@ Auto Save & Version Control*) і з поточним кодом Inkwell.
 ## Фаза 7 — продуктивність і power-user
 - ✅ **Панель інструментів для новачків** ⭐: фіксований toolbar + спливаюча над виділенням + меню **Format** + **emoji-пікер** (перемикач `Ctrl/⌘+Shift+B`); набір розширюється з кожною новою фічею
 - ✅ **Команда-палітра** (`Ctrl/⌘ Shift+P`) ⭐: fuzzy-пошук усіх команд (File/Edit/Format/View/Export/Go) — реєстр `lib/commands.ts` перевипускає наявні menu-канали через IPC `triggerMenu` (нуль дублювання логіки). Fuzzy-перемикач файлів лишається у Quick Open (`Ctrl/⌘ P`), палітра дає на нього команду *Go to File…*. Перевірено наживо
-- ⬜ **Smart Punctuation** (типографські лапки/тире/трикрапка; convert on input/rendering; remap unicode) — за прапорцем
+- ✅ **Smart Punctuation** (за прапорцем у Preferences ▸ Editor, дефолт off): прямі лапки→типографські `“”`/`‘’`, `--`→`–`, `---`→`—`, `...`→`…` під час набору; пропускає код (`inCode`-guard по дереву). Чистий `smartReplace` з тестами; CM `inputHandler` перед `closeBrackets`. Перевірено наживо
 - ⬜ **Перевірка орфографії + граматики** (hunspell), check-while-typing, autocorrect, Learn/Unlearn Word
 - ⬜ **Кастомні гарячі клавіші** (`keyBinding`) і **кастомні Search Services** (контекст-меню «Search With…»)
 - ✅ **Мультикурсор**: `drawSelection` + `allowMultipleSelections` у CM-стеку; Alt-клік додає курсор, `Ctrl/⌘ D` (наступне входження), `Ctrl/⌘ Alt ↑/↓` (курсор вище/нижче) — також у командній палітрі. Перевірено наживо (3 карети)

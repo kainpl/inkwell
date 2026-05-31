@@ -84,6 +84,9 @@ interface AppState {
   /** Embed local images as data: URIs in exported HTML. */
   embedImages: boolean
   setEmbedImages: (on: boolean) => void
+  /** Typographic substitution as you type (quotes/dashes/ellipsis). */
+  smartPunctuation: boolean
+  setSmartPunctuation: (on: boolean) => void
   /** Export CSS: built-in print stylesheet vs the active editor theme. */
   exportStyle: 'default' | 'theme'
   setExportStyle: (style: 'default' | 'theme') => void
@@ -242,6 +245,7 @@ export const useAppStore = create<AppState>((set) => ({
   editorLineHeight: s0.editorLineHeight,
   contentWidth: s0.contentWidth,
   embedImages: s0.embedImages,
+  smartPunctuation: s0.smartPunctuation,
   exportStyle: s0.exportStyle,
   markdownFeatures: s0.markdownFeatures,
   autoHideMenuBar: s0.autoHideMenuBar,
@@ -250,6 +254,7 @@ export const useAppStore = create<AppState>((set) => ({
   setEditorLineHeight: (lh) => set({ editorLineHeight: lh }),
   setContentWidth: (px) => set({ contentWidth: px }),
   setEmbedImages: (on) => set({ embedImages: on }),
+  setSmartPunctuation: (on) => set({ smartPunctuation: on }),
   setExportStyle: (exportStyle) => set({ exportStyle }),
   setMarkdownFeature: (key, on) =>
     set((s) => ({ markdownFeatures: { ...s.markdownFeatures, [key]: on } })),

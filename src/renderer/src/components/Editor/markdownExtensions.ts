@@ -20,6 +20,7 @@ import { autocompletion, closeBrackets, closeBracketsKeymap } from '@codemirror/
 import { search, searchKeymap, selectNextOccurrence } from '@codemirror/search'
 import { inkTheme, inkHighlight } from './theme'
 import { emojiCompletion } from './livePreview'
+import { smartPunctuation } from './smartPunctuation'
 import { imagePaste } from './imagePaste'
 import {
   previewCompartment,
@@ -137,6 +138,9 @@ export function inkwellExtensions(onChange: (value: string) => void): Extension[
       closeBrackets: { brackets: ['(', '[', '{', "'", '"', '`', '*', '_', '~'] }
     }),
     closeBrackets(),
+    // Typographic punctuation runs before closeBrackets so `"`/`'` become curly
+    // quotes (when enabled) instead of an auto-paired straight quote.
+    Prec.high(smartPunctuation()),
     autocompletion({ override: [emojiCompletion] }),
     search({ top: true }),
     // Editing "magic": continue lists/quotes on Enter, smart Backspace, Tab to
