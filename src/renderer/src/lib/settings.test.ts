@@ -35,12 +35,19 @@ describe('settings persistence', () => {
     expect(loadSettings().theme).toBe('github')
   })
 
+  it('migrates a legacy theme id to a theme + mode', () => {
+    saveSettings({ ...DEFAULT_SETTINGS, theme: 'night' })
+    const s = loadSettings()
+    expect(s.theme).toBe('tokyo')
+    expect(s.mode).toBe('dark')
+  })
+
   it('survives corrupt storage', () => {
     localStorage.setItem('inkwell.settings', '{not json')
     expect(loadSettings()).toEqual(DEFAULT_SETTINGS)
   })
 
   it('has a font stack for every font choice', () => {
-    expect(Object.keys(FONT_STACKS)).toEqual(['serif', 'sans', 'mono'])
+    expect(Object.keys(FONT_STACKS)).toEqual(['serif', 'sans', 'mono', 'jetbrains'])
   })
 })

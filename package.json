@@ -30,6 +30,7 @@
     "@codemirror/language-data": "^6.5.1",
     "@codemirror/state": "^6.4.1",
     "@codemirror/view": "^6.34.0",
+    "@fontsource/jetbrains-mono": "^5.2.8",
     "@lezer/highlight": "^1.2.1",
     "@mdit/plugin-emoji": "^0.2.2",
     "codemirror": "^6.0.1",

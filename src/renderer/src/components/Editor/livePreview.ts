@@ -6,7 +6,7 @@ import { parseOutline } from '@renderer/lib/outline'
 import { get as emojiGet, search as emojiSearch } from 'node-emoji'
 import type { CompletionSource } from '@codemirror/autocomplete'
 import { useAppStore } from '@renderer/store/useAppStore'
-import { isDarkThemeResolved } from '@renderer/lib/themes'
+import { clampMode } from '@renderer/lib/themes'
 import { type MarkdownFeatures, DEFAULT_MARKDOWN_FEATURES } from '@renderer/lib/markdownFeatures'
 import { parseHtmlImage, parseImage, toHtmlImage } from '@renderer/lib/imageInput'
 import katex from 'katex'
@@ -998,7 +998,7 @@ export function buildDecorations(
           // Mermaid: render the diagram on idle blocks; raw source when active.
           if (lang === 'mermaid' && features.mermaid && !blockActive && code.trim()) {
             const st = useAppStore.getState()
-            const dark = isDarkThemeResolved(st.theme, st.externalThemes)
+            const dark = clampMode(st.theme, st.mode, st.externalThemes) === 'dark'
             decos.push(Decoration.line({ class: 'ink-img-line' }).range(first.from))
             decos.push(
               Decoration.replace({ widget: new MermaidWidget(code, dark), block: true }).range(

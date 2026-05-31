@@ -3,7 +3,7 @@ import {
   isThemeFile,
   themeIdFromFile,
   themeIdToLabel,
-  parseThemeDark
+  parseThemeEditions
 } from './themeFile'
 
 describe('themeFile helpers', () => {
@@ -29,9 +29,16 @@ describe('themeFile helpers', () => {
     expect(themeIdToLabel('night_owl')).toBe('Night Owl')
   })
 
-  it('detects the dark marker in the file head', () => {
-    expect(parseThemeDark('/* inkwell: dark */\n:root{}')).toBe(true)
-    expect(parseThemeDark('/* an inkwell dark theme */')).toBe(true)
-    expect(parseThemeDark(':root{ --paper: 0 0 0 }')).toBe(false)
+  it('detects the editions a theme file provides', () => {
+    expect(parseThemeEditions(':root{ --paper: 0 0 0 }')).toEqual({ light: true, dark: false })
+    expect(parseThemeEditions(':root{}\n:root.dark{}')).toEqual({ light: true, dark: true })
+    expect(parseThemeEditions(':root.dark{ --paper: 0 0 0 }')).toEqual({ light: false, dark: true })
+  })
+
+  it('treats the legacy `inkwell: dark` marker as dark-only', () => {
+    expect(parseThemeEditions('/* inkwell: dark */\n:root{ --paper: 0 0 0 }')).toEqual({
+      light: false,
+      dark: true
+    })
   })
 })

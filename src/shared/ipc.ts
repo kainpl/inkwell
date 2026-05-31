@@ -67,7 +67,9 @@ export interface ExternalTheme {
   id: string
   /** Humanised display name. */
   label: string
-  /** Dark-based (opted in via an `inkwell: dark` marker in the file). */
+  /** Provides a light edition (`:root { … }`). */
+  light: boolean
+  /** Provides a dark edition (`:root.dark { … }` or legacy `inkwell: dark`). */
   dark: boolean
 }
 

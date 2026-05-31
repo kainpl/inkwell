@@ -3,7 +3,7 @@ import type { FileNode, ExternalTheme } from '@shared/ipc'
 import { type Tab, findByPath, isReplaceable, closeTab } from '@renderer/lib/tabsModel'
 import { type PageSetup, loadPageSetup, savePageSetup } from '@renderer/lib/pageSetup'
 import { type EditorFont, loadSettings } from '@renderer/lib/settings'
-import { isDarkTheme } from '@renderer/lib/themes'
+import { type Mode, hasBothEditions } from '@renderer/lib/themes'
 import type { MarkdownFeatures } from '@renderer/lib/markdownFeatures'
 
 export interface DocState {
@@ -41,9 +41,13 @@ interface AppState {
   setRoot: (node: FileNode | null) => void
 
   // --- ui ---
-  /** Built-in theme id (see lib/themes.ts). */
+  /** Active theme id (see lib/themes.ts). */
   theme: string
-  toggleTheme: () => void
+  /** Active edition of the theme. */
+  mode: Mode
+  setMode: (mode: Mode) => void
+  /** Flip the edition (no-op if the theme has only one). */
+  toggleMode: () => void
   sidebarOpen: boolean
   /** Which sidebar tab is shown when it's open. */
   sidebarTab: 'files' | 'articles'
@@ -209,7 +213,14 @@ export const useAppStore = create<AppState>((set) => ({
   setRoot: (node) => set({ root: node }),
 
   theme: s0.theme,
-  toggleTheme: () => set((s) => ({ theme: isDarkTheme(s.theme) ? 'light' : 'dark' })),
+  mode: s0.mode,
+  setMode: (mode) => set({ mode }),
+  toggleMode: () =>
+    set((s) =>
+      hasBothEditions(s.theme, s.externalThemes)
+        ? { mode: s.mode === 'dark' ? 'light' : 'dark' }
+        : {}
+    ),
   setTheme: (theme) => set({ theme }),
   externalThemes: [],
   setExternalThemes: (externalThemes) => set({ externalThemes }),

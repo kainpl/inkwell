@@ -41,11 +41,13 @@
     --syn-type: 255 166 87;
   }
 
-  /* ---- Built-in themes (lib/themes.ts). Each overrides the token palette.   */
-  /* Placed after :root/.dark so the [data-theme] selector wins by source      */
-  /* order; dark-based themes also carry `.dark` for component styling.        */
+  /* ---- Built-in themes (lib/themes.ts). Each theme has a light edition       */
+  /* `[data-theme=x]` (wins over :root by order) and a dark edition             */
+  /* `[data-theme=x].dark` (0,2,0 — wins over the base `.dark`). `mode` toggles  */
+  /* the `.dark` class. Inkwell IS the base (:root / .dark), so it needs no      */
+  /* block here.                                                                 */
 
-  /* GitHub — clean white, blue accent. */
+  /* GitHub — clean white / GitHub-dark. */
   [data-theme='github'] {
     --paper: 255 255 255;
     --ink: 31 35 40;
@@ -61,8 +63,23 @@
     --syn-name: 130 80 223;
     --syn-type: 149 56 0;
   }
+  [data-theme='github'].dark {
+    --paper: 13 17 23;
+    --ink: 230 237 243;
+    --muted: 125 133 144;
+    --faint: 110 118 129;
+    --line: 48 54 61;
+    --accent: 47 129 247;
+    --chrome: 22 27 34;
+    --syn-keyword: 255 123 114;
+    --syn-string: 165 214 255;
+    --syn-number: 121 192 255;
+    --syn-literal: 121 192 255;
+    --syn-name: 210 168 255;
+    --syn-type: 255 166 87;
+  }
 
-  /* Newsprint — warm sepia, like printed paper. */
+  /* Newsprint — warm sepia / aged dark paper. */
   [data-theme='newsprint'] {
     --paper: 247 243 234;
     --ink: 43 39 35;
@@ -78,25 +95,23 @@
     --syn-name: 122 82 48;
     --syn-type: 107 79 29;
   }
-
-  /* Night — deep blue-gray dark (Tokyo-night inspired). */
-  [data-theme='night'] {
-    --paper: 26 31 41;
-    --ink: 214 219 229;
-    --muted: 139 148 163;
-    --faint: 90 98 113;
-    --line: 43 49 61;
-    --accent: 122 162 247;
-    --chrome: 22 27 34;
-    --syn-keyword: 247 118 142;
-    --syn-string: 158 206 106;
-    --syn-number: 255 158 100;
-    --syn-literal: 255 158 100;
-    --syn-name: 125 207 255;
-    --syn-type: 42 195 222;
+  [data-theme='newsprint'].dark {
+    --paper: 33 28 22;
+    --ink: 232 220 200;
+    --muted: 176 164 140;
+    --faint: 107 99 84;
+    --line: 58 48 38;
+    --accent: 200 154 91;
+    --chrome: 26 22 16;
+    --syn-keyword: 217 139 106;
+    --syn-string: 163 176 106;
+    --syn-number: 200 154 91;
+    --syn-literal: 200 154 91;
+    --syn-name: 194 160 121;
+    --syn-type: 184 153 104;
   }
 
-  /* Pixyll — minimal high-contrast on pure white. */
+  /* Pixyll — minimal high-contrast, white / near-black. */
   [data-theme='pixyll'] {
     --paper: 255 255 255;
     --ink: 51 51 51;
@@ -111,6 +126,53 @@
     --syn-literal: 0 134 179;
     --syn-name: 121 93 163;
     --syn-type: 183 85 1;
+  }
+  [data-theme='pixyll'].dark {
+    --paper: 26 26 26;
+    --ink: 224 224 224;
+    --muted: 154 154 154;
+    --faint: 106 106 106;
+    --line: 51 51 51;
+    --accent: 204 204 204;
+    --chrome: 20 20 20;
+    --syn-keyword: 208 135 112;
+    --syn-string: 163 190 140;
+    --syn-number: 136 192 208;
+    --syn-literal: 136 192 208;
+    --syn-name: 180 142 173;
+    --syn-type: 235 203 139;
+  }
+
+  /* Tokyo — Tokyo Day (light) / Tokyo Night (dark). */
+  [data-theme='tokyo'] {
+    --paper: 225 226 231;
+    --ink: 52 59 88;
+    --muted: 97 114 176;
+    --faint: 137 144 179;
+    --line: 196 200 218;
+    --accent: 46 125 233;
+    --chrome: 208 210 219;
+    --syn-keyword: 152 84 241;
+    --syn-string: 88 117 57;
+    --syn-number: 177 92 0;
+    --syn-literal: 177 92 0;
+    --syn-name: 46 125 233;
+    --syn-type: 0 113 151;
+  }
+  [data-theme='tokyo'].dark {
+    --paper: 26 31 41;
+    --ink: 214 219 229;
+    --muted: 139 148 163;
+    --faint: 90 98 113;
+    --line: 43 49 61;
+    --accent: 122 162 247;
+    --chrome: 22 27 34;
+    --syn-keyword: 247 118 142;
+    --syn-string: 158 206 106;
+    --syn-number: 255 158 100;
+    --syn-literal: 255 158 100;
+    --syn-name: 125 207 255;
+    --syn-type: 42 195 222;
   }
 
   html,

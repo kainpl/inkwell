@@ -2,7 +2,7 @@ import { useEffect, useState, type ReactNode } from 'react'
 import { IPC } from '@shared/ipc'
 import { useAppStore } from '@renderer/store/useAppStore'
 import type { EditorFont } from '@renderer/lib/settings'
-import { THEMES } from '@renderer/lib/themes'
+import { THEMES, hasBothEditions, type Mode } from '@renderer/lib/themes'
 import { MARKDOWN_FEATURE_LIST } from '@renderer/lib/markdownFeatures'
 
 type Section = 'appearance' | 'editor' | 'markdown' | 'image' | 'export'
@@ -53,6 +53,17 @@ function Appearance(): JSX.Element {
           )}
         </select>
       </Row>
+      <Row label="Mode" hint="some themes offer only one edition">
+        <select
+          className={FIELD}
+          value={s.mode}
+          disabled={!hasBothEditions(s.theme, s.externalThemes)}
+          onChange={(e) => s.setMode(e.target.value as Mode)}
+        >
+          <option value="light">Light</option>
+          <option value="dark">Dark</option>
+        </select>
+      </Row>
       <Row label="Custom themes" hint="drop .css files here — they hot-reload">
         <button
           className="rounded border border-line px-2 py-1 text-sm text-ink hover:bg-ink/5"
@@ -66,6 +77,7 @@ function Appearance(): JSX.Element {
           <option value="serif">Serif</option>
           <option value="sans">Sans</option>
           <option value="mono">Monospace</option>
+          <option value="jetbrains">JetBrains Mono</option>
         </select>
       </Row>
       <Row label="Font size" hint="pixels">

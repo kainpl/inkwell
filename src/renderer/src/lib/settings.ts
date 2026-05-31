@@ -4,18 +4,20 @@
  * them. Only Preferences-managed fields live here — document/session state does not.
  */
 
-import { isKnownTheme } from './themes'
+import { migrateTheme } from './themes'
 import {
   type MarkdownFeatures,
   DEFAULT_MARKDOWN_FEATURES,
   normalizeFeatures
 } from './markdownFeatures'
 
-export type EditorFont = 'serif' | 'sans' | 'mono'
+export type EditorFont = 'serif' | 'sans' | 'mono' | 'jetbrains'
 
 export interface Settings {
   /** Built-in theme id (see lib/themes.ts). */
   theme: string
+  /** Active edition of the theme. */
+  mode: 'light' | 'dark'
   autoSave: boolean
   lineEnding: 'lf' | 'crlf'
   insertFinalNewline: boolean
@@ -39,11 +41,13 @@ export interface Settings {
 export const FONT_STACKS: Record<EditorFont, string> = {
   serif: 'ui-serif, "Iowan Old Style", Charter, Palatino, Georgia, serif',
   sans: 'ui-sans-serif, -apple-system, "Segoe UI", Roboto, Helvetica, sans-serif',
-  mono: 'ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace'
+  mono: 'ui-monospace, "SF Mono", Menlo, Consolas, monospace',
+  jetbrains: '"JetBrains Mono", ui-monospace, Menlo, Consolas, monospace'
 }
 
 export const DEFAULT_SETTINGS: Settings = {
-  theme: 'light',
+  theme: 'inkwell',
+  mode: 'light',
   autoSave: false,
   lineEnding: 'lf',
   insertFinalNewline: true,
@@ -66,9 +70,11 @@ const KEY = 'inkwell.settings'
 function sanitize(s: Settings): Settings {
   const clamp = (n: number, lo: number, hi: number, dflt: number): number =>
     Number.isFinite(n) && n >= lo && n <= hi ? n : dflt
+  const migrated = migrateTheme(s.theme, s.mode)
   return {
     ...s,
-    theme: isKnownTheme(s.theme) ? s.theme : DEFAULT_SETTINGS.theme,
+    theme: migrated.theme,
+    mode: migrated.mode,
     exportStyle: s.exportStyle === 'theme' ? 'theme' : 'default',
     markdownFeatures: normalizeFeatures(s.markdownFeatures),
     editorFontSize: clamp(s.editorFontSize, 10, 40, DEFAULT_SETTINGS.editorFontSize),

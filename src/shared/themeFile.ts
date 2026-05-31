@@ -31,7 +31,18 @@ export function themeIdToLabel(id: string): string {
   )
 }
 
-/** A theme opts into dark UI chrome with an `inkwell: dark` marker in its head. */
-export function parseThemeDark(css: string): boolean {
-  return /inkwell[\s:_-]*dark/i.test(css.slice(0, 500))
+/**
+ * Detect which editions a theme file provides. A dual-edition file defines a
+ * light edition on `:root { … }` and a dark edition on `:root.dark { … }` (or any
+ * `.dark` selector). The legacy `inkwell: dark` marker means a single dark theme
+ * (its `:root` is the dark palette).
+ */
+export function parseThemeEditions(css: string): { light: boolean; dark: boolean } {
+  const legacyDark = /inkwell[\s:_-]*dark/i.test(css.slice(0, 500))
+  if (legacyDark) {
+    return /:root\s*\.dark/.test(css) ? { light: true, dark: true } : { light: false, dark: true }
+  }
+  const dark = /\.dark\b/.test(css)
+  const light = /:root\s*[{,]/.test(css)
+  return { light: light || !dark, dark }
 }

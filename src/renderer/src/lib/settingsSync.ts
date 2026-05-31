@@ -6,6 +6,7 @@ function currentSettings(): Settings {
   const s = useAppStore.getState()
   return {
     theme: s.theme,
+    mode: s.mode,
     autoSave: s.autoSave,
     lineEnding: s.lineEnding,
     insertFinalNewline: s.insertFinalNewline,

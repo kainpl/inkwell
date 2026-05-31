@@ -1,14 +1,16 @@
 import { useAppStore } from '@renderer/store/useAppStore'
-import { isDarkThemeResolved } from '@renderer/lib/themes'
+import { clampMode, hasBothEditions } from '@renderer/lib/themes'
 
 function IconButton({
   label,
   active,
+  disabled,
   onClick,
   children
 }: {
   label: string
   active?: boolean
+  disabled?: boolean
   onClick: () => void
   children: React.ReactNode
 }): JSX.Element {
@@ -17,9 +19,12 @@ function IconButton({
       title={label}
       aria-label={label}
       onClick={onClick}
+      disabled={disabled}
       className={
         'flex h-7 w-7 items-center justify-center rounded-md text-muted ' +
-        'hover:bg-ink/5 hover:text-ink ' +
+        (disabled
+          ? 'cursor-default opacity-30 '
+          : 'hover:bg-ink/5 hover:text-ink ') +
         (active ? 'bg-ink/5 text-accent' : '')
       }
     >
@@ -29,11 +34,14 @@ function IconButton({
 }
 
 export default function TitleBar(): JSX.Element {
-  const { doc, sidebarOpen, outlineOpen, theme, externalThemes, formatBarOpen } = useAppStore()
+  const { doc, sidebarOpen, outlineOpen, theme, mode, externalThemes, formatBarOpen } =
+    useAppStore()
   const toggleSidebar = useAppStore((s) => s.toggleSidebar)
   const toggleOutline = useAppStore((s) => s.toggleOutline)
-  const toggleTheme = useAppStore((s) => s.toggleTheme)
+  const toggleMode = useAppStore((s) => s.toggleMode)
   const toggleFormatBar = useAppStore((s) => s.toggleFormatBar)
+  const isDark = clampMode(theme, mode, externalThemes) === 'dark'
+  const canToggle = hasBothEditions(theme, externalThemes)
 
   return (
     <header
@@ -60,8 +68,12 @@ export default function TitleBar(): JSX.Element {
       </div>
 
       <div className="flex items-center gap-1" style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}>
-        <IconButton label="Toggle theme" onClick={toggleTheme}>
-          {!isDarkThemeResolved(theme, externalThemes) ? (
+        <IconButton
+          label={canToggle ? 'Toggle light/dark' : 'This theme has one edition'}
+          disabled={!canToggle}
+          onClick={toggleMode}
+        >
+          {!isDark ? (
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z" />
             </svg>

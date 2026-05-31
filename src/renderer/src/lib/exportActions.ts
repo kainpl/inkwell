@@ -1,6 +1,6 @@
 import { useAppStore } from '@renderer/store/useAppStore'
 import { renderDocumentHtml, renderPlainText, type RenderDocOptions } from './exportRender'
-import { isDarkThemeResolved } from './themes'
+import { clampMode } from './themes'
 import { pdfOptions } from './pageSetup'
 
 /** Output file name derived from the current document name (or "document"). */
@@ -15,7 +15,7 @@ function outName(ext: string): string {
  * work too), and report whether to use the dark code-highlight theme.
  */
 function exportThemeCss(): { css: string; dark: boolean } | null {
-  const { exportStyle, theme, externalThemes } = useAppStore.getState()
+  const { exportStyle, theme, mode, externalThemes } = useAppStore.getState()
   if (exportStyle !== 'theme') return null
   const cs = getComputedStyle(document.documentElement)
   const v = (name: string): string => cs.getPropertyValue(name).trim()
@@ -23,7 +23,7 @@ function exportThemeCss(): { css: string; dark: boolean } | null {
     `:root{ --ink:rgb(${v('--ink')}); --muted:rgb(${v('--muted')}); ` +
     `--line:rgb(${v('--line')}); --accent:rgb(${v('--accent')}); --code-bg:rgb(${v('--chrome')}); }\n` +
     `body{ background:rgb(${v('--paper')}); color:rgb(${v('--ink')}); }`
-  return { css, dark: isDarkThemeResolved(theme, externalThemes) }
+  return { css, dark: clampMode(theme, mode, externalThemes) === 'dark' }
 }
 
 /** Optional user export stylesheet (themes/export.user.css), or '' if absent. */

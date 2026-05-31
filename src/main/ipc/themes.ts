@@ -7,7 +7,7 @@ import {
   isThemeFile,
   themeIdFromFile,
   themeIdToLabel,
-  parseThemeDark
+  parseThemeEditions
 } from '../../shared/themeFile'
 
 /** Absolute path of the user's themes folder. */
@@ -19,10 +19,11 @@ const README = `Inkwell themes
 ==============
 
 Drop a .css file in this folder and it appears in Preferences > Appearance >
-Theme. A theme redefines the colour tokens on :root (it is only injected while
-active, so :root is safe and rename-proof):
+Theme. A theme redefines the colour tokens. It can ship two editions — a light
+one on  :root  and a dark one on  :root.dark  — and the title-bar light/dark
+button switches between them (it is disabled if you provide only one):
 
-  :root {
+  :root {                 /* LIGHT edition */
     --paper: 255 255 255;   /* page background  ("R G B", used as rgb(var(--x))) */
     --ink: 30 30 30;        /* body text */
     --muted: 110 110 110;
@@ -37,9 +38,13 @@ active, so :root is safe and rename-proof):
     --syn-name: 130 80 200;
     --syn-type: 150 60 0;
   }
+  :root.dark {            /* DARK edition (same tokens, dark values) */
+    --paper: 20 20 24;
+    --ink: 225 225 220;
+    /* … */
+  }
 
-Mark a theme as dark (so the title-bar icon and diagrams follow) by adding the
-marker  inkwell: dark  in a comment near the top of the file.
+Provide only one of the two blocks for a single-edition theme.
 
 User overrides (cascade over any theme, like Typora):
   base.user.css        - always applied, on top of the active theme
@@ -49,7 +54,7 @@ Files are reloaded automatically when you save them.
 `
 
 const EXAMPLE = `/* Example theme — copy this file, rename it, and tweak the tokens.
-   (To make a dark theme, see the marker note in README.txt.) */
+   It ships both a light (:root) and a dark (:root.dark) edition. */
 :root {
   --paper: 253 246 227;
   --ink: 88 110 117;
@@ -58,6 +63,21 @@ const EXAMPLE = `/* Example theme — copy this file, rename it, and tweak the t
   --line: 238 232 213;
   --accent: 38 139 210;
   --chrome: 238 232 213;
+  --syn-keyword: 133 153 0;
+  --syn-string: 42 161 152;
+  --syn-number: 211 54 130;
+  --syn-literal: 211 54 130;
+  --syn-name: 38 139 210;
+  --syn-type: 181 137 0;
+}
+:root.dark {
+  --paper: 0 43 54;
+  --ink: 147 161 161;
+  --muted: 101 123 131;
+  --faint: 88 110 117;
+  --line: 7 54 66;
+  --accent: 38 139 210;
+  --chrome: 7 54 66;
   --syn-keyword: 133 153 0;
   --syn-string: 42 161 152;
   --syn-number: 211 54 130;
@@ -113,7 +133,7 @@ export function registerThemeIpc(): void {
       const id = themeIdFromFile(name)
       if (!isValidThemeId(id)) continue
       const css = (await readIfPresent(join(dir, name))) ?? ''
-      themes.push({ id, label: themeIdToLabel(id), dark: parseThemeDark(css) })
+      themes.push({ id, label: themeIdToLabel(id), ...parseThemeEditions(css) })
     }
     themes.sort((a, b) => a.label.localeCompare(b.label))
     return themes
