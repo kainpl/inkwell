@@ -4,7 +4,8 @@ import {
   type FileNode,
   type OpenedFile,
   type ArticleEntry,
-  type SearchFileResult
+  type SearchFileResult,
+  type DraftEntry
 } from '../shared/ipc'
 
 const menuChannels = [

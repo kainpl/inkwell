@@ -97,7 +97,7 @@ function TreeRow({
 
   // Refresh this directory's children when something inside it changed. setState
   // runs only inside the (async) window-event callback, never synchronously here.
-  /* eslint-disable react-hooks/set-state-in-effect, react-hooks/exhaustive-deps */
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     if (!isDir) return
     const handler = (e: Event): void => {
@@ -106,7 +106,6 @@ function TreeRow({
     window.addEventListener(TREE_CHANGED, handler)
     return () => window.removeEventListener(TREE_CHANGED, handler)
   }, [isDir, node.path, open])
-  /* eslint-enable react-hooks/set-state-in-effect, react-hooks/exhaustive-deps */
 
   const onClick = async (): Promise<void> => {
     if (isDir) {

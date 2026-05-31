@@ -95,6 +95,46 @@ export async function openPath(path: string): Promise<void> {
 }
 
 /**
+ * After session restore, offer to recover the newest crash-recovery draft whose
+ * content differs from disk. Recovered content is loaded into the editor and
+ * marked dirty so the user can Save or discard it. Run once on launch.
+ */
+export async function recoverDrafts(): Promise<void> {
+  const drafts = await window.api.listDrafts()
+  if (drafts.length === 0) return
+
+  // Keep only drafts that still differ from what's on disk; prune the rest.
+  const recoverable = []
+  for (const d of drafts) {
+    let disk: string | null = null
+    if (d.docPath) {
+      const file = await window.api.readFile(d.docPath).catch(() => null)
+      disk = file ? file.content : null // file gone → draft still worth recovering
+    }
+    if (isRecoverable(d, disk)) recoverable.push(d)
+    else void window.api.clearDraft(d.id)
+  }
+
+  const best = newestDraft(recoverable)
+  if (!best) return
+
+  const choice = await useConfirm.getState().ask({
+    title: 'Recover unsaved draft?',
+    message: `Inkwell found unsaved changes for “${best.name}” from a previous session. Recover them?`,
+    confirmLabel: 'Recover',
+    discardLabel: 'Discard'
+  })
+  if (choice === 'cancel') return // keep the draft, leave current doc as-is
+  if (choice === 'discard') {
+    void window.api.clearDraft(best.id)
+    return
+  }
+  // "save" → load the recovered content (dirty) so the user can save it.
+  useAppStore.getState().loadDoc({ path: best.docPath, name: best.name, content: best.content })
+  useAppStore.setState((s) => ({ doc: { ...s.doc, dirty: true } }))
+}
+
+/**
  * Reopen the most recent file that isn't the current document. Drops entries
  * from the recent list if they can't be read (moved/deleted).
  */

@@ -8,6 +8,7 @@ import {
   openFolderFromDialog,
   reopenClosedFile,
   restoreSession,
+  recoverDrafts,
   saveDoc,
   saveDocAs
 } from '@renderer/lib/docActions'
@@ -18,6 +19,7 @@ import { applyFormat, type FormatAction } from '@renderer/lib/formatCommands'
 import { uploadCurrentImage } from '@renderer/lib/uploadImage'
 import { applyTable, type TableAction } from '@renderer/lib/tableCommands'
 import { startAutoSave } from '@renderer/lib/autoSave'
+import { startDraftAutoSave } from '@renderer/lib/draftAutoSave'
 import TitleBar from '@renderer/components/TitleBar'
 import Sidebar from '@renderer/components/Sidebar'
 import OutlinePanel from '@renderer/components/OutlinePanel'
@@ -117,12 +119,19 @@ export default function App(): JSX.Element {
     })
   }, [])
 
-  // Debounced auto-save (no-op until the user enables it).
-  useEffect(() => startAutoSave(), [])
-
-  // Reopen the last session's folder/document on launch.
+  // Debounced auto-save + crash-recovery draft snapshots for the app's lifetime.
   useEffect(() => {
-    void restoreSession()
+    const stopAutoSave = startAutoSave()
+    const stopDrafts = startDraftAutoSave()
+    return () => {
+      stopAutoSave()
+      stopDrafts()
+    }
+  }, [])
+
+  // Reopen the last session, then offer to recover any crash-recovery draft.
+  useEffect(() => {
+    void restoreSession().then(() => recoverDrafts())
   }, [])
 
   return (

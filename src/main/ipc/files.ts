@@ -297,4 +297,46 @@ export function registerFileIpc(): void {
   ipcMain.handle(IPC.revealPath, async (_e, path: string): Promise<void> => {
     shell.showItemInFolder(path)
   })
+
+  // --- Crash-recovery drafts (snapshots under userData/drafts) -------------
+  const draftsDir = (): string => join(app.getPath('userData'), 'drafts')
+
+  // Save a draft snapshot keyed by id; the meta (path/name) rides in the file.
+  ipcMain.handle(IPC.saveDraft, async (_e, draft: DraftEntry): Promise<boolean> => {
+    const dir = draftsDir()
+    await fs.mkdir(dir, { recursive: true })
+    await fs.writeFile(join(dir, draft.id + '.json'), JSON.stringify(draft), 'utf-8')
+    return true
+  })
+
+  // List all saved drafts (unreadable/corrupt files are skipped).
+  ipcMain.handle(IPC.listDrafts, async (): Promise<DraftEntry[]> => {
+    const dir = draftsDir()
+    let names: string[]
+    try {
+      names = await fs.readdir(dir)
+    } catch {
+      return []
+    }
+    const out: DraftEntry[] = []
+    for (const n of names) {
+      if (!n.endsWith('.json')) continue
+      try {
+        out.push(JSON.parse(await fs.readFile(join(dir, n), 'utf-8')) as DraftEntry)
+      } catch {
+        /* skip corrupt draft */
+      }
+    }
+    return out
+  })
+
+  // Remove a draft once its document has been cleanly saved or discarded.
+  ipcMain.handle(IPC.clearDraft, async (_e, id: string): Promise<boolean> => {
+    try {
+      await fs.unlink(join(draftsDir(), id + '.json'))
+    } catch {
+      /* already gone */
+    }
+    return true
+  })
 }

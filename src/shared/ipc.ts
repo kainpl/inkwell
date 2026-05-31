@@ -45,6 +45,20 @@ export interface SearchFileResult {
   matches: SearchMatch[]
 }
 
+/** A recoverable autosaved draft (crash recovery). */
+export interface DraftEntry {
+  /** Stable id derived from the document path (or "untitled"). */
+  id: string
+  /** Original document path, or null for an unsaved doc. */
+  docPath: string | null
+  /** Display name. */
+  name: string
+  /** The drafted content. */
+  content: string
+  /** When the draft was written (ms since epoch). */
+  savedAt: number
+}
+
 /** IPC channel names. One source of truth for both sides. */
 export const IPC = {
   // renderer -> main (invoke/handle)
