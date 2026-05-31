@@ -95,13 +95,16 @@ function TreeRow({
     setChildren(await window.api.readDir(node.path))
   }
 
-  // Refresh this directory's children when something inside it changed. setState
-  // runs only inside the (async) window-event callback, never synchronously here.
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+  // Refresh this directory's children when something inside it changed. The
+  // loader is defined inside the effect so it isn't a stale/missing dependency;
+  // setState runs only inside the (async) window-event callback.
   useEffect(() => {
     if (!isDir) return
+    const reload = (): void => {
+      void window.api.readDir(node.path).then(setChildren)
+    }
     const handler = (e: Event): void => {
-      if ((e as CustomEvent<string>).detail === node.path && open) void loadChildren()
+      if ((e as CustomEvent<string>).detail === node.path && open) reload()
     }
     window.addEventListener(TREE_CHANGED, handler)
     return () => window.removeEventListener(TREE_CHANGED, handler)

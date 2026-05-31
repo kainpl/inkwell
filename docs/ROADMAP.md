@@ -84,7 +84,7 @@ Auto Save & Version Control*) і з поточним кодом Inkwell.
 - [x] **Guard незбережених змін** (in-app модал Save/Don't Save/Cancel)
 - [x] Індикатор «брудного» документа — крапка в TitleBar + «Unsaved/Saved» у StatusBar
 - [x] **Автозбереження** (debounce 1.5s → `fs.writeFile`; лише для збереженого файлу, перемикач у меню File + статус-бар; чистий `autoSave` з тестами)
-- [ ] **Recover Unsaved Drafts** — бекапи `{date}-{filename}.md` при краху/виході
+- [x] **Recover Unsaved Drafts** — debounce-снапшоти у `userData/drafts` поки документ «брудний»; при старті пропонує відновити найновіший стан, що відрізняється від диска (чистий `drafts` з тестами)
 - [ ] **Browse All Versions** — локальна історія версій документа
 - [x] **Open Recent** (File → Open Recent, пікер) + **Reopen Closed File** (`Ctrl+Shift+T`) — список у localStorage, чистий `recentFiles` з тестами
   - [ ] **Recent Locations** (нещодавні теки), **Save All**, **New Window** — потребують мульти-док/мульти-вікно (Фаза 9)
