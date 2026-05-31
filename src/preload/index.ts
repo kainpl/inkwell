@@ -44,6 +44,7 @@ const menuChannels = [
   IPC.menuCopyImage,
   IPC.menuExportImage,
   IPC.menuPreferences,
+  IPC.menuCommandPalette,
   IPC.menuSetLineEndingLf,
   IPC.menuSetLineEndingCrlf,
   IPC.menuToggleFinalNewline,
@@ -171,6 +172,10 @@ const api = {
 
   /** Apply the auto-hide-menu-bar preference to this window (Windows/Linux). */
   setMenuBarAutoHide: (hide: boolean): void => ipcRenderer.send(IPC.setMenuBarAutoHide, hide),
+
+  /** Re-fire a menu channel (command palette) — round-trips through the main process. */
+  triggerMenu: (channel: string, arg?: string): void =>
+    ipcRenderer.send(IPC.triggerMenu, channel, arg),
 
   /** Tell the main process whether the document has unsaved changes. */
   setDirty: (dirty: boolean): void => ipcRenderer.send(IPC.setDirty, dirty),

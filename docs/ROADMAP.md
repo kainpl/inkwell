@@ -125,7 +125,7 @@ Auto Save & Version Control*) і з поточним кодом Inkwell.
 
 ## Фаза 7 — продуктивність і power-user
 - ✅ **Панель інструментів для новачків** ⭐: фіксований toolbar + спливаюча над виділенням + меню **Format** + **emoji-пікер** (перемикач `Ctrl/⌘+Shift+B`); набір розширюється з кожною новою фічею
-- ⬜ **Команда-палітра** (`Ctrl/⌘ K`/`P`) — усі дії + fuzzy-перемикач файлів ⭐
+- ✅ **Команда-палітра** (`Ctrl/⌘ Shift+P`) ⭐: fuzzy-пошук усіх команд (File/Edit/Format/View/Export/Go) — реєстр `lib/commands.ts` перевипускає наявні menu-канали через IPC `triggerMenu` (нуль дублювання логіки). Fuzzy-перемикач файлів лишається у Quick Open (`Ctrl/⌘ P`), палітра дає на нього команду *Go to File…*. Перевірено наживо
 - ⬜ **Smart Punctuation** (типографські лапки/тире/трикрапка; convert on input/rendering; remap unicode) — за прапорцем
 - ⬜ **Перевірка орфографії + граматики** (hunspell), check-while-typing, autocorrect, Learn/Unlearn Word
 - ⬜ **Кастомні гарячі клавіші** (`keyBinding`) і **кастомні Search Services** (контекст-меню «Search With…»)

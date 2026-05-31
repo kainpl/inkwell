@@ -182,7 +182,10 @@ export const IPC = {
   menuExportImage: 'menu:exportImage',
   menuExportPandoc: 'menu:exportPandoc',
   menuPreferences: 'menu:preferences',
+  menuCommandPalette: 'menu:commandPalette',
   menuFormat: 'menu:format',
+  // renderer -> main: re-fire a menu channel back to the renderer (command palette)
+  triggerMenu: 'menu:trigger',
   // open document changed/removed on disk by another program
   fileChangedExternally: 'watch:changed',
   fileRemovedExternally: 'watch:removed',

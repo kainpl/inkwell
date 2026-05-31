@@ -46,6 +46,7 @@ import Toolbar from '@renderer/components/Toolbar'
 import FloatingToolbar from '@renderer/components/FloatingToolbar'
 import ImageZoom from '@renderer/components/ImageZoom'
 import QuickOpen from '@renderer/components/QuickOpen'
+import CommandPalette from '@renderer/components/CommandPalette'
 import GlobalSearch from '@renderer/components/GlobalSearch'
 import RecentFiles from '@renderer/components/RecentFiles'
 import BrowseVersions from '@renderer/components/BrowseVersions'
@@ -194,6 +195,7 @@ export default function App(): JSX.Element {
       <FloatingToolbar />
       <ImageZoom />
       <QuickOpen />
+      <CommandPalette />
       <GlobalSearch />
       <RecentFiles />
       <BrowseVersions />

@@ -94,6 +94,11 @@ app.whenReady().then(() => {
   registerExportIpc()
   registerThemeIpc()
 
+  // Command palette: re-fire a menu channel back to the sender's renderer.
+  ipcMain.on(IPC.triggerMenu, (e, channel: string, arg?: string) => {
+    BrowserWindow.fromWebContents(e.sender)?.webContents.send(channel, arg)
+  })
+
   // Apply the renderer's auto-hide-menu-bar preference to its window.
   ipcMain.on(IPC.setMenuBarAutoHide, (e, hide: boolean) => {
     const w = BrowserWindow.fromWebContents(e.sender)
