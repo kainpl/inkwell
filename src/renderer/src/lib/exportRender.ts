@@ -7,6 +7,8 @@ import mark from 'markdown-it-mark'
 import texmath from 'markdown-it-texmath'
 import katex from 'katex'
 import katexCss from 'katex/dist/katex.min.css?raw'
+import hljs from 'highlight.js'
+import hljsCss from 'highlight.js/styles/github.css?raw'
 import DOMPurify from 'dompurify'
 import { get as emojiGet } from 'node-emoji'
 import { EXPORT_CSS } from './exportCss'
@@ -33,7 +35,24 @@ function emojiPlugin(md: MarkdownIt): void {
   })
 }
 
-const md = new MarkdownIt({ html: true, linkify: true, typographer: false })
+const md = new MarkdownIt({
+  html: true,
+  linkify: true,
+  typographer: false,
+  // Syntax-highlight fenced code with a known language (highlight.js). Unknown
+  // langs (e.g. mermaid) return '' so markdown-it keeps the default code block.
+  highlight: (str, lang) => {
+    if (lang && hljs.getLanguage(lang)) {
+      try {
+        const out = hljs.highlight(str, { language: lang, ignoreIllegals: true }).value
+        return `<pre class="hljs"><code class="language-${lang}">${out}</code></pre>`
+      } catch {
+        /* fall through to default */
+      }
+    }
+    return ''
+  }
+})
   .use(footnote)
   .use(taskLists, { enabled: true, label: true })
   .use(sub)
@@ -190,7 +209,7 @@ async function defaultMermaid(code: string): Promise<string> {
 }
 
 function wrapHtml(body: string, styled: boolean, breakBeforeH1: boolean): string {
-  let css = styled ? `${katexCss}\n${EXPORT_CSS}` : ''
+  let css = styled ? `${katexCss}\n${hljsCss}\n${EXPORT_CSS}` : ''
   if (breakBeforeH1) css += '\nh1:not(:first-of-type){break-before:page;}'
   const head = css ? `<style>\n${css}\n</style>` : ''
   return `<!doctype html>\n<html><head><meta charset="utf-8">${head}</head>\n<body>\n${body}\n</body>\n</html>`

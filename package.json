@@ -34,6 +34,7 @@
     "@mdit/plugin-emoji": "^0.2.2",
     "codemirror": "^6.0.1",
     "dompurify": "^3.4.7",
+    "highlight.js": "^11.11.1",
     "katex": "^0.17.0",
     "markdown-it": "^14.2.0",
     "markdown-it-footnote": "^4.0.0",

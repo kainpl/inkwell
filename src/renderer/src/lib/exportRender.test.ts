@@ -57,6 +57,12 @@ describe('renderMarkdownBody', () => {
   it('renders :shortcode: emoji', () => {
     expect(renderMarkdownBody('hi :rocket:')).toContain('🚀')
   })
+
+  it('syntax-highlights fenced code with a known language', () => {
+    const html = renderMarkdownBody('```js\nconst x = 1\n```')
+    expect(html).toContain('hljs')
+    expect(html).toContain('language-js')
+  })
 })
 
 describe('renderPlainText', () => {
