@@ -59,6 +59,23 @@ export function buildMenu(win: BrowserWindow): void {
         { label: 'Code Block', click: fmt('codeblock') },
         { label: 'Horizontal Rule', click: fmt('hr') },
         { type: 'separator' },
+        {
+          label: 'Table',
+          submenu: [
+            { label: 'Insert Row Above', click: fmt('table:rowAbove') },
+            { label: 'Insert Row Below', click: fmt('table:rowBelow') },
+            { label: 'Delete Row', click: fmt('table:deleteRow') },
+            { type: 'separator' },
+            { label: 'Insert Column Before', click: fmt('table:colBefore') },
+            { label: 'Insert Column After', click: fmt('table:colAfter') },
+            { label: 'Delete Column', click: fmt('table:deleteCol') },
+            { type: 'separator' },
+            { label: 'Align Left', click: fmt('table:alignLeft') },
+            { label: 'Align Center', click: fmt('table:alignCenter') },
+            { label: 'Align Right', click: fmt('table:alignRight') }
+          ]
+        },
+        { type: 'separator' },
         { label: 'Toggle Image Markdown/HTML', click: fmt('toggleImageSyntax') },
         { label: 'Upload Image', click: fmt('uploadImage') }
       ]

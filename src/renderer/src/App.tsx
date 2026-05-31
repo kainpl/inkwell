@@ -12,6 +12,7 @@ import {
 import { useEditor } from '@renderer/store/useEditor'
 import { applyFormat, type FormatAction } from '@renderer/lib/formatCommands'
 import { uploadCurrentImage } from '@renderer/lib/uploadImage'
+import { applyTable, type TableAction } from '@renderer/lib/tableCommands'
 import TitleBar from '@renderer/components/TitleBar'
 import Sidebar from '@renderer/components/Sidebar'
 import OutlinePanel from '@renderer/components/OutlinePanel'
@@ -54,6 +55,7 @@ export default function App(): JSX.Element {
       const view = useEditor.getState().view
       if (!view) return
       if (action === 'uploadImage') void uploadCurrentImage(view)
+      else if (action.startsWith('table:')) applyTable(view, action.slice(6) as TableAction)
       else applyFormat(view, action as FormatAction)
     })
   }, [])

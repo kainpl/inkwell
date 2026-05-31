@@ -1,3 +1,5 @@
+@import 'katex/dist/katex.min.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -121,10 +123,91 @@
   }
   .ink-img-wrap:hover .ink-img-handle { opacity: 1; }
 
+  /* Fenced code block: shaded panel with a language badge + copy button. */
+  .cm-line.ink-code-block {
+    background: rgb(var(--ink) / 0.04);
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 0.92em;
+    padding-left: 0.9em;
+    padding-right: 0.9em;
+  }
+  .cm-line.ink-code-first { border-top: 1px solid rgb(var(--line)); border-radius: 6px 6px 0 0; padding-top: 0.3em; position: relative; }
+  .cm-line.ink-code-last { border-bottom: 1px solid rgb(var(--line)); border-radius: 0 0 6px 6px; padding-bottom: 0.3em; }
+  .ink-code-badge {
+    position: absolute; right: 0.5em; top: 0.15em;
+    display: inline-flex; gap: 0.5em; align-items: center;
+    font-family: ui-sans-serif, system-ui, sans-serif;
+  }
+  .ink-code-lang { @apply text-faint; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.04em; }
+  .ink-code-copy {
+    @apply text-muted;
+    font-size: 0.72rem; padding: 0.1em 0.5em; border-radius: 4px;
+    border: 1px solid rgb(var(--line)); background: rgb(var(--paper));
+    cursor: pointer;
+  }
+  .ink-code-copy:hover { @apply text-ink; background: rgb(var(--ink) / 0.05); }
+
+  /* Math (KaTeX). Block math is centered on its own line. */
+  .ink-footnote { @apply text-accent; cursor: help; font-size: 0.75em; vertical-align: super; }
+
+  /* Rendered (sanitized) HTML block. */
+  .ink-html { display: block; }
+
+  /* Rendered GFM table. */
+  .ink-table-wrap { display: block; overflow-x: auto; margin: 0.4em 0; }
+  .ink-table { border-collapse: collapse; width: auto; }
+  .ink-table th, .ink-table td { border: 1px solid rgb(var(--line)); padding: 0.35em 0.7em; }
+  .ink-table th { background: rgb(var(--ink) / 0.04); font-weight: 700; text-align: left; }
+  .ink-table tr:nth-child(even) td { background: rgb(var(--ink) / 0.02); }
+
+  /* Table of contents generated from [toc]. */
+  .ink-toc { display: block; border: 1px solid rgb(var(--line)); border-radius: 6px; padding: 0.6em 0.9em; margin: 0.4em 0; }
+  .ink-toc-title { font-weight: 700; font-size: 0.8em; text-transform: uppercase; letter-spacing: 0.04em; @apply text-faint; margin-bottom: 0.3em; }
+  .ink-toc-item { display: block; @apply text-accent; cursor: pointer; text-decoration: none; padding: 0.05em 0; }
+  .ink-toc-item:hover { text-decoration: underline; }
+  .ink-toc-l1 { margin-left: 0; }
+  .ink-toc-l2 { margin-left: 1em; }
+  .ink-toc-l3 { margin-left: 2em; }
+  .ink-toc-l4 { margin-left: 3em; }
+  .ink-toc-l5 { margin-left: 4em; }
+  .ink-toc-l6 { margin-left: 5em; }
+
+  /* YAML front matter: a muted monospace metadata panel. */
+  .cm-line.ink-frontmatter {
+    background: rgb(var(--ink) / 0.03);
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 0.85em;
+    @apply text-muted;
+    padding-left: 0.9em; padding-right: 0.9em;
+  }
+  .cm-line.ink-frontmatter-first { border-top: 1px solid rgb(var(--line)); border-radius: 6px 6px 0 0; }
+  .cm-line.ink-frontmatter-last { border-bottom: 1px solid rgb(var(--line)); border-radius: 0 0 6px 6px; }
+  .ink-math-block { display: block; text-align: center; margin: 0.4em 0; }
+  .ink-math-error { @apply text-accent; font-family: ui-monospace, monospace; }
+
+  /* Mermaid diagrams render centered; errors shown in monospace. */
+  .ink-mermaid { display: block; text-align: center; margin: 0.5em 0; }
+  .ink-mermaid svg { max-width: 100%; height: auto; }
+  .ink-mermaid-error { @apply text-accent; text-align: left; font-family: ui-monospace, monospace; font-size: 0.85em; white-space: pre-wrap; }
+
   /* A token that is hidden because the cursor is not on its line. */
   .ink-hidden-mark { display: none; }
   /* The same token, revealed (cursor on the line) — dimmed, like Typora. */
   .ink-mark { @apply text-faint; }
+
+  /* GitHub-style alerts: colored left bar + label. */
+  .cm-line.ink-alert { border-left-width: 4px; border-left-style: solid; }
+  .ink-alert-label { font-weight: 700; font-size: 0.85em; text-transform: uppercase; letter-spacing: 0.03em; }
+  .ink-alert-note { border-left-color: #539bf5; }
+  .ink-alert-note .ink-alert-label { color: #539bf5; }
+  .ink-alert-tip { border-left-color: #57ab5a; }
+  .ink-alert-tip .ink-alert-label { color: #57ab5a; }
+  .ink-alert-important { border-left-color: #986ee2; }
+  .ink-alert-important .ink-alert-label { color: #986ee2; }
+  .ink-alert-warning { border-left-color: #c69026; }
+  .ink-alert-warning .ink-alert-label { color: #c69026; }
+  .ink-alert-caution { border-left-color: #e5534b; }
+  .ink-alert-caution .ink-alert-label { color: #e5534b; }
 
   .cm-blockquote {
     @apply text-muted;

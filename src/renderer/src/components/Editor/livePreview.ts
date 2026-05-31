@@ -14,6 +14,10 @@ import { get as emojiGet, search as emojiSearch } from 'node-emoji'
 import type { CompletionSource } from '@codemirror/autocomplete'
 import { useAppStore } from '@renderer/store/useAppStore'
 import { parseHtmlImage, parseImage, toHtmlImage } from '@renderer/lib/imageInput'
+import katex from 'katex'
+import { renderMermaid } from '@renderer/lib/mermaidRender'
+import DOMPurify from 'dompurify'
+import { parseTable } from '@renderer/lib/tableModel'
 
 /**
  * The "seamless live preview" core (Typora's signature behaviour).
@@ -256,6 +260,254 @@ export class EmojiWidget extends WidgetType {
   }
 }
 
+/** Renders a TeX expression with KaTeX (inline or display block). */
+export class MathWidget extends WidgetType {
+  constructor(
+    readonly tex: string,
+    readonly block: boolean
+  ) {
+    super()
+  }
+  eq(other: MathWidget): boolean {
+    return other.tex === this.tex && other.block === this.block
+  }
+  toDOM(): HTMLElement {
+    const el = document.createElement(this.block ? 'div' : 'span')
+    el.className = this.block ? 'ink-math ink-math-block' : 'ink-math'
+    try {
+      katex.render(this.tex, el, { throwOnError: false, displayMode: this.block })
+    } catch {
+      el.textContent = this.tex
+      el.classList.add('ink-math-error')
+    }
+    return el
+  }
+  ignoreEvent(): boolean {
+    return false
+  }
+}
+
+/** Renders a GFM table as a styled HTML <table> on idle lines. */
+export class TableWidget extends WidgetType {
+  constructor(readonly md: string) {
+    super()
+  }
+  eq(other: TableWidget): boolean {
+    return other.md === this.md
+  }
+  toDOM(): HTMLElement {
+    const wrap = document.createElement('div')
+    wrap.className = 'ink-table-wrap'
+    const model = parseTable(this.md)
+    if (!model) {
+      wrap.textContent = this.md
+      return wrap
+    }
+    const table = document.createElement('table')
+    table.className = 'ink-table'
+    const thead = document.createElement('thead')
+    const htr = document.createElement('tr')
+    model.header.forEach((cell, i) => {
+      const th = document.createElement('th')
+      th.textContent = cell
+      if (model.aligns[i] !== 'none') th.style.textAlign = model.aligns[i]
+      htr.appendChild(th)
+    })
+    thead.appendChild(htr)
+    table.appendChild(thead)
+    const tbody = document.createElement('tbody')
+    model.rows.forEach((row) => {
+      const tr = document.createElement('tr')
+      row.forEach((cell, i) => {
+        const td = document.createElement('td')
+        td.textContent = cell
+        if (model.aligns[i] !== 'none') td.style.textAlign = model.aligns[i]
+        tr.appendChild(td)
+      })
+      tbody.appendChild(tr)
+    })
+    table.appendChild(tbody)
+    wrap.appendChild(table)
+    return wrap
+  }
+  ignoreEvent(): boolean {
+    return false
+  }
+}
+
+/** Renders a sanitized HTML block on idle lines (passthrough, XSS-safe). */
+export class HtmlBlockWidget extends WidgetType {
+  constructor(readonly html: string) {
+    super()
+  }
+  eq(other: HtmlBlockWidget): boolean {
+    return other.html === this.html
+  }
+  toDOM(): HTMLElement {
+    const el = document.createElement('div')
+    el.className = 'ink-html'
+    // Sanitize to prevent script/onerror injection from an untrusted document.
+    el.innerHTML = DOMPurify.sanitize(this.html)
+    return el
+  }
+  ignoreEvent(): boolean {
+    return false
+  }
+}
+
+/** Auto-generated table of contents rendered in place of a `[toc]` line. */
+export class TocWidget extends WidgetType {
+  constructor(readonly headings: { level: number; text: string; from: number }[]) {
+    super()
+  }
+  eq(other: TocWidget): boolean {
+    if (other.headings.length !== this.headings.length) return false
+    return this.headings.every(
+      (h, i) => h.text === other.headings[i].text && h.level === other.headings[i].level
+    )
+  }
+  toDOM(view: EditorView): HTMLElement {
+    const nav = document.createElement('div')
+    nav.className = 'ink-toc'
+    const title = document.createElement('div')
+    title.className = 'ink-toc-title'
+    title.textContent = 'Table of Contents'
+    nav.appendChild(title)
+    for (const h of this.headings) {
+      const a = document.createElement('a')
+      a.className = 'ink-toc-item ink-toc-l' + h.level
+      a.textContent = h.text
+      a.onmousedown = (e): void => e.preventDefault()
+      a.onclick = (e): void => {
+        e.preventDefault()
+        view.dispatch({
+          selection: { anchor: h.from },
+          effects: EditorView.scrollIntoView(h.from, { y: 'start' })
+        })
+        view.focus()
+      }
+      nav.appendChild(a)
+    }
+    return nav
+  }
+  ignoreEvent(): boolean {
+    return false
+  }
+}
+
+/** Footnote reference `[^id]` rendered as a superscript with the text as tooltip. */
+export class FootnoteRefWidget extends WidgetType {
+  constructor(
+    readonly id: string,
+    readonly text: string
+  ) {
+    super()
+  }
+  eq(other: FootnoteRefWidget): boolean {
+    return other.id === this.id && other.text === this.text
+  }
+  toDOM(): HTMLElement {
+    const sup = document.createElement('sup')
+    sup.className = 'ink-footnote'
+    sup.textContent = this.id
+    if (this.text) sup.title = this.text
+    return sup
+  }
+  ignoreEvent(): boolean {
+    return false
+  }
+}
+
+/** Label shown in place of `[!NOTE]` etc. at the top of a GitHub alert. */
+export class AlertLabelWidget extends WidgetType {
+  constructor(readonly type: string) {
+    super()
+  }
+  eq(other: AlertLabelWidget): boolean {
+    return other.type === this.type
+  }
+  toDOM(): HTMLElement {
+    const span = document.createElement('span')
+    span.className = 'ink-alert-label'
+    span.textContent = this.type.charAt(0).toUpperCase() + this.type.slice(1)
+    return span
+  }
+}
+
+/** Renders a ```mermaid block as an SVG diagram (async) on idle lines. */
+export class MermaidWidget extends WidgetType {
+  constructor(
+    readonly code: string,
+    readonly dark: boolean
+  ) {
+    super()
+  }
+  eq(other: MermaidWidget): boolean {
+    return other.code === this.code && other.dark === this.dark
+  }
+  toDOM(): HTMLElement {
+    const el = document.createElement('div')
+    el.className = 'ink-mermaid'
+    el.textContent = 'Rendering diagram…'
+    void renderMermaid(this.code, this.dark).then(({ svg, error }) => {
+      if (error) {
+        el.classList.add('ink-mermaid-error')
+        el.textContent = error
+      } else if (svg) {
+        el.innerHTML = svg
+      }
+    })
+    return el
+  }
+  ignoreEvent(): boolean {
+    return false
+  }
+}
+
+/** Language badge + copy button shown at the top-right of a code fence. */
+export class CodeBadgeWidget extends WidgetType {
+  constructor(
+    readonly lang: string,
+    readonly code: string
+  ) {
+    super()
+  }
+  eq(other: CodeBadgeWidget): boolean {
+    return other.lang === this.lang && other.code === this.code
+  }
+  toDOM(): HTMLElement {
+    const wrap = document.createElement('span')
+    wrap.className = 'ink-code-badge'
+    wrap.contentEditable = 'false'
+
+    if (this.lang) {
+      const label = document.createElement('span')
+      label.className = 'ink-code-lang'
+      label.textContent = this.lang
+      wrap.appendChild(label)
+    }
+
+    const btn = document.createElement('button')
+    btn.className = 'ink-code-copy'
+    btn.textContent = 'Copy'
+    btn.title = 'Copy code'
+    btn.onmousedown = (e): void => e.preventDefault()
+    btn.onclick = (e): void => {
+      e.preventDefault()
+      e.stopPropagation()
+      void navigator.clipboard.writeText(this.code).then(() => {
+        btn.textContent = 'Copied'
+        setTimeout(() => (btn.textContent = 'Copy'), 1200)
+      })
+    }
+    wrap.appendChild(btn)
+    return wrap
+  }
+  ignoreEvent(): boolean {
+    return false
+  }
+}
+
 /** Nesting depth of a list node (1 = top level), counting list ancestors. */
 function listDepth(node: SyntaxNodeRef): number {
   let depth = 0
@@ -382,6 +634,116 @@ function emojiDecos(
   }
 }
 
+// LaTeX math: block `$$…$$` (may span lines) is matched before inline `$…$`.
+const MATH_BLOCK_RE = /\$\$([\s\S]+?)\$\$/g
+const MATH_INLINE_RE = /(?<![\\$])\$(?!\s)([^$\n]+?)(?<!\s)\$(?!\$)/g
+
+/** True if any line spanned by [start,end] is active (so we show raw source). */
+function rangeActive(start: number, end: number, active: Set<number>, doc: Text): boolean {
+  const a = doc.lineAt(start).number
+  const b = doc.lineAt(end).number
+  for (let n = a; n <= b; n++) if (active.has(n)) return true
+  return false
+}
+
+/** Render `$$…$$` (display) and `$…$` (inline) math with KaTeX on idle lines. */
+function mathDecos(
+  text: string,
+  base: number,
+  active: Set<number>,
+  doc: Text,
+  out: Range<Decoration>[]
+): void {
+  // Track block spans so inline pass can skip the `$` inside them.
+  const blocked: [number, number][] = []
+  MATH_BLOCK_RE.lastIndex = 0
+  let m: RegExpExecArray | null
+  while ((m = MATH_BLOCK_RE.exec(text)) !== null) {
+    const start = base + m.index
+    const end = start + m[0].length
+    blocked.push([m.index, m.index + m[0].length])
+    if (rangeActive(start, end, active, doc)) continue
+    const tex = m[1].trim()
+    if (!tex) continue
+    out.push(Decoration.replace({ widget: new MathWidget(tex, true) }).range(start, end))
+  }
+
+  MATH_INLINE_RE.lastIndex = 0
+  while ((m = MATH_INLINE_RE.exec(text)) !== null) {
+    const idx = m.index
+    if (blocked.some(([s, e]) => idx >= s && idx < e)) continue
+    const start = base + idx
+    const end = start + m[0].length
+    if (rangeActive(start, end, active, doc)) continue
+    const tex = m[1].trim()
+    if (!tex) continue
+    out.push(Decoration.replace({ widget: new MathWidget(tex, false) }).range(start, end))
+  }
+}
+
+/** Render a line that is exactly `[toc]` as a generated table of contents. */
+function tocDecos(
+  text: string,
+  base: number,
+  active: Set<number>,
+  doc: Text,
+  headings: { level: number; text: string; from: number }[],
+  out: Range<Decoration>[]
+): void {
+  const re = /^[ \t]*\[toc\][ \t]*$/gim
+  let m: RegExpExecArray | null
+  while ((m = re.exec(text)) !== null) {
+    const start = base + m.index
+    const line = doc.lineAt(start)
+    if (active.has(line.number)) continue
+    out.push(
+      Decoration.replace({ widget: new TocWidget(headings), block: false }).range(
+        line.from,
+        line.to
+      )
+    )
+  }
+}
+
+// Footnotes: reference `[^id]` and definition `[^id]: text` (whole-doc lookup).
+const FOOTNOTE_REF_RE = /\[\^([^\]\s]+)\]/g
+
+/** Map of footnote id -> definition text, parsed from the whole document. */
+function footnoteDefs(fullText: string): Map<string, string> {
+  const defs = new Map<string, string>()
+  const re = /^\s*\[\^([^\]\s]+)\]:\s*(.+)$/gm
+  let m: RegExpExecArray | null
+  while ((m = re.exec(fullText)) !== null) defs.set(m[1], m[2].trim())
+  return defs
+}
+
+/** Render footnote references `[^id]` as superscripts with the def as tooltip. */
+function footnoteDecos(
+  text: string,
+  base: number,
+  active: Set<number>,
+  doc: Text,
+  defs: Map<string, string>,
+  out: Range<Decoration>[]
+): void {
+  FOOTNOTE_REF_RE.lastIndex = 0
+  let m: RegExpExecArray | null
+  while ((m = FOOTNOTE_REF_RE.exec(text)) !== null) {
+    const start = base + m.index
+    const end = start + m[0].length
+    const line = doc.lineAt(start)
+    // Skip definition lines (`[^id]:` at line start) and active lines.
+    if (/^\s*\[\^[^\]\s]+\]:/.test(line.text)) continue
+    if (active.has(line.number)) continue
+    out.push(
+      Decoration.replace({ widget: new FootnoteRefWidget(m[1], defs.get(m[1]) ?? '') }).range(
+        start,
+        end
+      )
+    )
+  }
+}
+
 /** Autocomplete `:shortcode` -> emoji (inserts the glyph). */
 export const emojiCompletion: CompletionSource = (ctx) => {
   const token = ctx.matchBefore(/:[a-z0-9_+-]*/)
@@ -480,6 +842,34 @@ export function buildDecorations(
 ): DecorationSet {
   const decos: Range<Decoration>[] = []
   const doc = state.doc
+  const fullText = doc.toString()
+  const fnDefs = footnoteDefs(fullText)
+  // Parse headings once for any `[toc]` widget (excludes the [toc] line itself).
+  const tocHeadings = parseOutline(fullText)
+
+  // YAML front matter: a `---` fence on line 1 with a later closing `---`.
+  // Styled as a metadata block; always visible (it stays editable).
+  if (doc.lines >= 2 && doc.line(1).text.trim() === '---') {
+    let closing = 0
+    for (let ln = 2; ln <= doc.lines; ln++) {
+      const t = doc.line(ln).text.trim()
+      if (t === '---' || t === '...') {
+        closing = ln
+        break
+      }
+    }
+    if (closing > 0) {
+      for (let ln = 1; ln <= closing; ln++) {
+        const cls =
+          ln === 1
+            ? 'ink-frontmatter ink-frontmatter-first'
+            : ln === closing
+              ? 'ink-frontmatter ink-frontmatter-last'
+              : 'ink-frontmatter'
+        decos.push(Decoration.line({ class: cls }).range(doc.line(ln).from))
+      }
+    }
+  }
 
   for (const { from, to } of ranges) {
     syntaxTree(state).iterate({
@@ -536,6 +926,97 @@ export function buildDecorations(
           return false
         }
 
+        // 3ba) Table: render as an HTML table on idle blocks; raw when active.
+        if (name === 'Table') {
+          const first = doc.lineAt(node.from)
+          const last = doc.lineAt(node.to)
+          let blockActive = false
+          for (let ln = first.number; ln <= last.number; ln++) {
+            if (active.has(ln)) {
+              blockActive = true
+              break
+            }
+          }
+          if (!blockActive) {
+            const md = doc.sliceString(node.from, node.to)
+            decos.push(
+              Decoration.replace({ widget: new TableWidget(md), block: true }).range(
+                node.from,
+                node.to
+              )
+            )
+          }
+          return false
+        }
+
+        // 3bb) HTML block: render sanitized HTML on idle lines; raw when active.
+        if (name === 'HTMLBlock') {
+          const first = doc.lineAt(node.from)
+          const last = doc.lineAt(node.to)
+          let blockActive = false
+          for (let ln = first.number; ln <= last.number; ln++) {
+            if (active.has(ln)) {
+              blockActive = true
+              break
+            }
+          }
+          if (!blockActive) {
+            const html = doc.sliceString(node.from, node.to)
+            decos.push(
+              Decoration.replace({ widget: new HtmlBlockWidget(html), block: true }).range(
+                node.from,
+                node.to
+              )
+            )
+          }
+          return false
+        }
+
+        // 3c) Fenced code block: shade the block, badge the language, add a copy
+        //     button. The source stays visible/editable (no replacement).
+        if (name === 'FencedCode') {
+          const first = doc.lineAt(node.from)
+          const last = doc.lineAt(node.to)
+          const infoNode = node.node.getChild('CodeInfo')
+          const textNode = node.node.getChild('CodeText')
+          const lang = infoNode ? doc.sliceString(infoNode.from, infoNode.to) : ''
+          const code = textNode ? doc.sliceString(textNode.from, textNode.to) : ''
+
+          // Mermaid: render the diagram on idle blocks; raw source when active.
+          const blockActive = active.has(first.number) || active.has(last.number)
+          if (lang === 'mermaid' && !blockActive && code.trim()) {
+            const dark = useAppStore.getState().theme === 'dark'
+            decos.push(Decoration.line({ class: 'ink-img-line' }).range(first.from))
+            decos.push(
+              Decoration.replace({ widget: new MermaidWidget(code, dark), block: true }).range(
+                node.from,
+                node.to
+              )
+            )
+            return false
+          }
+
+          // Otherwise: shade the block + add a language/copy badge.
+          for (let ln = first.number; ln <= last.number; ln++) {
+            const line = doc.line(ln)
+            const cls =
+              ln === first.number
+                ? 'ink-code-block ink-code-first'
+                : ln === last.number
+                  ? 'ink-code-block ink-code-last'
+                  : 'ink-code-block'
+            decos.push(Decoration.line({ class: cls }).range(line.from))
+          }
+          // Badge widget anchored at the end of the opening fence line.
+          decos.push(
+            Decoration.widget({
+              widget: new CodeBadgeWidget(lang, code),
+              side: 1
+            }).range(first.to)
+          )
+          return false
+        }
+
         // 4) List markers: bullet widget for unordered, styled number for
         //    ordered, nothing for task items (the checkbox stands in). Raw
         //    (dimmed) on the active line so it stays editable.
@@ -581,11 +1062,34 @@ export function buildDecorations(
 
         // 4b) Blockquote: style every line of the quote (left bar, indent, muted
         //     text via .cm-blockquote). The `>` marker is hidden by MARK_NODES.
+        //     A `> [!NOTE]` first line turns it into a GitHub-style alert.
         if (name === 'Blockquote') {
-          const first = doc.lineAt(node.from).number
+          const firstLine = doc.lineAt(node.from)
+          const first = firstLine.number
           const last = doc.lineAt(node.to).number
+          const alert = /^>\s*\[!(NOTE|TIP|IMPORTANT|WARNING|CAUTION)\]\s*$/i.exec(firstLine.text)
+          const alertType = alert ? alert[1].toLowerCase() : null
+
           for (let ln = first; ln <= last; ln++) {
-            decos.push(Decoration.line({ class: 'cm-blockquote' }).range(doc.line(ln).from))
+            const cls = alertType
+              ? `cm-blockquote ink-alert ink-alert-${alertType}`
+              : 'cm-blockquote'
+            decos.push(Decoration.line({ class: cls }).range(doc.line(ln).from))
+          }
+
+          if (alertType) {
+            // Hide the `[!TYPE]` marker on idle lines, show a label badge;
+            // raw on the active line for editing.
+            const markStart = firstLine.text.indexOf('[')
+            const from = firstLine.from + markStart
+            const to = firstLine.from + firstLine.text.length
+            if (active.has(first)) {
+              decos.push(Decoration.mark({ class: 'ink-mark' }).range(from, to))
+            } else {
+              decos.push(
+                Decoration.replace({ widget: new AlertLabelWidget(alertType) }).range(from, to)
+              )
+            }
           }
           return
         }
@@ -638,6 +1142,9 @@ export function buildDecorations(
     inlineRegexDecos(slice, from, active, doc, decos)
     emojiDecos(slice, from, active, doc, decos)
     htmlImageDecos(slice, from, active, doc, docPath, decos)
+    mathDecos(slice, from, active, doc, decos)
+    footnoteDecos(slice, from, active, doc, fnDefs, decos)
+    tocDecos(slice, from, active, doc, tocHeadings, decos)
   }
 
   // RangeSet must be sorted by position; `true` lets CodeMirror sort for us.

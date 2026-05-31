@@ -1,5 +1,4 @@
 import { EditorView } from '@codemirror/view'
-import { EditorSelection } from '@codemirror/state'
 import { parseImage, parseMarkdownImage, toHtmlImage, toMarkdownImage } from './imageInput'
 
 /**

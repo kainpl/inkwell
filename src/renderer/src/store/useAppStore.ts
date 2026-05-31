@@ -99,6 +99,64 @@ drop an image to copy it into an \`assets/\` folder automatically. Hover a rende
 image to get a resize handle, click it to zoom, or use Format → Toggle Image
 Markdown/HTML to switch syntax (HTML keeps a \`width\`).
 
+## Code
+
+Fenced blocks get a shaded panel, a language badge, and a copy button:
+
+\`\`\`js
+function greet(name) {
+  return \`Hello, \${name}!\`
+}
+\`\`\`
+
+## Math
+
+Inline math like $E = mc^2$ renders with KaTeX, and block math too:
+
+$$
+\\int_0^\\infty e^{-x}\\,dx = 1
+$$
+
+## Diagrams
+
+A \`mermaid\` code block renders as a diagram when the block is idle:
+
+\`\`\`mermaid
+graph LR
+  A[Write] --> B[Preview]
+  B --> C{Happy?}
+  C -->|Yes| D[Save]
+  C -->|No| A
+\`\`\`
+
+## Alerts
+
+> [!NOTE]
+> Highlight information users should take into account.
+
+> [!WARNING]
+> Critical content demanding attention.
+
+## Footnotes
+
+Here is a statement with a footnote[^note]. Hover the marker to read it.
+
+[^note]: Footnotes render as superscripts with the text as a tooltip.
+
+## Tables
+
+| Feature   | Status |
+| :-------- | :----: |
+| Rendering | done   |
+| Editing   | done   |
+
+Put the caret in a cell, then use **Format → Table** to add/delete rows and
+columns or change alignment. Click outside the table to see it rendered.
+
+## Table of Contents
+
+[toc]
+
 ### Next
 
 Open a folder (\`Ctrl/⌘ Shift O\`) to browse files, or just start writing.
