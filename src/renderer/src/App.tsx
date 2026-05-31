@@ -16,6 +16,7 @@ import {
   saveDocAs
 } from '@renderer/lib/docActions'
 import { setSessionFile } from '@renderer/lib/persistence'
+import { isDarkTheme } from '@renderer/lib/themes'
 import { EditorView } from '@codemirror/view'
 import { cursorDocStart, cursorDocEnd } from '@codemirror/commands'
 import { useEditor } from '@renderer/store/useEditor'
@@ -58,9 +59,12 @@ export default function App(): JSX.Element {
   const theme = useAppStore((s) => s.theme)
   const formatBarOpen = useAppStore((s) => s.formatBarOpen)
 
-  // Apply theme class to <html>.
+  // Apply the active theme to <html>: `data-theme` selects the palette block in
+  // index.css, and `.dark` stays toggled for component-level dark styling.
   useEffect(() => {
-    document.documentElement.classList.toggle('dark', theme === 'dark')
+    const root = document.documentElement
+    root.dataset.theme = theme
+    root.classList.toggle('dark', isDarkTheme(theme))
   }, [theme])
 
   // Wire main-process menu commands (file ops route through the unsaved guard).

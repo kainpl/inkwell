@@ -4,10 +4,13 @@
  * them. Only Preferences-managed fields live here — document/session state does not.
  */
 
+import { isKnownTheme } from './themes'
+
 export type EditorFont = 'serif' | 'sans' | 'mono'
 
 export interface Settings {
-  theme: 'light' | 'dark'
+  /** Built-in theme id (see lib/themes.ts). */
+  theme: string
   autoSave: boolean
   lineEnding: 'lf' | 'crlf'
   insertFinalNewline: boolean
@@ -16,6 +19,7 @@ export interface Settings {
   editorFont: EditorFont
   editorFontSize: number
   editorLineHeight: number
+  /** Width of the centred writing column, as a percentage of the editor width. */
   contentWidth: number
   /** Embed local images as data: URIs in exported HTML. */
   embedImages: boolean
@@ -37,16 +41,31 @@ export const DEFAULT_SETTINGS: Settings = {
   editorFont: 'serif',
   editorFontSize: 17,
   editorLineHeight: 1.75,
-  contentWidth: 736,
+  contentWidth: 80,
   embedImages: true
 }
 
 const KEY = 'inkwell.settings'
 
+/** Clamp numeric fields to sane ranges (also migrates legacy values, e.g. a
+ *  content width once stored in pixels falls outside the % range → default). */
+function sanitize(s: Settings): Settings {
+  const clamp = (n: number, lo: number, hi: number, dflt: number): number =>
+    Number.isFinite(n) && n >= lo && n <= hi ? n : dflt
+  return {
+    ...s,
+    theme: isKnownTheme(s.theme) ? s.theme : DEFAULT_SETTINGS.theme,
+    editorFontSize: clamp(s.editorFontSize, 10, 40, DEFAULT_SETTINGS.editorFontSize),
+    editorLineHeight: clamp(s.editorLineHeight, 1, 3, DEFAULT_SETTINGS.editorLineHeight),
+    contentWidth: clamp(s.contentWidth, 40, 100, DEFAULT_SETTINGS.contentWidth)
+  }
+}
+
 export function loadSettings(): Settings {
   try {
     const raw = localStorage.getItem(KEY)
-    return raw ? { ...DEFAULT_SETTINGS, ...(JSON.parse(raw) as Partial<Settings>) } : DEFAULT_SETTINGS
+    if (!raw) return DEFAULT_SETTINGS
+    return sanitize({ ...DEFAULT_SETTINGS, ...(JSON.parse(raw) as Partial<Settings>) })
   } catch {
     return DEFAULT_SETTINGS
   }

@@ -1,4 +1,5 @@
 import { useAppStore } from '@renderer/store/useAppStore'
+import { isDarkTheme } from '@renderer/lib/themes'
 
 function IconButton({
   label,
@@ -60,7 +61,7 @@ export default function TitleBar(): JSX.Element {
 
       <div className="flex items-center gap-1" style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}>
         <IconButton label="Toggle theme" onClick={toggleTheme}>
-          {theme === 'light' ? (
+          {!isDarkTheme(theme) ? (
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z" />
             </svg>

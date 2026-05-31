@@ -25,7 +25,7 @@ function applyTypography(s: Settings): void {
   root.setProperty('--ink-editor-font', FONT_STACKS[s.editorFont])
   root.setProperty('--ink-editor-size', `${s.editorFontSize}px`)
   root.setProperty('--ink-editor-leading', String(s.editorLineHeight))
-  root.setProperty('--ink-content-width', `${s.contentWidth}px`)
+  root.setProperty('--ink-content-width', `${s.contentWidth}%`)
 }
 
 function equal(a: Settings, b: Settings): boolean {

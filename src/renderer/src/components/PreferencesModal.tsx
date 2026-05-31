@@ -2,6 +2,7 @@ import { useEffect, useState, type ReactNode } from 'react'
 import { IPC } from '@shared/ipc'
 import { useAppStore } from '@renderer/store/useAppStore'
 import type { EditorFont } from '@renderer/lib/settings'
+import { THEMES } from '@renderer/lib/themes'
 
 type Section = 'appearance' | 'editor' | 'image' | 'export'
 
@@ -31,9 +32,12 @@ function Appearance(): JSX.Element {
   return (
     <>
       <Row label="Theme">
-        <select className={FIELD} value={s.theme} onChange={(e) => s.setTheme(e.target.value as 'light' | 'dark')}>
-          <option value="light">Light</option>
-          <option value="dark">Dark</option>
+        <select className={FIELD} value={s.theme} onChange={(e) => s.setTheme(e.target.value)}>
+          {THEMES.map((t) => (
+            <option key={t.id} value={t.id}>
+              {t.label}
+            </option>
+          ))}
         </select>
       </Row>
       <Row label="Editor font">
@@ -51,9 +55,10 @@ function Appearance(): JSX.Element {
         <input type="number" min={1.2} max={2.4} step={0.05} className={`${FIELD} w-20`} value={s.editorLineHeight}
           onChange={(e) => s.setEditorLineHeight(Number(e.target.value) || s.editorLineHeight)} />
       </Row>
-      <Row label="Content width" hint="pixels (centred column)">
-        <input type="number" min={480} max={1400} step={20} className={`${FIELD} w-20`} value={s.contentWidth}
-          onChange={(e) => s.setContentWidth(Number(e.target.value) || s.contentWidth)} />
+      <Row label="Content width" hint="% of window (centred column)">
+        <input type="range" min={40} max={100} step={5} className="w-40 accent-accent" value={s.contentWidth}
+          onChange={(e) => s.setContentWidth(Number(e.target.value))} />
+        <span className="w-10 text-right text-sm tabular-nums text-ink">{s.contentWidth}%</span>
       </Row>
     </>
   )

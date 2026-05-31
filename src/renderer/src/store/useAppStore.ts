@@ -3,6 +3,7 @@ import type { FileNode } from '@shared/ipc'
 import { type Tab, findByPath, isReplaceable, closeTab } from '@renderer/lib/tabsModel'
 import { type PageSetup, loadPageSetup, savePageSetup } from '@renderer/lib/pageSetup'
 import { type EditorFont, loadSettings } from '@renderer/lib/settings'
+import { isDarkTheme } from '@renderer/lib/themes'
 
 export interface DocState {
   path: string | null
@@ -39,7 +40,8 @@ interface AppState {
   setRoot: (node: FileNode | null) => void
 
   // --- ui ---
-  theme: 'light' | 'dark'
+  /** Built-in theme id (see lib/themes.ts). */
+  theme: string
   toggleTheme: () => void
   sidebarOpen: boolean
   /** Which sidebar tab is shown when it's open. */
@@ -62,7 +64,7 @@ interface AppState {
   pageSetup: PageSetup
   setPageSetup: (patch: Partial<PageSetup>) => void
   // --- appearance / typography (persisted via settingsSync) ---
-  setTheme: (theme: 'light' | 'dark') => void
+  setTheme: (theme: string) => void
   editorFont: EditorFont
   editorFontSize: number
   editorLineHeight: number
@@ -194,7 +196,7 @@ export const useAppStore = create<AppState>((set) => ({
   setRoot: (node) => set({ root: node }),
 
   theme: s0.theme,
-  toggleTheme: () => set((s) => ({ theme: s.theme === 'light' ? 'dark' : 'light' })),
+  toggleTheme: () => set((s) => ({ theme: isDarkTheme(s.theme) ? 'light' : 'dark' })),
   setTheme: (theme) => set({ theme }),
 
   sidebarOpen: true,

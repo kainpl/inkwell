@@ -115,8 +115,8 @@ Auto Save & Version Control*) і з поточним кодом Inkwell.
 
 ## Фаза 6 — теми й оформлення
 - ✅ Світла/темна тема (CSS-змінні + перемикач)
-- 🟡 Кастомні теми: механізм `[data-theme]` є; треба **завантаження зовнішніх `.css`** із теки тем + перемикач у UI
-- ⬜ Кілька **вбудованих тем** (аналоги github / newsprint / night / pixyll / whitey)
+- ✅ Кілька **вбудованих тем** — 6.2: реєстр `lib/themes.ts` (`[data-theme]`-палітри в `index.css`) + перемикач у Preferences ▸ Appearance і швидкий light↔dark у TitleBar. Готові: **Light / Dark / GitHub / Newsprint / Night / Pixyll** (кожна — набір CSS-токенів `--paper`/`--ink`/`--accent`/`--syn-*`). Невідомий id у настройках мігрує на `light`
+- 🟡 Кастомні теми: механізм `[data-theme]` задіяно (вбудовані теми); лишилось **завантаження зовнішніх `.css`** із теки тем + перемикач у UI — 6.3
 - ⬜ Каскад `base.user.css` + `{theme}.user.css` для правок без втрати при оновленні (як у Typora)
 - ✅ **Типографіка**: шрифт редактора (serif/sans/mono), ширина «сторінки», міжрядковий інтервал, розмір — застосовуються живими CSS-змінними через CM-тему; зберігаються у `localStorage` (`lib/settings.ts` + `settingsSync.ts`)
   - ⬜ auto-hide menu bar

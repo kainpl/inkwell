@@ -25,7 +25,7 @@ export const inkTheme = EditorView.theme({
     padding: '4rem 0'
   },
   '.cm-content': {
-    maxWidth: 'var(--ink-content-width, 46rem)',
+    maxWidth: 'var(--ink-content-width, 80%)',
     margin: '0 auto',
     padding: '0 1.5rem',
     fontSize: 'var(--ink-editor-size, 1.0625rem)',
