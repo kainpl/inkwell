@@ -13,12 +13,11 @@ export default function ArticlesPanel(): JSX.Element {
   const [sort, setSort] = useState<ArticleSort>('modified')
   const [now, setNow] = useState(0)
 
-  // (Re)load the list whenever the open folder changes.
+  // (Re)load the list whenever the open folder changes. All setState happens in
+  // the async callback (no synchronous setState in the effect body). When no
+  // folder is open the JSX early-returns, so stale entries are never shown.
   useEffect(() => {
-    if (!root) {
-      setArticles([])
-      return
-    }
+    if (!root) return
     let cancelled = false
     void window.api.listArticles(root.path).then((list) => {
       if (!cancelled) {

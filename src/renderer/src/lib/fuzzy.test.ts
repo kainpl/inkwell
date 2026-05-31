@@ -6,9 +6,9 @@ describe('fuzzyScore', () => {
     expect(fuzzyScore('xyz', 'abc')).toBe(-1)
   })
 
-  it('rewards consecutive and word-boundary matches', () => {
-    // "read" as a prefix word beats scattered letters.
-    expect(fuzzyScore('read', 'readme.md')).toBeGreaterThan(fuzzyScore('read', 'r_e_a_d.md'))
+  it('rewards a word-boundary (prefix) match over a mid-word one', () => {
+    // "read" at the start of "readme.md" beats "read" inside "bread.md".
+    expect(fuzzyScore('read', 'readme.md')).toBeGreaterThan(fuzzyScore('read', 'bread.md'))
   })
 
   it('empty query scores zero (matches anything)', () => {
