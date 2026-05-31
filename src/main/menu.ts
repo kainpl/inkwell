@@ -27,6 +27,19 @@ export function buildMenu(win: BrowserWindow): void {
         { label: 'Save', accelerator: 'CmdOrCtrl+S', click: send(IPC.menuSave) },
         { label: 'Save As…', accelerator: 'CmdOrCtrl+Shift+S', click: send(IPC.menuSaveAs) },
         { label: 'Auto Save', type: 'checkbox', checked: false, click: send(IPC.menuToggleAutoSave) },
+        {
+          label: 'Line Endings',
+          submenu: [
+            { label: 'LF (Unix)', click: send(IPC.menuSetLineEndingLf) },
+            { label: 'CRLF (Windows)', click: send(IPC.menuSetLineEndingCrlf) }
+          ]
+        },
+        {
+          label: 'Insert Final Newline on Save',
+          type: 'checkbox',
+          checked: true,
+          click: send(IPC.menuToggleFinalNewline)
+        },
         { type: 'separator' },
         isMac ? { role: 'close' } : { role: 'quit' }
       ]

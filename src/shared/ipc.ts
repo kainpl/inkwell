@@ -84,6 +84,9 @@ export const IPC = {
   menuToggleAutoSave: 'menu:toggleAutoSave',
   menuOpenRecent: 'menu:openRecent',
   menuReopenClosed: 'menu:reopenClosed',
+  menuSetLineEndingLf: 'menu:setLineEndingLf',
+  menuSetLineEndingCrlf: 'menu:setLineEndingCrlf',
+  menuToggleFinalNewline: 'menu:toggleFinalNewline',
   menuFormat: 'menu:format',
   // app lifecycle / unsaved-changes guard
   setDirty: 'app:setDirty',

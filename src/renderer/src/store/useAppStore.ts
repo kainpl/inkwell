@@ -35,6 +35,10 @@ interface AppState {
   formatBarOpen: boolean
   /** Auto-save the document a short while after edits stop (only when it has a path). */
   autoSave: boolean
+  /** Line ending written to disk on save. */
+  lineEnding: 'lf' | 'crlf'
+  /** Ensure exactly one trailing newline on save. */
+  insertFinalNewline: boolean
   /** Shell command for image upload (Typora-style); configured in Preferences. */
   imageUploadCommand: string
   toggleSidebar: () => void
@@ -44,6 +48,8 @@ interface AppState {
   toggleSourceMode: () => void
   toggleFormatBar: () => void
   toggleAutoSave: () => void
+  setLineEnding: (le: 'lf' | 'crlf') => void
+  toggleFinalNewline: () => void
   setImageUploadCommand: (command: string) => void
 }
 
@@ -208,6 +214,8 @@ export const useAppStore = create<AppState>((set) => ({
   sourceMode: false,
   formatBarOpen: true,
   autoSave: false,
+  lineEnding: 'lf',
+  insertFinalNewline: true,
   imageUploadCommand: '',
   toggleSidebar: () => set((s) => ({ sidebarOpen: !s.sidebarOpen })),
   toggleOutline: () => set((s) => ({ outlineOpen: !s.outlineOpen })),
@@ -216,5 +224,7 @@ export const useAppStore = create<AppState>((set) => ({
   toggleSourceMode: () => set((s) => ({ sourceMode: !s.sourceMode })),
   toggleFormatBar: () => set((s) => ({ formatBarOpen: !s.formatBarOpen })),
   toggleAutoSave: () => set((s) => ({ autoSave: !s.autoSave })),
+  setLineEnding: (le) => set({ lineEnding: le }),
+  toggleFinalNewline: () => set((s) => ({ insertFinalNewline: !s.insertFinalNewline })),
   setImageUploadCommand: (command) => set({ imageUploadCommand: command })
 }))

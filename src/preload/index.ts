@@ -25,7 +25,10 @@ const menuChannels = [
   IPC.menuGlobalSearch,
   IPC.menuToggleAutoSave,
   IPC.menuOpenRecent,
-  IPC.menuReopenClosed
+  IPC.menuReopenClosed,
+  IPC.menuSetLineEndingLf,
+  IPC.menuSetLineEndingCrlf,
+  IPC.menuToggleFinalNewline
 ] as const
 
 type MenuChannel = (typeof menuChannels)[number]

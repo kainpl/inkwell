@@ -91,7 +91,8 @@ Auto Save & Version Control*) і з поточним кодом Inkwell.
   - [ ] відновлення позиції каретки — додамо разом із per-file станом
 - [x] Дії над файлами в дереві (контекст-меню): New File/Folder, Rename, Duplicate, Delete (у кошик ОС), Reveal in File Manager; in-app prompt для імен, авто-оновлення дерева
   - [ ] **Move To** (перемістити в іншу теку) — потребує folder-picker, додамо за потреби
-- [ ] Reopen with Encoding; **Line Endings** CRLF/LF; Insert Final New Line On Save
+- [x] **Line Endings** CRLF/LF (меню File) + **Insert Final Newline on Save** — чистий `saveOptions` (нормалізація при записі), з тестами
+  - [ ] Reopen with Encoding (не-UTF-8) — рідко потрібне, додамо за запитом
 - [ ] **Стеження за змінами файлу на диску** + перезавантаження/конфлікт
 
 ## Фаза 5 — експорт і друк

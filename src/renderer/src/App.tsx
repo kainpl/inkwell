@@ -57,6 +57,13 @@ export default function App(): JSX.Element {
       window.api.onMenu(IPC.menuToggleSourceMode, () => useAppStore.getState().toggleSourceMode()),
       window.api.onMenu(IPC.menuToggleFormatBar, () => useAppStore.getState().toggleFormatBar()),
       window.api.onMenu(IPC.menuToggleAutoSave, () => useAppStore.getState().toggleAutoSave()),
+      window.api.onMenu(IPC.menuSetLineEndingLf, () => useAppStore.getState().setLineEnding('lf')),
+      window.api.onMenu(IPC.menuSetLineEndingCrlf, () =>
+        useAppStore.getState().setLineEnding('crlf')
+      ),
+      window.api.onMenu(IPC.menuToggleFinalNewline, () =>
+        useAppStore.getState().toggleFinalNewline()
+      ),
       window.api.onMenu(IPC.menuReopenClosed, () => void reopenClosedFile()),
       window.api.onMenu(IPC.menuJumpTop, () => {
         const view = useEditor.getState().view

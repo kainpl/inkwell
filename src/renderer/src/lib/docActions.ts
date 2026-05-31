@@ -8,6 +8,16 @@ import {
   setSessionFile,
   setSessionFolder
 } from './persistence'
+import { normalizeForSave } from './saveOptions'
+
+/** Content shaped for disk per the user's line-ending / final-newline settings. */
+function contentForDisk(): string {
+  const s = useAppStore.getState()
+  return normalizeForSave(s.doc.content, {
+    lineEnding: s.lineEnding,
+    insertFinalNewline: s.insertFinalNewline
+  })
+}
 
 /**
  * Document operations that may discard unsaved work, all funnelled through
@@ -25,7 +35,7 @@ function rememberFile(path: string): void {
 export async function saveDoc(): Promise<boolean> {
   const { doc, markSaved } = useAppStore.getState()
   if (doc.path) {
-    await window.api.saveFile(doc.path, doc.content)
+    await window.api.saveFile(doc.path, contentForDisk())
     markSaved()
     return true
   }
@@ -34,8 +44,8 @@ export async function saveDoc(): Promise<boolean> {
 
 /** Save As via a native dialog. Returns false if the user cancels the dialog. */
 export async function saveDocAs(): Promise<boolean> {
-  const { doc, markSaved } = useAppStore.getState()
-  const result = await window.api.saveFileAs(doc.content)
+  const { markSaved } = useAppStore.getState()
+  const result = await window.api.saveFileAs(contentForDisk())
   if (!result) return false
   markSaved(result.path, result.name)
   rememberFile(result.path)
