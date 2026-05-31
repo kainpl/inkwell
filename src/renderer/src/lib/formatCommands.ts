@@ -26,6 +26,8 @@ export type FormatAction =
   | 'codeblock'
   | 'hr'
   | 'toggleImageSyntax'
+  | 'clearFormat'
+  | 'prettify'
 
 /** Wrap (or unwrap, if already wrapped) the selection with inline marks. */
 export function wrapSelection(view: EditorView, mark: string, end: string = mark): boolean {
@@ -203,6 +205,76 @@ export function imageSrcOnLine(view: EditorView): string | null {
   return found ? (parseImage(found.text)?.src ?? null) : null
 }
 
+/** Strip inline Markdown formatting markers from a span of text (best-effort). */
+export function stripInlineMarkdown(text: string): string {
+  return text
+    .replace(/\*\*([^*]+?)\*\*/g, '$1') // bold **…**
+    .replace(/__([^_]+?)__/g, '$1') // bold __…__
+    .replace(/\*([^*\n]+?)\*/g, '$1') // italic *…*
+    .replace(/(?<![A-Za-z0-9])_([^_\n]+?)_(?![A-Za-z0-9])/g, '$1') // italic _…_ (word-bounded)
+    .replace(/~~([^~]+?)~~/g, '$1') // strikethrough
+    .replace(/==([^=]+?)==/g, '$1') // ==highlight==
+    .replace(/`([^`]+?)`/g, '$1') // `inline code`
+    .replace(/\[([^\]]+)\]\([^)]*\)/g, '$1') // [text](url) → text
+}
+
+/** Clear inline formatting from the selection. */
+export function clearFormat(view: EditorView): boolean {
+  const { from, to } = view.state.selection.main
+  if (from === to) return false
+  const cleaned = stripInlineMarkdown(view.state.sliceDoc(from, to))
+  view.dispatch({
+    changes: { from, to, insert: cleaned },
+    selection: { anchor: from, head: from + cleaned.length }
+  })
+  view.focus()
+  return true
+}
+
+/**
+ * Conservatively tidy a Markdown source: strip trailing whitespace, fix ATX
+ * heading spacing (`#Title` → `# Title`), collapse 3+ blank lines to one, and
+ * ensure a single trailing newline. Code fences are left untouched. Pure (no
+ * view) so it is unit tested.
+ */
+export function prettifyMarkdown(src: string): string {
+  let inFence = false
+  let blanks = 0
+  const out: string[] = []
+  for (const raw of src.split('\n')) {
+    const isFence = /^\s*(```|~~~)/.test(raw)
+    if (isFence) {
+      inFence = !inFence
+      blanks = 0
+      out.push(raw.replace(/[ \t]+$/, ''))
+      continue
+    }
+    if (inFence) {
+      out.push(raw) // never touch code
+      continue
+    }
+    const tidied = raw.replace(/[ \t]+$/, '')
+    if (tidied.trim() === '') {
+      if (++blanks > 1) continue // collapse runs of blank lines
+      out.push('')
+    } else {
+      blanks = 0
+      out.push(tidied.replace(/^(#{1,6})([^#\s])/, '$1 $2'))
+    }
+  }
+  return out.join('\n').replace(/\n+$/, '') + '\n'
+}
+
+/** Prettify the whole document in place. */
+export function prettifySource(view: EditorView): boolean {
+  const text = view.state.doc.toString()
+  const next = prettifyMarkdown(text)
+  if (next === text) return false
+  view.dispatch({ changes: { from: 0, to: view.state.doc.length, insert: next } })
+  view.focus()
+  return true
+}
+
 /** Insert the emoji glyph at the cursor. */
 export function insertEmoji(view: EditorView, emoji: string): boolean {
   const pos = view.state.selection.main.head
@@ -250,6 +322,10 @@ export function applyFormat(view: EditorView, action: FormatAction): boolean {
       return insertBlock(view, '---\n', 4)
     case 'toggleImageSyntax':
       return toggleImageSyntax(view)
+    case 'clearFormat':
+      return clearFormat(view)
+    case 'prettify':
+      return prettifySource(view)
     default:
       return false
   }

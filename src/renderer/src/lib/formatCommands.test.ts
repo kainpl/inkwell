@@ -9,7 +9,9 @@ import {
   toggleImageSyntax,
   setImageWidth,
   setImageSrc,
-  imageSrcOnLine
+  imageSrcOnLine,
+  stripInlineMarkdown,
+  prettifyMarkdown
 } from './formatCommands'
 
 function mkView(doc: string, from: number, to = from): EditorView {
@@ -104,5 +106,42 @@ describe('formatCommands', () => {
     setImageSrc(view, 'https://cdn.io/cat.png')
     expect(view.state.doc.toString()).toBe('![cat](https://cdn.io/cat.png)')
     view.destroy()
+  })
+
+  it('clears inline formatting from the selection', () => {
+    const view = mkView('a **bold** _it_ ~~no~~ `c` ==hi== [t](u) z', 0, 41)
+    applyFormat(view, 'clearFormat')
+    expect(view.state.doc.toString()).toBe('a bold it no c hi t z')
+    view.destroy()
+  })
+})
+
+describe('stripInlineMarkdown', () => {
+  it('removes bold, italic, strike, code, highlight and link markers', () => {
+    expect(stripInlineMarkdown('**b** *i* ~~s~~ `c` ==h==')).toBe('b i s c h')
+    expect(stripInlineMarkdown('see [docs](http://x)')).toBe('see docs')
+  })
+
+  it('leaves snake_case identifiers alone', () => {
+    expect(stripInlineMarkdown('a my_var_name b')).toBe('a my_var_name b')
+  })
+})
+
+describe('prettifyMarkdown', () => {
+  it('strips trailing whitespace and fixes heading spacing', () => {
+    expect(prettifyMarkdown('#Title  \ntext   \n')).toBe('# Title\ntext\n')
+  })
+
+  it('collapses runs of blank lines and ensures one trailing newline', () => {
+    expect(prettifyMarkdown('a\n\n\n\nb')).toBe('a\n\nb\n')
+  })
+
+  it('strips trailing whitespace from prose lines', () => {
+    expect(prettifyMarkdown('line  \nnext')).toBe('line\nnext\n')
+  })
+
+  it('never touches content inside fenced code', () => {
+    const code = '```\n#notaheading\n\n\n  spaced  \n```\n'
+    expect(prettifyMarkdown(code)).toBe('```\n#notaheading\n\n\n  spaced  \n```\n')
   })
 })

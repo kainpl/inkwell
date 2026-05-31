@@ -134,7 +134,10 @@ export function buildMenu(win: BrowserWindow): void {
         },
         { type: 'separator' },
         { label: 'Toggle Image Markdown/HTML', click: fmt('toggleImageSyntax') },
-        { label: 'Upload Image', click: fmt('uploadImage') }
+        { label: 'Upload Image', click: fmt('uploadImage') },
+        { type: 'separator' },
+        { label: 'Clear Format', click: fmt('clearFormat') },
+        { label: 'Prettify Source', click: fmt('prettify') }
       ]
     },
     {

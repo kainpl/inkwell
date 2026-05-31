@@ -6,11 +6,18 @@ import {
 } from '@codemirror/lang-markdown'
 import { Subscript, Superscript } from '@lezer/markdown'
 import { languages } from '@codemirror/language-data'
-import { EditorView, highlightActiveLine, keymap, type Command } from '@codemirror/view'
-import { type Extension, Prec, EditorSelection } from '@codemirror/state'
-import { indentMore, indentLess, selectLine, selectParentSyntax } from '@codemirror/commands'
+import { EditorView, drawSelection, highlightActiveLine, keymap, type Command } from '@codemirror/view'
+import { type Extension, Prec, EditorSelection, EditorState } from '@codemirror/state'
+import {
+  indentMore,
+  indentLess,
+  selectLine,
+  selectParentSyntax,
+  addCursorAbove,
+  addCursorBelow
+} from '@codemirror/commands'
 import { autocompletion, closeBrackets, closeBracketsKeymap } from '@codemirror/autocomplete'
-import { search, searchKeymap } from '@codemirror/search'
+import { search, searchKeymap, selectNextOccurrence } from '@codemirror/search'
 import { inkTheme, inkHighlight } from './theme'
 import { emojiCompletion } from './livePreview'
 import { imagePaste } from './imagePaste'
@@ -116,6 +123,10 @@ export function inkwellExtensions(onChange: (value: string) => void): Extension[
     }),
     inkTheme,
     inkHighlight,
+    // Multiple cursors: draw all selection ranges + allow more than one. Add a
+    // cursor with Alt-click, Ctrl/Cmd+D (next occurrence), Ctrl/Cmd+Alt+↑/↓.
+    drawSelection(),
+    EditorState.allowMultipleSelections.of(true),
     // Live preview + link-click; toggled off in Source Code Mode.
     previewCompartment.of(previewExtensions),
     // Typewriter mode; empty until enabled.
@@ -140,6 +151,10 @@ export function inkwellExtensions(onChange: (value: string) => void): Extension[
         { key: 'Alt-w', run: selectWord },
         { key: 'Alt-s', run: selectSentence },
         { key: 'Alt-ArrowUp', run: selectParentSyntax },
+        // Multiple cursors.
+        { key: 'Mod-d', run: selectNextOccurrence },
+        { key: 'Mod-Alt-ArrowUp', run: addCursorAbove },
+        { key: 'Mod-Alt-ArrowDown', run: addCursorBelow },
         ...closeBracketsKeymap,
         ...searchKeymap
       ])

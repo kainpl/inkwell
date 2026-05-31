@@ -41,6 +41,9 @@ export const COMMANDS: Command[] = [
   { id: 'edit.copyHtml', title: 'Copy as HTML', category: 'Edit', channel: IPC.menuCopyHtml },
   { id: 'edit.copyPlain', title: 'Copy as Plain Text', category: 'Edit', channel: IPC.menuCopyPlain },
   { id: 'edit.copyImage', title: 'Copy as Image', category: 'Edit', channel: IPC.menuCopyImage },
+  { id: 'edit.selectNext', title: 'Select Next Occurrence (Ctrl/⌘ D)', category: 'Edit', channel: IPC.menuFormat, arg: 'selectNextOccurrence' },
+  { id: 'edit.cursorAbove', title: 'Add Cursor Above (Ctrl/⌘ Alt ↑)', category: 'Edit', channel: IPC.menuFormat, arg: 'cursorAbove' },
+  { id: 'edit.cursorBelow', title: 'Add Cursor Below (Ctrl/⌘ Alt ↓)', category: 'Edit', channel: IPC.menuFormat, arg: 'cursorBelow' },
 
   // Format
   fmt('bold', 'Bold'),
@@ -71,6 +74,8 @@ export const COMMANDS: Command[] = [
   fmt('table:alignRight', 'Table: Align Right'),
   fmt('toggleImageSyntax', 'Toggle Image Markdown/HTML'),
   fmt('uploadImage', 'Upload Image'),
+  fmt('clearFormat', 'Clear Format'),
+  fmt('prettify', 'Prettify Source'),
 
   // View
   { id: 'view.formatBar', title: 'Toggle Formatting Bar', category: 'View', channel: IPC.menuToggleFormatBar },
