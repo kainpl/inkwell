@@ -34,6 +34,19 @@ describe('renderMarkdownBody', () => {
     expect(html).toContain('<sup>2</sup>')
   })
 
+  it('strips scripts and event handlers from the output (XSS-safe)', () => {
+    const html = renderMarkdownBody(
+      'ok\n\n<script>alert(1)</script>\n\nimg <img src=x onerror="alert(1)">'
+    )
+    expect(html.toLowerCase()).not.toContain('<script')
+    expect(html.toLowerCase()).not.toContain('onerror')
+    expect(html).toContain('ok')
+  })
+
+  it('keeps safe inline raw HTML like <u>', () => {
+    expect(renderMarkdownBody('<u>under</u>')).toContain('<u>under</u>')
+  })
+
   it('renders inline and block math with KaTeX', () => {
     const html = renderMarkdownBody('inline $E=mc^2$\n\n$$\n\\int_0^1 x\\,dx\n$$')
     expect(html).toContain('katex')

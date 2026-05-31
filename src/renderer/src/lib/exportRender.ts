@@ -6,6 +6,7 @@ import sup from 'markdown-it-sup'
 import mark from 'markdown-it-mark'
 import texmath from 'markdown-it-texmath'
 import katex from 'katex'
+import DOMPurify from 'dompurify'
 
 /**
  * The export render engine: turns a Markdown document into standalone HTML for
@@ -27,7 +28,16 @@ const md = new MarkdownIt({ html: true, linkify: true, typographer: false })
     katexOptions: { throwOnError: false }
   })
 
-/** Render the Markdown body to an HTML fragment (no `<html>` wrapper). */
+/** DOMPurify config: allow HTML + KaTeX's MathML + SVG (mermaid), drop scripts. */
+const PURIFY_OPTS = { USE_PROFILES: { html: true, mathMl: true, svg: true } } as const
+
+/**
+ * Render the Markdown body to a **sanitized** HTML fragment (no `<html>`
+ * wrapper). `html: true` lets through inline raw HTML the document relies on
+ * (e.g. `<u>`), so the output MUST be sanitized — a document is untrusted input,
+ * and the HTML is later written to a file / loaded into a print window. DOMPurify
+ * strips scripts and event handlers while keeping KaTeX (MathML) and SVG.
+ */
 export function renderMarkdownBody(markdown: string): string {
-  return md.render(markdown)
+  return DOMPurify.sanitize(md.render(markdown), PURIFY_OPTS)
 }
