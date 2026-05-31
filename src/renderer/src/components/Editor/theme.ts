@@ -23,13 +23,30 @@ export const inkTheme = EditorView.theme({
  */
 export const inkHighlight = syntaxHighlighting(
   HighlightStyle.define([
+    // Markdown tokens that stay visible.
     { tag: t.heading, fontWeight: '700' },
     { tag: t.strong, fontWeight: '700' },
     { tag: t.emphasis, fontStyle: 'italic' },
     { tag: t.strikethrough, textDecoration: 'line-through' },
     { tag: t.link, color: 'rgb(var(--accent))', textDecoration: 'underline' },
     { tag: t.monospace, fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Consolas, monospace' },
+    // Fenced-code syntax highlighting (nested languages via codeLanguages).
+    {
+      tag: [t.keyword, t.controlKeyword, t.operatorKeyword, t.moduleKeyword, t.modifier, t.self],
+      color: 'rgb(var(--syn-keyword))'
+    },
+    {
+      tag: [t.string, t.special(t.string), t.regexp, t.escape, t.character],
+      color: 'rgb(var(--syn-string))'
+    },
+    { tag: [t.number, t.integer, t.float], color: 'rgb(var(--syn-number))' },
+    { tag: [t.bool, t.null, t.atom, t.literal], color: 'rgb(var(--syn-literal))' },
+    {
+      tag: [t.function(t.variableName), t.function(t.propertyName), t.definition(t.variableName), t.labelName],
+      color: 'rgb(var(--syn-name))'
+    },
+    { tag: [t.typeName, t.className, t.namespace, t.tagName], color: 'rgb(var(--syn-type))' },
     { tag: [t.processingInstruction, t.meta], color: 'rgb(var(--faint))' },
-    { tag: t.comment, color: 'rgb(var(--faint))', fontStyle: 'italic' }
+    { tag: [t.comment, t.lineComment, t.blockComment], color: 'rgb(var(--faint))', fontStyle: 'italic' }
   ])
 )

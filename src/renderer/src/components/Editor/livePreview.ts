@@ -980,8 +980,16 @@ export function buildDecorations(
           const lang = infoNode ? doc.sliceString(infoNode.from, infoNode.to) : ''
           const code = textNode ? doc.sliceString(textNode.from, textNode.to) : ''
 
+          // Block is "active" when the caret is on any of its lines (raw source).
+          let blockActive = false
+          for (let ln = first.number; ln <= last.number; ln++) {
+            if (active.has(ln)) {
+              blockActive = true
+              break
+            }
+          }
+
           // Mermaid: render the diagram on idle blocks; raw source when active.
-          const blockActive = active.has(first.number) || active.has(last.number)
           if (lang === 'mermaid' && !blockActive && code.trim()) {
             const dark = useAppStore.getState().theme === 'dark'
             decos.push(Decoration.line({ class: 'ink-img-line' }).range(first.from))
@@ -994,23 +1002,39 @@ export function buildDecorations(
             return false
           }
 
-          // Otherwise: shade the block + add a language/copy badge.
-          for (let ln = first.number; ln <= last.number; ln++) {
+          // Hide the ``` fence lines on idle blocks (Typora-style) so the panel
+          // reads like rendered code; reveal them raw when the caret is inside.
+          // Needs at least one code line between the fences.
+          const hideFences = !blockActive && last.number >= first.number + 2
+          if (hideFences) {
+            decos.push(Decoration.replace({}).range(first.from, doc.line(first.number + 1).from))
+            decos.push(Decoration.replace({}).range(doc.line(last.number - 1).to, last.to))
+          }
+          // Hiding the opening fence merges its line into the first code line
+          // (CM keys the merged block at `first`), so the panel still starts at
+          // `first`; only the closing fence trims the last shaded line.
+          const panelFirst = first.number
+          const panelLast = hideFences ? last.number - 1 : last.number
+
+          // Shade the visible panel lines, rounding the first/last.
+          for (let ln = panelFirst; ln <= panelLast; ln++) {
             const line = doc.line(ln)
             const cls =
-              ln === first.number
-                ? 'ink-code-block ink-code-first'
-                : ln === last.number
-                  ? 'ink-code-block ink-code-last'
-                  : 'ink-code-block'
+              panelFirst === panelLast
+                ? 'ink-code-block ink-code-first ink-code-last'
+                : ln === panelFirst
+                  ? 'ink-code-block ink-code-first'
+                  : ln === panelLast
+                    ? 'ink-code-block ink-code-last'
+                    : 'ink-code-block'
             decos.push(Decoration.line({ class: cls }).range(line.from))
           }
-          // Badge widget anchored at the end of the opening fence line.
+          // Language/copy badge at the top-right of the panel. With fences
+          // hidden, the opening line's position sits inside a replace (which
+          // would swallow the widget), so anchor on the first visible code line.
+          const badgePos = hideFences ? doc.line(first.number + 1).from : doc.line(panelFirst).to
           decos.push(
-            Decoration.widget({
-              widget: new CodeBadgeWidget(lang, code),
-              side: 1
-            }).range(first.to)
+            Decoration.widget({ widget: new CodeBadgeWidget(lang, code), side: 1 }).range(badgePos)
           )
           return false
         }

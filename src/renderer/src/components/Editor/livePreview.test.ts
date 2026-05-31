@@ -245,14 +245,25 @@ describe('buildDecorations — images', () => {
 describe('buildDecorations — fenced code', () => {
   const fence = '```js\nconst x = 1\n```'
 
-  it('shades each line of the code block', () => {
-    const lines = decorate(fence).filter((i) =>
-      String(i.spec.class ?? '').includes('ink-code-block')
-    )
-    expect(lines).toHaveLength(3)
+  it('hides the fence text and shades the code panel on an idle block', () => {
+    const items = decorate(fence)
+    // Panel spans `first`..`last-1` (the opening fence merges into the first
+    // code line) — so for a 3-line fence that's 2 shaded line decorations.
+    const shaded = items.filter((i) => String(i.spec.class ?? '').includes('ink-code-block'))
+    expect(shaded).toHaveLength(2)
+    // The two fence lines are hidden via plain replace decorations.
+    const hides = items.filter((i) => !i.spec.class && !i.spec.widget)
+    expect(hides.length).toBeGreaterThanOrEqual(2)
   })
 
-  it('marks first and last fence lines', () => {
+  it('shows every line raw when the caret is inside the block', () => {
+    const shaded = decorate(fence, [2]).filter((i) =>
+      String(i.spec.class ?? '').includes('ink-code-block')
+    )
+    expect(shaded).toHaveLength(3) // all three lines, fences revealed
+  })
+
+  it('rounds the first and last lines of the panel', () => {
     const items = decorate(fence)
     expect(items.some((i) => String(i.spec.class ?? '').includes('ink-code-first'))).toBe(true)
     expect(items.some((i) => String(i.spec.class ?? '').includes('ink-code-last'))).toBe(true)
@@ -265,6 +276,14 @@ describe('buildDecorations — fenced code', () => {
     expect(badges).toHaveLength(1)
     expect(badges[0].lang).toBe('js')
     expect(badges[0].code).toBe('const x = 1')
+  })
+
+  it('anchors the badge outside the hidden fence ranges (so it stays visible)', () => {
+    const items = decorate(fence)
+    const badge = items.find((i) => i.spec.widget instanceof CodeBadgeWidget)!
+    const hides = items.filter((i) => !i.spec.class && !i.spec.widget)
+    const swallowed = hides.some((h) => badge.from >= h.from && badge.from < h.to)
+    expect(swallowed).toBe(false)
   })
 })
 

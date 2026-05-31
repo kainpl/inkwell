@@ -22,6 +22,11 @@ pnpm-debug.log*
 # Caches
 .eslintcache
 
+# Scratch / local screenshots + pasted-image test artifacts
+temp/
+docs/assets/
+resources/assets/
+
 # Editors / IDEs
 .idea/
 .vscode/

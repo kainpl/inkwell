@@ -16,6 +16,13 @@
     --line: 232 229 223;
     --accent: 176 102 62; /* terracotta */
     --chrome: 244 242 238;
+    /* Code syntax-highlight palette (fenced code blocks). */
+    --syn-keyword: 207 34 46;
+    --syn-string: 26 127 55;
+    --syn-number: 5 80 174;
+    --syn-literal: 5 80 174;
+    --syn-name: 110 58 183;
+    --syn-type: 149 84 0;
   }
 
   .dark {
@@ -26,6 +33,12 @@
     --line: 44 44 48;
     --accent: 212 146 104;
     --chrome: 30 30 34;
+    --syn-keyword: 255 123 114;
+    --syn-string: 126 231 135;
+    --syn-number: 121 192 255;
+    --syn-literal: 121 192 255;
+    --syn-name: 210 168 255;
+    --syn-type: 255 166 87;
   }
 
   html,
