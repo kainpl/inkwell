@@ -1,5 +1,5 @@
 import { contextBridge, ipcRenderer } from 'electron'
-import { IPC, type FileNode, type OpenedFile } from '../shared/ipc'
+import { IPC, type FileNode, type OpenedFile, type ArticleEntry } from '../shared/ipc'
 
 const menuChannels = [
   IPC.menuNewFile,
@@ -10,7 +10,11 @@ const menuChannels = [
   IPC.menuToggleSidebar,
   IPC.menuToggleOutline,
   IPC.menuToggleFocusMode,
-  IPC.menuToggleFormatBar
+  IPC.menuToggleTypewriter,
+  IPC.menuToggleSourceMode,
+  IPC.menuToggleFormatBar,
+  IPC.menuJumpTop,
+  IPC.menuJumpBottom
 ] as const
 
 type MenuChannel = (typeof menuChannels)[number]
@@ -19,6 +23,8 @@ const api = {
   openFileDialog: (): Promise<OpenedFile | null> => ipcRenderer.invoke(IPC.openFileDialog),
   openFolderDialog: (): Promise<FileNode | null> => ipcRenderer.invoke(IPC.openFolderDialog),
   readDir: (path: string): Promise<FileNode[]> => ipcRenderer.invoke(IPC.readDir, path),
+  listArticles: (path: string): Promise<ArticleEntry[]> =>
+    ipcRenderer.invoke(IPC.listArticles, path),
   readFile: (path: string): Promise<OpenedFile> => ipcRenderer.invoke(IPC.readFile, path),
   saveFile: (path: string, content: string): Promise<boolean> =>
     ipcRenderer.invoke(IPC.saveFile, path, content),

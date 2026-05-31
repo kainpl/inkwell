@@ -66,16 +66,19 @@ Auto Save & Version Control*) і з поточним кодом Inkwell.
   - [ ] `<iframe>`/`<video>` ембеди — потребують послаблення CSP + allowlist у санітайзері (відкладено: суперечить strict-CSP; зробимо опційно у Preferences/Фаза 6)
 
 ## Фаза 3 — навігація й режими письма
-- [ ] **Source Code Mode** (увесь документ у сирому md без декорацій) + toggle
+- [x] **Source Code Mode** (увесь документ у сирому md без декорацій) — toggle `Ctrl+Shift+E` / меню / статус-бар (через CM-compartment)
 - [x] Focus mode
-- [ ] **Typewriter mode** (активний рядок по центру скролом)
-- [ ] **Outline**: згортуваний/плоский, Expand/Collapse All, підсвітка поточного заголовка, popover
-- [ ] **Сайдбар**: дві вкладки — **File Tree** і **Articles (список md, сортування/фільтр)**
-- [ ] **Пошук/заміна** в документі (`@codemirror/search`, regex)
+- [x] **Typewriter mode** (активний рядок по центру скролом) — toggle `F9` / меню / статус-бар
+- [x] **Outline**: згортуваний (per-heading + Expand/Collapse All), підсвітка поточного заголовка за кареткою
+  - [ ] popover-варіант аутлайну — за потреби у Фазі 7
+- [x] **Сайдбар**: дві вкладки — **File Tree** і **Articles** (рекурсивний список md, сортування Recent/A–Z, фільтр, relative-time)
+- [x] **Пошук/заміна** в документі (`@codemirror/search`: панель угорі, `Ctrl+F`/`Ctrl+H`, regex, підсвітка)
 - [ ] **Глобальний пошук** по теці (з контекстом) ⭐ (Typora це робить слабко)
-- [ ] **Jump To**: Top / Bottom / Selection; **Open Quickly** (швидкий перемикач файлів)
-- [ ] **Word count popover** (слова/символи/рядки) + **час читання** + **ціль за словами**
-- [ ] Always on Top, Full Screen, перемикання масштабу (zoom in/out/actual)
+- [x] **Jump To**: Top (`Ctrl+Home`) / Bottom (`Ctrl+End`) через меню
+- [ ] **Open Quickly** (швидкий fuzzy-перемикач файлів) — нижче, з Articles-панеллю
+- [x] Лічильник слів/символів + **час читання** у статус-барі (чистий `textStats`)
+  - [ ] **Word count popover** (детально: слова/символи без пробілів/рядки) + **ціль за словами** — розширимо у Фазі 7
+- [x] Always on Top (checkbox-меню), Full Screen, перемикання масштабу (zoom in/out/actual)
 
 ## Фаза 4 — файли та надійність
 - [x] **Guard незбережених змін** (in-app модал Save/Don't Save/Cancel) · [ ] індикатор «брудного» документа

@@ -91,6 +91,25 @@ export function buildMenu(win: BrowserWindow): void {
           accelerator: 'CmdOrCtrl+Shift+F',
           click: send(IPC.menuToggleFocusMode)
         },
+        {
+          label: 'Toggle Typewriter Mode',
+          accelerator: 'F9',
+          click: send(IPC.menuToggleTypewriter)
+        },
+        {
+          label: 'Toggle Source Code Mode',
+          accelerator: 'CmdOrCtrl+Shift+E',
+          click: send(IPC.menuToggleSourceMode)
+        },
+        { type: 'separator' },
+        { label: 'Jump to Top', accelerator: 'CmdOrCtrl+Home', click: send(IPC.menuJumpTop) },
+        { label: 'Jump to Bottom', accelerator: 'CmdOrCtrl+End', click: send(IPC.menuJumpBottom) },
+        {
+          label: 'Always on Top',
+          type: 'checkbox',
+          checked: win.isAlwaysOnTop(),
+          click: (item) => win.setAlwaysOnTop(item.checked)
+        },
         { type: 'separator' },
         { role: 'reload' },
         { role: 'toggleDevTools' },

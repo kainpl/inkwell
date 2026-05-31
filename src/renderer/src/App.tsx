@@ -9,6 +9,8 @@ import {
   saveDoc,
   saveDocAs
 } from '@renderer/lib/docActions'
+import { EditorView } from '@codemirror/view'
+import { cursorDocStart, cursorDocEnd } from '@codemirror/commands'
 import { useEditor } from '@renderer/store/useEditor'
 import { applyFormat, type FormatAction } from '@renderer/lib/formatCommands'
 import { uploadCurrentImage } from '@renderer/lib/uploadImage'
@@ -44,7 +46,25 @@ export default function App(): JSX.Element {
       window.api.onMenu(IPC.menuToggleSidebar, () => store.toggleSidebar()),
       window.api.onMenu(IPC.menuToggleOutline, () => store.toggleOutline()),
       window.api.onMenu(IPC.menuToggleFocusMode, () => store.toggleFocusMode()),
-      window.api.onMenu(IPC.menuToggleFormatBar, () => useAppStore.getState().toggleFormatBar())
+      window.api.onMenu(IPC.menuToggleTypewriter, () => useAppStore.getState().toggleTypewriter()),
+      window.api.onMenu(IPC.menuToggleSourceMode, () => useAppStore.getState().toggleSourceMode()),
+      window.api.onMenu(IPC.menuToggleFormatBar, () => useAppStore.getState().toggleFormatBar()),
+      window.api.onMenu(IPC.menuJumpTop, () => {
+        const view = useEditor.getState().view
+        if (view) {
+          cursorDocStart(view)
+          view.dispatch({ effects: EditorView.scrollIntoView(0, { y: 'start' }) })
+          view.focus()
+        }
+      }),
+      window.api.onMenu(IPC.menuJumpBottom, () => {
+        const view = useEditor.getState().view
+        if (view) {
+          cursorDocEnd(view)
+          view.dispatch({ effects: EditorView.scrollIntoView(view.state.doc.length, { y: 'end' }) })
+          view.focus()
+        }
+      })
     ]
     return () => unsubs.forEach((u) => u())
   }, [])

@@ -10,9 +10,15 @@ import { EditorView, highlightActiveLine, keymap, type Command } from '@codemirr
 import { type Extension, Prec, EditorSelection } from '@codemirror/state'
 import { indentMore, indentLess, selectLine, selectParentSyntax } from '@codemirror/commands'
 import { autocompletion, closeBrackets, closeBracketsKeymap } from '@codemirror/autocomplete'
+import { search, searchKeymap } from '@codemirror/search'
 import { inkTheme, inkHighlight } from './theme'
-import { livePreview, openLinksOnClick, emojiCompletion } from './livePreview'
+import { emojiCompletion } from './livePreview'
 import { imagePaste } from './imagePaste'
+import {
+  previewCompartment,
+  previewExtensions,
+  typewriterCompartment
+} from './editorModes'
 
 /** Select the word(s) under each cursor. */
 export const selectWord: Command = (view) => {
@@ -110,8 +116,10 @@ export function inkwellExtensions(onChange: (value: string) => void): Extension[
     }),
     inkTheme,
     inkHighlight,
-    livePreview,
-    openLinksOnClick,
+    // Live preview + link-click; toggled off in Source Code Mode.
+    previewCompartment.of(previewExtensions),
+    // Typewriter mode; empty until enabled.
+    typewriterCompartment.of([]),
     imagePaste,
     // Auto-pair brackets/quotes and common markdown symbols (wraps a selection).
     markdownLanguage.data.of({
@@ -119,6 +127,7 @@ export function inkwellExtensions(onChange: (value: string) => void): Extension[
     }),
     closeBrackets(),
     autocompletion({ override: [emojiCompletion] }),
+    search({ top: true }),
     // Editing "magic": continue lists/quotes on Enter, smart Backspace, Tab to
     // indent, and smart-selection commands. High precedence to beat the defaults.
     Prec.high(
@@ -131,7 +140,8 @@ export function inkwellExtensions(onChange: (value: string) => void): Extension[
         { key: 'Alt-w', run: selectWord },
         { key: 'Alt-s', run: selectSentence },
         { key: 'Alt-ArrowUp', run: selectParentSyntax },
-        ...closeBracketsKeymap
+        ...closeBracketsKeymap,
+        ...searchKeymap
       ])
     ),
     highlightActiveLine(),

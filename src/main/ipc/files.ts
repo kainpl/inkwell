@@ -2,7 +2,7 @@ import { ipcMain, dialog, BrowserWindow } from 'electron'
 import { promises as fs } from 'fs'
 import { basename, dirname, extname, join } from 'path'
 import { execFile } from 'child_process'
-import { IPC, type FileNode, type OpenedFile } from '../../shared/ipc'
+import { IPC, type FileNode, type OpenedFile, type ArticleEntry } from '../../shared/ipc'
 
 const MD_EXTENSIONS = ['.md', '.markdown', '.mdown', '.mkd', '.txt']
 
@@ -68,6 +68,36 @@ export function registerFileIpc(): void {
 
   ipcMain.handle(IPC.readDir, async (_e, dirPath: string): Promise<FileNode[]> => {
     return readDirTree(dirPath, 0)
+  })
+
+  // Recursively collect every markdown file under `dirPath` with its mtime,
+  // for the Articles list and quick-open. Skips hidden dirs and node_modules.
+  ipcMain.handle(IPC.listArticles, async (_e, dirPath: string): Promise<ArticleEntry[]> => {
+    const out: ArticleEntry[] = []
+    async function walk(dir: string): Promise<void> {
+      let entries: Awaited<ReturnType<typeof fs.readdir>>
+      try {
+        entries = await fs.readdir(dir, { withFileTypes: true })
+      } catch {
+        return
+      }
+      for (const entry of entries) {
+        if (isHidden(entry.name) || entry.name === 'node_modules') continue
+        const full = join(dir, entry.name)
+        if (entry.isDirectory()) {
+          await walk(full)
+        } else if (MD_EXTENSIONS.some((ext) => entry.name.toLowerCase().endsWith(ext))) {
+          try {
+            const st = await fs.stat(full)
+            out.push({ path: full, name: entry.name, mtime: st.mtimeMs })
+          } catch {
+            /* ignore unreadable files */
+          }
+        }
+      }
+    }
+    await walk(dirPath)
+    return out
   })
 
   ipcMain.handle(IPC.readFile, async (_e, path: string): Promise<OpenedFile> => {

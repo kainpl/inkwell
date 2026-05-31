@@ -28,6 +28,7 @@ interface AppState {
   outlineOpen: boolean
   focusMode: boolean
   typewriterMode: boolean
+  sourceMode: boolean
   formatBarOpen: boolean
   /** Shell command for image upload (Typora-style); configured in Preferences. */
   imageUploadCommand: string
@@ -35,6 +36,7 @@ interface AppState {
   toggleOutline: () => void
   toggleFocusMode: () => void
   toggleTypewriter: () => void
+  toggleSourceMode: () => void
   toggleFormatBar: () => void
   setImageUploadCommand: (command: string) => void
 }
@@ -192,15 +194,19 @@ export const useAppStore = create<AppState>((set) => ({
   toggleTheme: () => set((s) => ({ theme: s.theme === 'light' ? 'dark' : 'light' })),
 
   sidebarOpen: true,
+  sidebarTab: 'files',
+  setSidebarTab: (tab) => set({ sidebarTab: tab }),
   outlineOpen: false,
   focusMode: false,
   typewriterMode: false,
+  sourceMode: false,
   formatBarOpen: true,
   imageUploadCommand: '',
   toggleSidebar: () => set((s) => ({ sidebarOpen: !s.sidebarOpen })),
   toggleOutline: () => set((s) => ({ outlineOpen: !s.outlineOpen })),
   toggleFocusMode: () => set((s) => ({ focusMode: !s.focusMode })),
   toggleTypewriter: () => set((s) => ({ typewriterMode: !s.typewriterMode })),
+  toggleSourceMode: () => set((s) => ({ sourceMode: !s.sourceMode })),
   toggleFormatBar: () => set((s) => ({ formatBarOpen: !s.formatBarOpen })),
   setImageUploadCommand: (command) => set({ imageUploadCommand: command })
 }))

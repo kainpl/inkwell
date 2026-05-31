@@ -3,6 +3,7 @@ import { EditorState } from '@codemirror/state'
 import { EditorView, keymap } from '@codemirror/view'
 import { defaultKeymap, history, historyKeymap } from '@codemirror/commands'
 import { inkwellExtensions } from './markdownExtensions'
+import { setSourceMode, setTypewriter } from './editorModes'
 import { useAppStore } from '@renderer/store/useAppStore'
 import { useEditor } from '@renderer/store/useEditor'
 
@@ -65,6 +66,24 @@ export default function Editor(): JSX.Element {
       }
     })
     return unsub
+  }, [])
+
+  // Reconfigure Source Code / Typewriter modes when their store flags change.
+  useEffect(() => {
+    let lastSource = useAppStore.getState().sourceMode
+    let lastTypewriter = useAppStore.getState().typewriterMode
+    return useAppStore.subscribe((s) => {
+      const view = viewRef.current
+      if (!view) return
+      if (s.sourceMode !== lastSource) {
+        lastSource = s.sourceMode
+        setSourceMode(view, lastSource)
+      }
+      if (s.typewriterMode !== lastTypewriter) {
+        lastTypewriter = s.typewriterMode
+        setTypewriter(view, lastTypewriter)
+      }
+    })
   }, [])
 
   // Jump-to-offset from the outline panel.

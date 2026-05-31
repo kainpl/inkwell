@@ -20,6 +20,14 @@ export interface OpenedFile {
   content: string
 }
 
+/** A markdown file in the workspace, for the Articles list / quick-open. */
+export interface ArticleEntry {
+  path: string
+  name: string
+  /** Last-modified time (ms since epoch). */
+  mtime: number
+}
+
 /** IPC channel names. One source of truth for both sides. */
 export const IPC = {
   // renderer -> main (invoke/handle)
@@ -29,6 +37,7 @@ export const IPC = {
   saveFile: 'fs:saveFile',
   saveFileAs: 'fs:saveFileAs',
   readDir: 'fs:readDir',
+  listArticles: 'fs:listArticles',
   saveImage: 'fs:saveImage',
   uploadImage: 'fs:uploadImage',
   // main -> renderer (send/on)
@@ -40,7 +49,11 @@ export const IPC = {
   menuToggleSidebar: 'menu:toggleSidebar',
   menuToggleOutline: 'menu:toggleOutline',
   menuToggleFocusMode: 'menu:toggleFocusMode',
+  menuToggleTypewriter: 'menu:toggleTypewriter',
+  menuToggleSourceMode: 'menu:toggleSourceMode',
   menuToggleFormatBar: 'menu:toggleFormatBar',
+  menuJumpTop: 'menu:jumpTop',
+  menuJumpBottom: 'menu:jumpBottom',
   menuFormat: 'menu:format',
   // app lifecycle / unsaved-changes guard
   setDirty: 'app:setDirty',
