@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import type { FileNode } from '@shared/ipc'
+import { type Tab, findByPath, isReplaceable, closeTab } from '@renderer/lib/tabsModel'
 
 export interface DocState {
   path: string | null
@@ -10,12 +11,24 @@ export interface DocState {
 }
 
 interface AppState {
-  // --- document ---
+  // --- documents / tabs ---
+  /** Mirror of the active tab; existing consumers read the doc, not the list. */
   doc: DocState
+  tabs: Tab[]
+  activeId: string
   setContent: (content: string) => void
+  /** Replace the active tab's content (file reload / draft recovery / welcome). */
   loadDoc: (doc: { path: string | null; name: string; content: string }) => void
   markSaved: (path?: string, name?: string) => void
-  newDoc: () => void
+  /** Open a file as a tab: focus an existing tab for the path, replace a pristine
+   *  untitled tab, or append a new one. */
+  openInTab: (file: { path: string | null; name: string; content: string }) => void
+  newTab: () => void
+  activateTab: (id: string) => void
+  /** Remove a tab; never leaves zero tabs (spawns a fresh untitled if needed). */
+  removeTab: (id: string) => void
+  /** Collapse to a single fresh untitled tab (used by Close Folder). */
+  resetTabs: () => void
 
   // --- workspace ---
   root: FileNode | null
@@ -53,38 +66,99 @@ interface AppState {
   setImageUploadCommand: (command: string) => void
 }
 
-const EMPTY_DOC: DocState = {
+let tabCounter = 0
+const genId = (): string => `tab-${++tabCounter}`
+
+const docOf = (t: Tab): DocState => ({
+  path: t.path,
+  name: t.name,
+  content: t.content,
+  dirty: t.dirty
+})
+
+const untitled = (): Tab => ({
+  id: genId(),
   path: null,
   name: 'Untitled.md',
   content: '',
   dirty: false
-}
+})
 
-// The welcome document lives on disk (resources/Welcome.md) and is loaded from
-// there on first launch (see `loadWelcome` in docActions). Start empty until it
-// arrives so the welcome text isn't baked into the bundle.
-const INITIAL_DOC: DocState = {
-  path: null,
-  name: 'Welcome.md',
-  content: '',
-  dirty: false
-}
+// First tab is the welcome placeholder; its text is loaded from disk on launch
+// (see `loadWelcome` in docActions) so the welcome content isn't baked in.
+const firstTab: Tab = { id: genId(), path: null, name: 'Welcome.md', content: '', dirty: false }
 
 export const useAppStore = create<AppState>((set) => ({
-  doc: INITIAL_DOC,
+  doc: docOf(firstTab),
+  tabs: [firstTab],
+  activeId: firstTab.id,
 
   setContent: (content) =>
-    set((s) => ({ doc: { ...s.doc, content, dirty: content !== s.doc.content ? true : s.doc.dirty } })),
+    set((s) => {
+      const dirty = content !== s.doc.content ? true : s.doc.dirty
+      const doc = { ...s.doc, content, dirty }
+      return { doc, tabs: s.tabs.map((t) => (t.id === s.activeId ? { ...t, content, dirty } : t)) }
+    }),
 
   loadDoc: ({ path, name, content }) =>
-    set({ doc: { path, name, content, dirty: false } }),
+    set((s) => {
+      const doc: DocState = { path, name, content, dirty: false }
+      return { doc, tabs: s.tabs.map((t) => (t.id === s.activeId ? { ...t, ...doc } : t)) }
+    }),
 
   markSaved: (path, name) =>
-    set((s) => ({
-      doc: { ...s.doc, dirty: false, path: path ?? s.doc.path, name: name ?? s.doc.name }
-    })),
+    set((s) => {
+      const doc = { ...s.doc, dirty: false, path: path ?? s.doc.path, name: name ?? s.doc.name }
+      return {
+        doc,
+        tabs: s.tabs.map((t) =>
+          t.id === s.activeId ? { ...t, path: doc.path, name: doc.name, dirty: false } : t
+        )
+      }
+    }),
 
-  newDoc: () => set({ doc: { ...EMPTY_DOC } }),
+  openInTab: (file) =>
+    set((s) => {
+      const existing = findByPath(s.tabs, file.path)
+      if (existing) return { activeId: existing.id, doc: docOf(existing) }
+      const active = s.tabs.find((t) => t.id === s.activeId)
+      if (isReplaceable(active)) {
+        const replaced: Tab = { id: active!.id, ...file, dirty: false }
+        return { tabs: s.tabs.map((t) => (t.id === active!.id ? replaced : t)), doc: docOf(replaced) }
+      }
+      const t: Tab = { id: genId(), ...file, dirty: false }
+      return { tabs: [...s.tabs, t], activeId: t.id, doc: docOf(t) }
+    }),
+
+  newTab: () =>
+    set((s) => {
+      const t = untitled()
+      return { tabs: [...s.tabs, t], activeId: t.id, doc: docOf(t) }
+    }),
+
+  activateTab: (id) =>
+    set((s) => {
+      const t = s.tabs.find((x) => x.id === id)
+      return t ? { activeId: id, doc: docOf(t) } : {}
+    }),
+
+  removeTab: (id) =>
+    set((s) => {
+      const res = closeTab(s.tabs, id)
+      if (res.tabs.length === 0) {
+        const fresh = untitled()
+        return { tabs: [fresh], activeId: fresh.id, doc: docOf(fresh) }
+      }
+      if (id !== s.activeId) return { tabs: res.tabs }
+      const next = res.tabs.find((t) => t.id === res.activeId)!
+      return { tabs: res.tabs, activeId: res.activeId!, doc: docOf(next) }
+    }),
+
+  resetTabs: () =>
+    set(() => {
+      const t = untitled()
+      return { tabs: [t], activeId: t.id, doc: docOf(t) }
+    }),
 
   root: null,
   setRoot: (node) => set({ root: node }),

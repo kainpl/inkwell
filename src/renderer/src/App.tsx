@@ -4,7 +4,7 @@ import { useAppStore } from '@renderer/store/useAppStore'
 import {
   closeDocument,
   closeFolder,
-  guardUnsaved,
+  guardAllTabs,
   loadWelcome,
   newDocument,
   openFileFromDialog,
@@ -15,6 +15,7 @@ import {
   saveDoc,
   saveDocAs
 } from '@renderer/lib/docActions'
+import { setSessionFile } from '@renderer/lib/persistence'
 import { EditorView } from '@codemirror/view'
 import { cursorDocStart, cursorDocEnd } from '@codemirror/commands'
 import { useEditor } from '@renderer/store/useEditor'
@@ -23,6 +24,7 @@ import { startAutoSave } from '@renderer/lib/autoSave'
 import { startDraftAutoSave } from '@renderer/lib/draftAutoSave'
 import { startDiskWatch } from '@renderer/lib/diskWatch'
 import TitleBar from '@renderer/components/TitleBar'
+import TabBar from '@renderer/components/TabBar'
 import Sidebar from '@renderer/components/Sidebar'
 import OutlinePanel from '@renderer/components/OutlinePanel'
 import StatusBar from '@renderer/components/StatusBar'
@@ -100,22 +102,31 @@ export default function App(): JSX.Element {
     })
   }, [])
 
-  // Keep the main process informed of unsaved state (drives the close guard).
+  // Keep the main process informed of unsaved state across ALL tabs (drives the
+  // window-close guard), and keep the restorable session file on the active tab.
   useEffect(() => {
-    let last = useAppStore.getState().doc.dirty
-    window.api.setDirty(last)
-    return useAppStore.subscribe((s) => {
-      if (s.doc.dirty !== last) {
-        last = s.doc.dirty
-        window.api.setDirty(last)
+    const anyDirty = (): boolean => useAppStore.getState().tabs.some((t) => t.dirty)
+    let lastDirty = anyDirty()
+    let lastPath = useAppStore.getState().doc.path
+    window.api.setDirty(lastDirty)
+    return useAppStore.subscribe(() => {
+      const dirty = anyDirty()
+      if (dirty !== lastDirty) {
+        lastDirty = dirty
+        window.api.setDirty(dirty)
+      }
+      const path = useAppStore.getState().doc.path
+      if (path !== lastPath) {
+        lastPath = path
+        setSessionFile(path)
       }
     })
   }, [])
 
-  // Window close requested while dirty: run the guard, then close if allowed.
+  // Window close requested while a tab is dirty: guard every dirty tab, then close.
   useEffect(() => {
     return window.api.onTryClose(() => {
-      void guardUnsaved().then((ok) => {
+      void guardAllTabs().then((ok) => {
         if (ok) window.api.closeWindow()
       })
     })
@@ -144,6 +155,7 @@ export default function App(): JSX.Element {
   return (
     <div className="flex h-full w-full flex-col bg-paper">
       <TitleBar />
+      <TabBar />
       {formatBarOpen && <Toolbar />}
       <div className="flex min-h-0 flex-1">
         <Sidebar />

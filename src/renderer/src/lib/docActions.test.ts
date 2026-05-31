@@ -56,29 +56,43 @@ describe('guardUnsaved', () => {
 })
 
 describe('close commands', () => {
+  function openOneTab(dirty: boolean): void {
+    useAppStore.setState({
+      tabs: [{ id: 't1', path: '/x.md', name: 'x.md', content: 'a', dirty }],
+      activeId: 't1',
+      doc: { path: '/x.md', name: 'x.md', content: 'a', dirty },
+      root: FOLDER
+    })
+  }
+
   beforeEach(() => {
-    window.api = { getWelcome: vi.fn().mockResolvedValue('# Welcome') } as unknown as typeof window.api
-    useAppStore.setState((s) => ({ doc: { ...s.doc, path: '/x.md', dirty: false }, root: FOLDER }))
+    window.api = {
+      getWelcome: vi.fn().mockResolvedValue('# Welcome'),
+      saveFile: vi.fn().mockResolvedValue(true),
+      saveVersion: vi.fn().mockResolvedValue(true)
+    } as unknown as typeof window.api
+    openOneTab(false)
   })
   afterEach(() => vi.restoreAllMocks())
 
   it('closeFolder clears the workspace and resets to the welcome doc', async () => {
     await closeFolder()
     expect(useAppStore.getState().root).toBeNull()
+    expect(useAppStore.getState().tabs).toHaveLength(1)
     expect(useAppStore.getState().doc.path).toBeNull()
     expect(useAppStore.getState().doc.content).toBe('# Welcome')
     expect(useAppStore.getState().doc.dirty).toBe(false)
   })
 
-  it('closeDocument keeps the folder but resets to the welcome doc', async () => {
+  it('closeDocument closes the active tab, falling back to welcome on the last', async () => {
     await closeDocument()
-    expect(useAppStore.getState().root).toBe(FOLDER)
+    expect(useAppStore.getState().root).toBe(FOLDER) // folder stays open
     expect(useAppStore.getState().doc.path).toBeNull()
     expect(useAppStore.getState().doc.content).toBe('# Welcome')
   })
 
-  it('aborts when the unsaved guard is canceled', async () => {
-    useAppStore.setState((s) => ({ doc: { ...s.doc, dirty: true } }))
+  it('aborts when a dirty tab cancels the guard', async () => {
+    openOneTab(true)
     vi.spyOn(useConfirm.getState(), 'ask').mockResolvedValue('cancel')
     await closeFolder()
     expect(useAppStore.getState().root).toBe(FOLDER)

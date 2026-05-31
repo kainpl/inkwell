@@ -5,7 +5,6 @@ import {
   getRecentFiles,
   getSession,
   pushRecentFile,
-  setSessionFile,
   setSessionFolder
 } from './persistence'
 import { normalizeForSave } from './saveOptions'
@@ -26,10 +25,10 @@ function contentForDisk(): string {
  * (App.tsx), the file tree, and the window-close handler.
  */
 
-/** Record an opened/saved file in the recent list and the restorable session. */
+/** Record an opened/saved file in the recent list. (The restorable session file
+ *  follows the active tab via a subscription in App.tsx.) */
 function rememberFile(path: string): void {
   pushRecentFile(path)
-  setSessionFile(path)
 }
 
 /** Append a snapshot to the document's local version history (best-effort). */
@@ -74,15 +73,15 @@ export async function guardUnsaved(): Promise<boolean> {
   return true // discard
 }
 
-export async function newDocument(): Promise<void> {
-  if (await guardUnsaved()) useAppStore.getState().newDoc()
+/** New document = a new tab. Opening never discards work now, so no guard. */
+export function newDocument(): void {
+  useAppStore.getState().newTab()
 }
 
 export async function openFileFromDialog(): Promise<void> {
-  if (!(await guardUnsaved())) return
   const file = await window.api.openFileDialog()
   if (file) {
-    useAppStore.getState().loadDoc(file)
+    useAppStore.getState().openInTab(file)
     rememberFile(file.path)
   }
 }
@@ -96,10 +95,10 @@ export async function openFolderFromDialog(): Promise<void> {
   }
 }
 
+/** Open a file path in a tab (focuses an existing tab for it, if any). */
 export async function openPath(path: string): Promise<void> {
-  if (!(await guardUnsaved())) return
   const file = await window.api.readFile(path)
-  useAppStore.getState().loadDoc(file)
+  useAppStore.getState().openInTab(file)
   rememberFile(file.path)
 }
 
@@ -144,16 +143,17 @@ export async function recoverDrafts(): Promise<void> {
 }
 
 /**
- * Reopen the most recent file that isn't the current document. Drops entries
+ * Reopen the most recent file that isn't already open in a tab. Drops entries
  * from the recent list if they can't be read (moved/deleted).
  */
 export async function reopenClosedFile(): Promise<void> {
-  const current = useAppStore.getState().doc.path
+  const open = new Set(useAppStore.getState().tabs.map((t) => t.path))
   for (const path of getRecentFiles()) {
-    if (path === current) continue
+    if (open.has(path)) continue
     const file = await window.api.readFile(path).catch(() => null)
     if (file) {
-      await openPath(path)
+      useAppStore.getState().openInTab(file)
+      rememberFile(path)
       return
     }
     dropRecentFile(path)
@@ -193,25 +193,49 @@ export async function loadWelcome(): Promise<void> {
 }
 
 /**
- * Close the current document (guarding unsaved changes) and return to the
- * welcome doc. The folder/sidebar stays open; the restorable session file is
- * cleared so a relaunch doesn't reopen it.
+ * Run the unsaved-changes guard across every dirty tab (activating each so the
+ * user sees which one). Returns false as soon as the user cancels. Used by the
+ * window-close handler and Close Folder.
  */
-export async function closeDocument(): Promise<void> {
-  if (!(await guardUnsaved())) return
-  setSessionFile(null)
-  await loadWelcome()
+export async function guardAllTabs(): Promise<boolean> {
+  for (const tab of useAppStore.getState().tabs) {
+    if (!tab.dirty) continue
+    useAppStore.getState().activateTab(tab.id)
+    if (!(await guardUnsaved())) return false
+  }
+  return true
 }
 
 /**
- * Close the open folder and document, returning to a fresh welcome state: the
- * sidebar tree is emptied and the whole restorable session (folder + file) is
- * cleared, so the next launch starts clean.
+ * Close a single tab (the × button or File → Close), guarding unsaved changes.
+ * Closing the last tab returns to the welcome doc.
+ */
+export async function closeTabById(id: string): Promise<void> {
+  const tab = useAppStore.getState().tabs.find((t) => t.id === id)
+  if (!tab) return
+  if (tab.dirty) {
+    useAppStore.getState().activateTab(id)
+    if (!(await guardUnsaved())) return
+  }
+  const wasLast = useAppStore.getState().tabs.length === 1
+  useAppStore.getState().removeTab(id)
+  if (wasLast) await loadWelcome()
+}
+
+/** File → Close: close the active tab. */
+export function closeDocument(): Promise<void> {
+  return closeTabById(useAppStore.getState().activeId)
+}
+
+/**
+ * Close the open folder and all tabs, returning to a fresh welcome state: the
+ * sidebar tree is emptied and the session folder cleared, so the next launch
+ * starts clean. Guards every dirty tab first.
  */
 export async function closeFolder(): Promise<void> {
-  if (!(await guardUnsaved())) return
+  if (!(await guardAllTabs())) return
   useAppStore.getState().setRoot(null)
   setSessionFolder(null)
-  setSessionFile(null)
+  useAppStore.getState().resetTabs()
   await loadWelcome()
 }

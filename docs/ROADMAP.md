@@ -87,7 +87,9 @@ Auto Save & Version Control*) і з поточним кодом Inkwell.
 - ✅ **Recover Unsaved Drafts** — debounce-снапшоти у `userData/drafts` поки документ «брудний»; при старті пропонує відновити найновіший стан, що відрізняється від диска (чистий `drafts` з тестами)
 - ✅ **Browse All Versions** — локальна історія версій документа: снапшот на кожне збереження (дедуп ідентичних, кап 50) у `userData/versions/<id>`; пікер File → Browse All Versions… з прев'ю й Restore (чисті `shared/versions` з тестами)
 - ✅ **Open Recent** (File → Open Recent, пікер) + **Reopen Closed File** (`Ctrl+Shift+T`) — список у localStorage, чистий `recentFiles` з тестами
-  - ⬜ **Recent Locations** (нещодавні теки), **Save All**, **New Window** — потребують мульти-док/мульти-вікно (Фаза 9)
+  - ⬜ **Recent Locations** (нещодавні теки), **Save All**, **New Window** — потребують мульти-вікно (Фаза 9)
+- ✅ **Вкладки відкритих файлів** (мульти-док): завжди видимий таб-бар, dirty-індикатор + × на кожній; **повний стан на вкладку** (вміст + undo-історія + курсор/скрол через `Map<id, EditorState>`); відкриття додає вкладку (без guard), guard переїхав на закриття вкладки/вікна; File → Close закриває активну. Чистий `tabsModel` + tab-екшени стора + інтеграційний тест свопу станів
+- ✅ **Close / Close Folder** (File): Close закриває активну вкладку (остання → Welcome); Close Folder — усі вкладки + тека → Welcome (guard по кожній брудній вкладці)
 - ✅ **Відновлення сесії** (останній документ + тека при старті через localStorage)
   - ⬜ відновлення позиції каретки — додамо разом із per-file станом
 - ✅ Дії над файлами в дереві (контекст-меню): New File/Folder, Rename, Duplicate, Delete (у кошик ОС), Reveal in File Manager; in-app prompt для імен, авто-оновлення дерева
