@@ -65,6 +65,11 @@ const api = {
   uploadImage: (command: string, filePath: string): Promise<string> =>
     ipcRenderer.invoke(IPC.uploadImage, command, filePath),
 
+  /** Crash-recovery drafts. */
+  saveDraft: (draft: DraftEntry): Promise<boolean> => ipcRenderer.invoke(IPC.saveDraft, draft),
+  listDrafts: (): Promise<DraftEntry[]> => ipcRenderer.invoke(IPC.listDrafts),
+  clearDraft: (id: string): Promise<boolean> => ipcRenderer.invoke(IPC.clearDraft, id),
+
   /** Tell the main process whether the document has unsaved changes. */
   setDirty: (dirty: boolean): void => ipcRenderer.send(IPC.setDirty, dirty),
   /** Ask the main process to close the window (after the guard has passed). */

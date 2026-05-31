@@ -9,6 +9,7 @@ import {
   setSessionFolder
 } from './persistence'
 import { normalizeForSave } from './saveOptions'
+import { isRecoverable, newestDraft } from './drafts'
 
 /** Content shaped for disk per the user's line-ending / final-newline settings. */
 function contentForDisk(): string {

@@ -1,4 +1,4 @@
-import { ipcMain, dialog, BrowserWindow, shell } from 'electron'
+import { ipcMain, dialog, BrowserWindow, shell, app } from 'electron'
 import { promises as fs } from 'fs'
 import { basename, dirname, extname, join } from 'path'
 import { execFile } from 'child_process'
@@ -7,7 +7,8 @@ import {
   type FileNode,
   type OpenedFile,
   type ArticleEntry,
-  type SearchFileResult
+  type SearchFileResult,
+  type DraftEntry
 } from '../../shared/ipc'
 
 const MD_EXTENSIONS = ['.md', '.markdown', '.mdown', '.mkd', '.txt']

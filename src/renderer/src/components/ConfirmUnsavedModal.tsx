@@ -9,6 +9,7 @@ import { useConfirm } from '@renderer/store/useConfirm'
 export default function ConfirmUnsavedModal(): JSX.Element | null {
   const open = useConfirm((s) => s.open)
   const answer = useConfirm((s) => s.answer)
+  const text = useConfirm((s) => s.text)
 
   useEffect(() => {
     if (!open) return
@@ -33,11 +34,8 @@ export default function ConfirmUnsavedModal(): JSX.Element | null {
         className="w-[26rem] max-w-[90vw] rounded-lg border border-line bg-paper p-5 shadow-xl"
         onMouseDown={(e) => e.stopPropagation()}
       >
-        <h2 className="mb-1 text-base font-semibold text-ink">Unsaved changes</h2>
-        <p className="mb-5 text-sm leading-relaxed text-muted">
-          Do you want to save the changes you made? Your changes will be lost if you don’t save
-          them.
-        </p>
+        <h2 className="mb-1 text-base font-semibold text-ink">{text.title}</h2>
+        <p className="mb-5 text-sm leading-relaxed text-muted">{text.message}</p>
         <div className="flex justify-end gap-2">
           <button
             onClick={() => answer('cancel')}
@@ -49,14 +47,14 @@ export default function ConfirmUnsavedModal(): JSX.Element | null {
             onClick={() => answer('discard')}
             className="rounded px-3 py-1.5 text-sm text-ink hover:bg-ink/5"
           >
-            Don’t Save
+            {text.discardLabel}
           </button>
           <button
             onClick={() => answer('save')}
             autoFocus
             className="rounded bg-accent px-3 py-1.5 text-sm font-medium text-paper hover:opacity-90"
           >
-            Save
+            {text.confirmLabel}
           </button>
         </div>
       </div>

@@ -81,7 +81,8 @@ Auto Save & Version Control*) і з поточним кодом Inkwell.
 - [x] Always on Top (checkbox-меню), Full Screen, перемикання масштабу (zoom in/out/actual)
 
 ## Фаза 4 — файли та надійність
-- [x] **Guard незбережених змін** (in-app модал Save/Don't Save/Cancel) · [ ] індикатор «брудного» документа
+- [x] **Guard незбережених змін** (in-app модал Save/Don't Save/Cancel)
+- [x] Індикатор «брудного» документа — крапка в TitleBar + «Unsaved/Saved» у StatusBar
 - [x] **Автозбереження** (debounce 1.5s → `fs.writeFile`; лише для збереженого файлу, перемикач у меню File + статус-бар; чистий `autoSave` з тестами)
 - [ ] **Recover Unsaved Drafts** — бекапи `{date}-{filename}.md` при краху/виході
 - [ ] **Browse All Versions** — локальна історія версій документа

@@ -65,6 +65,10 @@ export const IPC = {
   revealPath: 'fs:revealPath',
   saveImage: 'fs:saveImage',
   uploadImage: 'fs:uploadImage',
+  // crash-recovery drafts (autosaved snapshots in userData)
+  saveDraft: 'draft:save',
+  listDrafts: 'draft:list',
+  clearDraft: 'draft:clear',
   // main -> renderer (send/on)
   menuNewFile: 'menu:newFile',
   menuOpenFile: 'menu:openFile',
