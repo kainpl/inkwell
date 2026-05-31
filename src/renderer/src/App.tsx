@@ -34,6 +34,7 @@ import {
 import { startAutoSave } from '@renderer/lib/autoSave'
 import { startDraftAutoSave } from '@renderer/lib/draftAutoSave'
 import { startDiskWatch } from '@renderer/lib/diskWatch'
+import { startSettingsSync } from '@renderer/lib/settingsSync'
 import TitleBar from '@renderer/components/TitleBar'
 import TabBar from '@renderer/components/TabBar'
 import Sidebar from '@renderer/components/Sidebar'
@@ -48,6 +49,7 @@ import GlobalSearch from '@renderer/components/GlobalSearch'
 import RecentFiles from '@renderer/components/RecentFiles'
 import BrowseVersions from '@renderer/components/BrowseVersions'
 import PageSetupModal from '@renderer/components/PageSetupModal'
+import PreferencesModal from '@renderer/components/PreferencesModal'
 import PandocDownload from '@renderer/components/PandocDownload'
 import PromptModal from '@renderer/components/PromptModal'
 import ConfirmUnsavedModal from '@renderer/components/ConfirmUnsavedModal'
@@ -162,10 +164,12 @@ export default function App(): JSX.Element {
     const stopAutoSave = startAutoSave()
     const stopDrafts = startDraftAutoSave()
     const stopDiskWatch = startDiskWatch()
+    const stopSettings = startSettingsSync()
     return () => {
       stopAutoSave()
       stopDrafts()
       stopDiskWatch()
+      stopSettings()
     }
   }, [])
 
@@ -197,6 +201,7 @@ export default function App(): JSX.Element {
       <RecentFiles />
       <BrowseVersions />
       <PageSetupModal />
+      <PreferencesModal />
       <PandocDownload />
       <PromptModal />
       <ConfirmUnsavedModal />

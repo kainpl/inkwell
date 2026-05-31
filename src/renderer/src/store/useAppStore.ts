@@ -2,6 +2,7 @@ import { create } from 'zustand'
 import type { FileNode } from '@shared/ipc'
 import { type Tab, findByPath, isReplaceable, closeTab } from '@renderer/lib/tabsModel'
 import { type PageSetup, loadPageSetup, savePageSetup } from '@renderer/lib/pageSetup'
+import { type EditorFont, loadSettings } from '@renderer/lib/settings'
 
 export interface DocState {
   path: string | null
@@ -60,6 +61,19 @@ interface AppState {
   /** Print / Export-PDF page setup (persisted to localStorage). */
   pageSetup: PageSetup
   setPageSetup: (patch: Partial<PageSetup>) => void
+  // --- appearance / typography (persisted via settingsSync) ---
+  setTheme: (theme: 'light' | 'dark') => void
+  editorFont: EditorFont
+  editorFontSize: number
+  editorLineHeight: number
+  contentWidth: number
+  setEditorFont: (font: EditorFont) => void
+  setEditorFontSize: (px: number) => void
+  setEditorLineHeight: (lh: number) => void
+  setContentWidth: (px: number) => void
+  /** Embed local images as data: URIs in exported HTML. */
+  embedImages: boolean
+  setEmbedImages: (on: boolean) => void
   toggleSidebar: () => void
   toggleOutline: () => void
   toggleFocusMode: () => void
@@ -93,6 +107,9 @@ const untitled = (): Tab => ({
 // First tab is the welcome placeholder; its text is loaded from disk on launch
 // (see `loadWelcome` in docActions) so the welcome content isn't baked in.
 const firstTab: Tab = { id: genId(), path: null, name: 'Welcome.md', content: '', dirty: false }
+
+// Preferences-managed settings, seeded from localStorage (persisted by settingsSync).
+const s0 = loadSettings()
 
 export const useAppStore = create<AppState>((set) => ({
   doc: docOf(firstTab),
@@ -176,8 +193,9 @@ export const useAppStore = create<AppState>((set) => ({
   root: null,
   setRoot: (node) => set({ root: node }),
 
-  theme: 'light',
+  theme: s0.theme,
   toggleTheme: () => set((s) => ({ theme: s.theme === 'light' ? 'dark' : 'light' })),
+  setTheme: (theme) => set({ theme }),
 
   sidebarOpen: true,
   sidebarTab: 'files',
@@ -186,11 +204,21 @@ export const useAppStore = create<AppState>((set) => ({
   focusMode: false,
   typewriterMode: false,
   sourceMode: false,
-  formatBarOpen: true,
-  autoSave: false,
-  lineEnding: 'lf',
-  insertFinalNewline: true,
-  imageUploadCommand: '',
+  formatBarOpen: s0.formatBarOpen,
+  autoSave: s0.autoSave,
+  lineEnding: s0.lineEnding,
+  insertFinalNewline: s0.insertFinalNewline,
+  imageUploadCommand: s0.imageUploadCommand,
+  editorFont: s0.editorFont,
+  editorFontSize: s0.editorFontSize,
+  editorLineHeight: s0.editorLineHeight,
+  contentWidth: s0.contentWidth,
+  embedImages: s0.embedImages,
+  setEditorFont: (font) => set({ editorFont: font }),
+  setEditorFontSize: (px) => set({ editorFontSize: px }),
+  setEditorLineHeight: (lh) => set({ editorLineHeight: lh }),
+  setContentWidth: (px) => set({ contentWidth: px }),
+  setEmbedImages: (on) => set({ embedImages: on }),
   pageSetup: loadPageSetup(),
   setPageSetup: (patch) =>
     set((s) => {

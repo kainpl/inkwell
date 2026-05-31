@@ -10,8 +10,8 @@ function outName(ext: string): string {
 
 /** Export the current document as standalone HTML (with or without styles). */
 export async function exportHtmlFile(styled: boolean): Promise<void> {
-  const { doc } = useAppStore.getState()
-  const html = await renderDocumentHtml(doc.content, { docPath: doc.path, styled })
+  const { doc, embedImages } = useAppStore.getState()
+  const html = await renderDocumentHtml(doc.content, { docPath: doc.path, styled, embed: embedImages })
   await window.api.exportHtml(html, outName('html'))
 }
 

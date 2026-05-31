@@ -222,6 +222,8 @@ export interface RenderDocOptions {
   styled?: boolean
   /** Add a CSS page break before each H1 (except the first) — for print/PDF. */
   breakBeforeH1?: boolean
+  /** Embed local images as data: URIs (default true). HTML export may turn off. */
+  embed?: boolean
   /** Injectable for tests. */
   renderMermaidSvg?: (code: string) => Promise<string>
   embedImage?: (url: string) => Promise<string | null>
@@ -243,6 +245,8 @@ export async function renderDocumentHtml(
   applyAlerts(doc)
   applyToc(doc)
   await applyMermaid(doc, opts.renderMermaidSvg ?? defaultMermaid)
-  await embedImages(doc, opts.docPath ?? null, opts.embedImage ?? fetchAsDataUri)
+  if (opts.embed !== false) {
+    await embedImages(doc, opts.docPath ?? null, opts.embedImage ?? fetchAsDataUri)
+  }
   return wrapHtml(doc.body.innerHTML, opts.styled !== false, opts.breakBeforeH1 === true)
 }

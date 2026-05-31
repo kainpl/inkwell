@@ -119,4 +119,14 @@ describe('renderDocumentHtml', () => {
     })
     expect(html).toContain('data:image/png;base64,AAAA')
   })
+
+  it('keeps local image links when embed is off', async () => {
+    const html = await renderDocumentHtml('![a](pic.png)', {
+      docPath: '/docs/note.md',
+      embed: false,
+      embedImage: async () => 'data:image/png;base64,AAAA'
+    })
+    expect(html).toContain('src="pic.png"')
+    expect(html).not.toContain('data:image')
+  })
 })

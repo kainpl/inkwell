@@ -87,7 +87,9 @@ export function buildMenu(win: BrowserWindow): void {
             { label: 'Plain Text', click: send(IPC.menuCopyPlain) },
             { label: 'Image', click: send(IPC.menuCopyImage) }
           ]
-        }
+        },
+        { type: 'separator' },
+        { label: 'Preferences…', accelerator: 'CmdOrCtrl+,', click: send(IPC.menuPreferences) }
       ]
     },
     {

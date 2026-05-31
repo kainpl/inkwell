@@ -13,6 +13,23 @@ export const inkTheme = EditorView.theme({
   '.cm-activeLine': { backgroundColor: 'transparent' },
   '.cm-selectionBackground, ::selection': {
     backgroundColor: 'rgb(var(--accent) / 0.20) !important'
+  },
+  // The editor "page" surface. These properties compete with CodeMirror's own
+  // baseTheme (notably `.cm-scroller { font-family: monospace }`), which CM injects
+  // at higher specificity (`.ͼN .cm-scroller`) than a bare `.cm-*` rule in
+  // index.css can reach — so they MUST live in the theme facet to take effect.
+  // The actual values come from Preferences via CSS variables (see settingsSync.ts).
+  '.cm-scroller': {
+    fontFamily: 'var(--ink-editor-font, ui-serif, Georgia, serif)',
+    lineHeight: 'var(--ink-editor-leading, 1.75)',
+    padding: '4rem 0'
+  },
+  '.cm-content': {
+    maxWidth: 'var(--ink-content-width, 46rem)',
+    margin: '0 auto',
+    padding: '0 1.5rem',
+    fontSize: 'var(--ink-editor-size, 1.0625rem)',
+    caretColor: 'rgb(var(--accent))'
   }
 })
 

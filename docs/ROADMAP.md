@@ -111,15 +111,16 @@ Auto Save & Version Control*) і з поточним кодом Inkwell.
 - ✅ **Export через pandoc**: Word (.docx) / OpenDocument (.odt) / RTF / EPUB / LaTeX — читає md-джерело `gfm+tex_math_dollars`, `--resource-path` для зображень
   - ✅ ⭐ **pandoc on-demand** (`main/pandoc.ts`): якщо немає на PATH — пропонує завантажити з офіційного GitHub-релізу, розпаковує системним `tar` (bsdtar: zip/tar.gz без зайвих залежностей), кешує в `userData/pandoc/`, валідує. Прогрес-оверлей у рендері. Перевірено наживо: завантаження 3.9.0.2 → кеш → конвертація md→docx. Прибирає ручну залежність — **перевага над Typora** (там pandoc ставиш сам)
 - ✅ підсвітка коду в експорті (highlight.js) — у рушії
-- ⬜ Налаштування експорту по форматах (CSS-тема, вбудовування ресурсів) — 5.5 (краще разом із панеллю Preferences, Фаза 6)
+- 🟡 Налаштування експорту по форматах — 5.5: **вбудовування ресурсів** ✅ (перемикач *Embed images* у Preferences ▸ Export керує `embed` для Export HTML); CSS-тема по форматах — лишилось
 
 ## Фаза 6 — теми й оформлення
 - ✅ Світла/темна тема (CSS-змінні + перемикач)
 - 🟡 Кастомні теми: механізм `[data-theme]` є; треба **завантаження зовнішніх `.css`** із теки тем + перемикач у UI
 - ⬜ Кілька **вбудованих тем** (аналоги github / newsprint / night / pixyll / whitey)
 - ⬜ Каскад `base.user.css` + `{theme}.user.css` для правок без втрати при оновленні (як у Typora)
-- ⬜ **Налаштування**: шрифти (standard/serif/sans/mono), ширина «сторінки», міжрядковий інтервал, розмір; auto-hide menu bar
-- ⬜ Повноцінна панель **Preferences** (Editor / Appearance / Image / Markdown-прапорці / Export)
+- ✅ **Типографіка**: шрифт редактора (serif/sans/mono), ширина «сторінки», міжрядковий інтервал, розмір — застосовуються живими CSS-змінними через CM-тему; зберігаються у `localStorage` (`lib/settings.ts` + `settingsSync.ts`)
+  - ⬜ auto-hide menu bar
+- 🟡 Панель **Preferences** (Edit → Preferences…, `Ctrl/⌘ ,`): секції **Appearance / Editor / Image / Export** готові; **Markdown-прапорці** — у наступних підфазах (потребують умовного вмикання у livePreview)
 
 ## Фаза 7 — продуктивність і power-user
 - ✅ **Панель інструментів для новачків** ⭐: фіксований toolbar + спливаюча над виділенням + меню **Format** + **emoji-пікер** (перемикач `Ctrl/⌘+Shift+B`); набір розширюється з кожною новою фічею

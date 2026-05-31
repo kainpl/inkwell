@@ -41,6 +41,7 @@ const menuChannels = [
   IPC.menuCopyPlain,
   IPC.menuCopyImage,
   IPC.menuExportImage,
+  IPC.menuPreferences,
   IPC.menuSetLineEndingLf,
   IPC.menuSetLineEndingCrlf,
   IPC.menuToggleFinalNewline,

@@ -68,20 +68,9 @@
     @apply h-full bg-transparent text-ink;
   }
 
-  .cm-scroller {
-    @apply font-content;
-    line-height: 1.75;
-    padding: 4rem 0;
-  }
-
-  /* Center the writing column like a page. */
-  .cm-content {
-    max-width: 46rem;
-    margin: 0 auto;
-    padding: 0 1.5rem;
-    caret-color: rgb(var(--accent));
-    font-size: 1.0625rem;
-  }
+  /* The editor "page" surface (font, size, width, centering, padding) lives in
+     the CodeMirror theme facet (Editor/theme.ts) — a plain `.cm-*` rule here is
+     out-specified by CM's own baseTheme, so those properties wouldn't take. */
 
   .cm-editor.cm-focused {
     outline: none;

@@ -22,6 +22,11 @@ export default function PageSetupModal(): JSX.Element | null {
 
   useEffect(() => window.api.onMenu(IPC.menuPageSetup, () => setOpen(true)), [])
   useEffect(() => {
+    const open = (): void => setOpen(true)
+    window.addEventListener('ink:open-page-setup', open)
+    return () => window.removeEventListener('ink:open-page-setup', open)
+  }, [])
+  useEffect(() => {
     if (!open) return
     const onKey = (e: KeyboardEvent): void => {
       if (e.key === 'Escape') setOpen(false)

@@ -155,6 +155,7 @@ export const IPC = {
   menuCopyImage: 'menu:copyImage',
   menuExportImage: 'menu:exportImage',
   menuExportPandoc: 'menu:exportPandoc',
+  menuPreferences: 'menu:preferences',
   menuFormat: 'menu:format',
   // open document changed/removed on disk by another program
   fileChangedExternally: 'watch:changed',
