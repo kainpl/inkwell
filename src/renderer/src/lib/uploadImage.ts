@@ -11,7 +11,6 @@ import { resolveImageSrc } from '@renderer/components/Editor/livePreview'
 export async function uploadCurrentImage(view: EditorView): Promise<void> {
   const command = useAppStore.getState().imageUploadCommand
   if (!command.trim()) {
-    // eslint-disable-next-line no-console
     console.warn('Inkwell: set an image upload command in Preferences first.')
     return
   }
@@ -25,7 +24,6 @@ export async function uploadCurrentImage(view: EditorView): Promise<void> {
     const url = await window.api.uploadImage(command, decodeURI(filePath))
     setImageSrc(view, url)
   } catch (err) {
-    // eslint-disable-next-line no-console
     console.error('Inkwell: image upload failed:', err)
   }
 }
