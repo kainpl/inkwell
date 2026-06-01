@@ -22,6 +22,8 @@ import { inkTheme, inkHighlight } from './theme'
 import { emojiCompletion } from './livePreview'
 import { smartPunctuation } from './smartPunctuation'
 import { spellCheckPlugin, editorContextMenu } from './spellCheck'
+import { keybindingsCompartment, customKeymap } from './customKeymap'
+import { useAppStore } from '@renderer/store/useAppStore'
 import { imagePaste } from './imagePaste'
 import {
   previewCompartment,
@@ -127,6 +129,8 @@ export function inkwellExtensions(onChange: (value: string) => void): Extension[
     inkHighlight,
     spellCheckPlugin,
     editorContextMenu,
+    // User-defined keyboard shortcuts (reconfigured by Editor.tsx on change).
+    keybindingsCompartment.of(customKeymap(useAppStore.getState().keyBindings)),
     // Multiple cursors: draw all selection ranges + allow more than one. Add a
     // cursor with Alt-click, Ctrl/Cmd+D (next occurrence), Ctrl/Cmd+Alt+↑/↓.
     drawSelection(),

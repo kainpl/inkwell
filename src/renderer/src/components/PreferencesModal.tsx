@@ -5,16 +5,63 @@ import type { EditorFont } from '@renderer/lib/settings'
 import { THEMES, hasBothEditions, type Mode } from '@renderer/lib/themes'
 import { MARKDOWN_FEATURE_LIST } from '@renderer/lib/markdownFeatures'
 import { SPELL_LANGUAGES } from '@renderer/lib/spell'
+import { COMMANDS } from '@renderer/lib/commands'
+import { keyComboToCM } from '@renderer/components/Editor/customKeymap'
 
-type Section = 'appearance' | 'editor' | 'markdown' | 'image' | 'export'
+type Section = 'appearance' | 'editor' | 'keyboard' | 'markdown' | 'image' | 'export'
 
 const SECTIONS: { id: Section; label: string }[] = [
   { id: 'appearance', label: 'Appearance' },
   { id: 'editor', label: 'Editor' },
+  { id: 'keyboard', label: 'Keyboard' },
   { id: 'markdown', label: 'Markdown' },
   { id: 'image', label: 'Image' },
   { id: 'export', label: 'Export' }
 ]
+
+/** Capture a shortcut: click, press a key combo (Esc cancels). */
+function KeyCapture({
+  value,
+  onChange
+}: {
+  value?: string
+  onChange: (key: string | null) => void
+}): JSX.Element {
+  const [capturing, setCapturing] = useState(false)
+  useEffect(() => {
+    if (!capturing) return
+    const onKey = (e: KeyboardEvent): void => {
+      e.preventDefault()
+      e.stopPropagation()
+      if (e.key === 'Escape') {
+        setCapturing(false)
+        return
+      }
+      const key = keyComboToCM(e)
+      if (key) {
+        onChange(key)
+        setCapturing(false)
+      }
+    }
+    window.addEventListener('keydown', onKey, true)
+    return () => window.removeEventListener('keydown', onKey, true)
+  }, [capturing, onChange])
+  return (
+    <span className="flex items-center gap-1">
+      <button
+        onClick={() => setCapturing((c) => !c)}
+        className="min-w-[6.5rem] rounded border border-line px-2 py-0.5 text-xs text-ink hover:bg-ink/5"
+      >
+        {capturing ? 'Press keys…' : value || 'Set shortcut'}
+      </button>
+      {value && (
+        <button onClick={() => onChange(null)} title="Clear" className="text-faint hover:text-ink">
+          ✕
+        </button>
+      )}
+    </span>
+  )
+}
 
 const FIELD = 'rounded border border-line bg-paper px-2 py-1 text-sm text-ink'
 
@@ -199,6 +246,27 @@ function Editor(): JSX.Element {
   )
 }
 
+function Keyboard(): JSX.Element {
+  const s = useAppStore()
+  return (
+    <div className="flex flex-col">
+      <div className="mb-1 text-[11px] text-faint">
+        Add shortcuts for editor commands. Keys already used by the menus are handled by the OS
+        first.
+      </div>
+      {COMMANDS.map((c) => (
+        <div key={c.id} className="flex items-center justify-between gap-3 py-1">
+          <span className="min-w-0 truncate text-sm text-ink">
+            <span className="text-faint">{c.category} · </span>
+            {c.title}
+          </span>
+          <KeyCapture value={s.keyBindings[c.id]} onChange={(k) => s.setKeyBinding(c.id, k)} />
+        </div>
+      ))}
+    </div>
+  )
+}
+
 function Markdown(): JSX.Element {
   const s = useAppStore()
   return (
@@ -295,6 +363,7 @@ export default function PreferencesModal(): JSX.Element | null {
         <div className="min-w-0 flex-1 overflow-y-auto p-5">
           {section === 'appearance' && <Appearance />}
           {section === 'editor' && <Editor />}
+          {section === 'keyboard' && <Keyboard />}
           {section === 'markdown' && <Markdown />}
           {section === 'image' && <Image />}
           {section === 'export' && <Export />}

@@ -97,6 +97,9 @@ interface AppState {
   /** "Search With…" context-menu services. */
   searchServices: { name: string; url: string }[]
   setSearchServices: (services: { name: string; url: string }[]) => void
+  /** Custom keyboard shortcuts: command id → CodeMirror key. */
+  keyBindings: Record<string, string>
+  setKeyBinding: (commandId: string, key: string | null) => void
   /** Bumped when the active spell checker (re)loads, to retrigger decoration. */
   spellVersion: number
   bumpSpellVersion: () => void
@@ -263,6 +266,7 @@ export const useAppStore = create<AppState>((set) => ({
   spellLanguages: s0.spellLanguages,
   learnedWords: s0.learnedWords,
   searchServices: s0.searchServices,
+  keyBindings: s0.keyBindings,
   spellVersion: 0,
   exportStyle: s0.exportStyle,
   markdownFeatures: s0.markdownFeatures,
@@ -286,6 +290,13 @@ export const useAppStore = create<AppState>((set) => ({
     })),
   bumpSpellVersion: () => set((s) => ({ spellVersion: s.spellVersion + 1 })),
   setSearchServices: (searchServices) => set({ searchServices }),
+  setKeyBinding: (commandId, key) =>
+    set((s) => {
+      const next = { ...s.keyBindings }
+      if (key) next[commandId] = key
+      else delete next[commandId]
+      return { keyBindings: next }
+    }),
   setExportStyle: (exportStyle) => set({ exportStyle }),
   setMarkdownFeature: (key, on) =>
     set((s) => ({ markdownFeatures: { ...s.markdownFeatures, [key]: on } })),

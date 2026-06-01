@@ -24,7 +24,8 @@ function currentSettings(): Settings {
     spellCheck: s.spellCheck,
     spellLanguages: s.spellLanguages,
     learnedWords: s.learnedWords,
-    searchServices: s.searchServices
+    searchServices: s.searchServices,
+    keyBindings: s.keyBindings
   }
 }
 

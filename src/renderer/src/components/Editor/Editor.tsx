@@ -5,6 +5,7 @@ import { defaultKeymap, history, historyKeymap } from '@codemirror/commands'
 import { inkwellExtensions } from './markdownExtensions'
 import { refreshPreview } from './livePreview'
 import { spellRefresh } from './spellCheck'
+import { keybindingsCompartment, customKeymap } from './customKeymap'
 import { setSourceMode, setTypewriter } from './editorModes'
 import { useAppStore } from '@renderer/store/useAppStore'
 import { useEditor } from '@renderer/store/useEditor'
@@ -110,6 +111,7 @@ export default function Editor(): JSX.Element {
   useEffect(() => {
     let lastFeatures = useAppStore.getState().markdownFeatures
     let lastSpell = useAppStore.getState().spellVersion
+    let lastKeys = useAppStore.getState().keyBindings
     return useAppStore.subscribe(() => {
       const s = useAppStore.getState()
       const effects = []
@@ -120,6 +122,10 @@ export default function Editor(): JSX.Element {
       if (s.spellVersion !== lastSpell) {
         lastSpell = s.spellVersion
         effects.push(spellRefresh.of(null))
+      }
+      if (s.keyBindings !== lastKeys) {
+        lastKeys = s.keyBindings
+        effects.push(keybindingsCompartment.reconfigure(customKeymap(s.keyBindings)))
       }
       if (effects.length) viewRef.current?.dispatch({ effects })
     })
