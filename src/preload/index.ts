@@ -158,6 +158,10 @@ const api = {
     return () => ipcRenderer.removeListener(IPC.spellProgress, listener)
   },
 
+  /** Git status of the open folder (path → status char), or null if not a repo. */
+  gitStatus: (folder: string): Promise<Record<string, string> | null> =>
+    ipcRenderer.invoke(IPC.gitStatus, folder),
+
   /** Document templates (userData/templates). */
   listTemplates: (): Promise<TemplateEntry[]> => ipcRenderer.invoke(IPC.listTemplates),
   readTemplate: (id: string): Promise<string> => ipcRenderer.invoke(IPC.readTemplate, id),

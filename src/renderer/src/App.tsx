@@ -20,6 +20,7 @@ import { setSessionFile } from '@renderer/lib/persistence'
 import { startThemeSync } from '@renderer/lib/themeApply'
 import { startSpeaking, stopSpeaking } from '@renderer/lib/tts'
 import { startSpellSync } from '@renderer/lib/spell'
+import { startGitSync } from '@renderer/lib/git'
 import { EditorView } from '@codemirror/view'
 import { cursorDocStart, cursorDocEnd } from '@codemirror/commands'
 import { useEditor } from '@renderer/store/useEditor'
@@ -174,6 +175,7 @@ export default function App(): JSX.Element {
     const stopSettings = startSettingsSync()
     const stopThemes = startThemeSync()
     const stopSpell = startSpellSync()
+    const stopGit = startGitSync()
     return () => {
       stopAutoSave()
       stopDrafts()
@@ -181,6 +183,7 @@ export default function App(): JSX.Element {
       stopSettings()
       stopThemes()
       stopSpell()
+      stopGit()
     }
   }, [])
 

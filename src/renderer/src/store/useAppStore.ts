@@ -39,6 +39,9 @@ interface AppState {
   // --- workspace ---
   root: FileNode | null
   setRoot: (node: FileNode | null) => void
+  /** Git status per file (absolute `/`-path → status char); see lib/git.ts. */
+  gitStatus: Record<string, string>
+  setGitStatus: (status: Record<string, string>) => void
 
   // --- ui ---
   /** Active theme id (see lib/themes.ts). */
@@ -230,6 +233,8 @@ export const useAppStore = create<AppState>((set) => ({
 
   root: null,
   setRoot: (node) => set({ root: node }),
+  gitStatus: {},
+  setGitStatus: (gitStatus) => set({ gitStatus }),
 
   theme: s0.theme,
   mode: s0.mode,

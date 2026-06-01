@@ -9,6 +9,7 @@ import {
 } from './persistence'
 import { normalizeForSave } from './saveOptions'
 import { draftId, isRecoverable, newestDraft } from './drafts'
+import { refreshGitStatus } from './git'
 
 /** Content shaped for disk per the user's line-ending / final-newline settings. */
 function contentForDisk(): string {
@@ -44,6 +45,7 @@ export async function saveDoc(): Promise<boolean> {
     await window.api.saveFile(doc.path, content)
     markSaved()
     snapshotVersion(doc.path, content)
+    void refreshGitStatus()
     return true
   }
   return saveDocAs()
@@ -58,6 +60,7 @@ export async function saveDocAs(): Promise<boolean> {
   markSaved(result.path, result.name)
   rememberFile(result.path)
   snapshotVersion(result.path, content)
+  void refreshGitStatus()
   return true
 }
 

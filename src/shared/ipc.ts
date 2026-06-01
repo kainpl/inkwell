@@ -155,6 +155,8 @@ export const IPC = {
   listTemplates: 'template:list',
   readTemplate: 'template:read',
   openTemplatesFolder: 'template:openFolder',
+  // git status for the file tree (read-only)
+  gitStatus: 'git:status',
   // spell-check dictionaries (bundled en; others downloaded + cached)
   getSpellDict: 'spell:getDict',
   // main -> renderer: dictionary download progress (0–100; -1 done/error)

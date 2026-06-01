@@ -13,6 +13,16 @@ import {
   revealEntry
 } from '@renderer/lib/fileOps'
 
+/** Colours for git status badges (fixed semantic colours, theme-independent). */
+const GIT_COLORS: Record<string, string> = {
+  M: '#d9912a', // modified — amber
+  A: '#3a9e4a', // added — green
+  '?': '#3a9e4a', // untracked — green
+  D: '#d35454', // deleted — red
+  R: '#4a86d9', // renamed — blue
+  U: '#d35454' // conflict — red
+}
+
 function ChevronIcon({ open }: { open: boolean }): JSX.Element {
   return (
     <svg
@@ -89,6 +99,7 @@ function TreeRow({
   const [open, setOpen] = useState(false)
   const [children, setChildren] = useState<FileNode[] | undefined>(node.children)
   const activePath = useAppStore((s) => s.doc.path)
+  const git = useAppStore((s) => s.gitStatus[node.path.replace(/\\/g, '/')])
 
   const isDir = node.type === 'directory'
   const isActive = !isDir && activePath === node.path
@@ -139,7 +150,12 @@ function TreeRow({
         style={{ paddingLeft: `${depth * 12 + 8}px` }}
       >
         <span className="w-3 shrink-0 text-faint">{isDir ? <ChevronIcon open={open} /> : null}</span>
-        <span className="truncate">{node.name}</span>
+        <span className="min-w-0 flex-1 truncate">{node.name}</span>
+        {git && (
+          <span className="shrink-0 text-[11px] font-bold" style={{ color: GIT_COLORS[git] ?? 'inherit' }}>
+            {git}
+          </span>
+        )}
       </button>
       {isDir && open && children && (
         <div>
