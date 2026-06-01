@@ -8,8 +8,14 @@ import { useAppStore } from '@renderer/store/useAppStore'
 
 export async function refreshGitStatus(): Promise<void> {
   const root = useAppStore.getState().root
-  const status = root ? await window.api.gitStatus(root.path).catch(() => null) : null
+  const [status, branch] = root
+    ? await Promise.all([
+        window.api.gitStatus(root.path).catch(() => null),
+        window.api.gitBranch(root.path).catch(() => null)
+      ])
+    : [null, null]
   useAppStore.getState().setGitStatus(status ?? {})
+  useAppStore.getState().setGitBranch(branch)
 }
 
 /** Re-fetch git status when the open folder changes. Returns an unsubscribe fn. */

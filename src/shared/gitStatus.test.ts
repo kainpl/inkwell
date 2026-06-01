@@ -23,6 +23,13 @@ describe('parseGitChanges', () => {
     expect(parseGitChanges('## No commits yet on trunk\n').branch).toBe('trunk')
   })
 
+  it('reads ahead/behind counts from the header', () => {
+    expect(parseGitChanges('## main...origin/main [ahead 2, behind 1]\n')).toMatchObject({ ahead: 2, behind: 1 })
+    expect(parseGitChanges('## main...origin/main [ahead 3]\n')).toMatchObject({ ahead: 3, behind: 0 })
+    expect(parseGitChanges('## main...origin/main [behind 5]\n')).toMatchObject({ ahead: 0, behind: 5 })
+    expect(parseGitChanges('## main...origin/main\n')).toMatchObject({ ahead: 0, behind: 0 })
+  })
+
   it('splits staged (index) from unstaged (worktree) changes', () => {
     const out = '## main\nM  staged.ts\n M worktree.ts\nA  added.ts\n?? new.md\n'
     const { staged, unstaged } = parseGitChanges(out)

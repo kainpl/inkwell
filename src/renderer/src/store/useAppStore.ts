@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import type { FileNode, ExternalTheme } from '@shared/ipc'
+import type { FileNode, ExternalTheme, GitBranch } from '@shared/ipc'
 import { type Tab, findByPath, isReplaceable, closeTab } from '@renderer/lib/tabsModel'
 import { type PageSetup, loadPageSetup, savePageSetup } from '@renderer/lib/pageSetup'
 import { type EditorFont, loadSettings, PANEL_MIN, PANEL_MAX } from '@renderer/lib/settings'
@@ -42,6 +42,9 @@ interface AppState {
   /** Git status per file (absolute `/`-path → status char); see lib/git.ts. */
   gitStatus: Record<string, string>
   setGitStatus: (status: Record<string, string>) => void
+  /** Current branch + ahead/behind for the status-bar indicator (null = not a repo). */
+  gitBranch: GitBranch | null
+  setGitBranch: (b: GitBranch | null) => void
 
   // --- ui ---
   /** Active theme id (see lib/themes.ts). */
@@ -240,6 +243,8 @@ export const useAppStore = create<AppState>((set) => ({
   setRoot: (node) => set({ root: node }),
   gitStatus: {},
   setGitStatus: (gitStatus) => set({ gitStatus }),
+  gitBranch: null,
+  setGitBranch: (gitBranch) => set({ gitBranch }),
 
   theme: s0.theme,
   mode: s0.mode,

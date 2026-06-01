@@ -8,7 +8,7 @@ import type { GitChanges, GitResult } from '@shared/ipc'
  * mutation also refreshes the file-tree badges so the two stay in sync.
  */
 
-const EMPTY: GitChanges = { branch: null, staged: [], unstaged: [] }
+const EMPTY: GitChanges = { branch: null, ahead: 0, behind: 0, staged: [], unstaged: [] }
 
 export async function fetchGitChanges(): Promise<GitChanges> {
   const root = useAppStore.getState().root
@@ -26,6 +26,14 @@ export function unstagePaths(paths: string[]): Promise<GitResult> {
 
 export function commitStaged(message: string): Promise<GitResult> {
   return runGit((root) => window.api.gitCommit(root, message))
+}
+
+export function pushBranch(): Promise<GitResult> {
+  return runGit((root) => window.api.gitPush(root))
+}
+
+export function pullBranch(): Promise<GitResult> {
+  return runGit((root) => window.api.gitPull(root))
 }
 
 async function runGit(fn: (root: string) => Promise<GitResult>): Promise<GitResult> {

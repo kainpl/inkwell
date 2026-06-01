@@ -103,13 +103,24 @@ export interface GitChange {
 export interface GitChanges {
   /** Current branch name (or a label like "HEAD (no branch)"), null if not a repo. */
   branch: string | null
+  /** Commits ahead of the upstream (to push). */
+  ahead: number
+  /** Commits behind the upstream (to pull). */
+  behind: number
   /** Files with staged changes (present in the index). */
   staged: GitChange[]
   /** Files with unstaged changes or untracked files. */
   unstaged: GitChange[]
 }
 
-/** Result of a git mutation (stage/unstage/commit). */
+/** Lightweight branch state for the status-bar indicator. */
+export interface GitBranch {
+  branch: string
+  ahead: number
+  behind: number
+}
+
+/** Result of a git mutation (stage/unstage/commit/push/pull). */
 export interface GitResult {
   ok: boolean
   /** Trimmed stderr/message when `ok` is false. */
@@ -189,6 +200,10 @@ export const IPC = {
   gitStage: 'git:stage',
   gitUnstage: 'git:unstage',
   gitCommit: 'git:commit',
+  gitPush: 'git:push',
+  gitPull: 'git:pull',
+  // git: lightweight branch + ahead/behind for the status-bar indicator
+  gitBranch: 'git:branch',
   // note graph (wiki-link connections across the workspace)
   noteGraph: 'graph:notes',
   // spell-check dictionaries (bundled en; others downloaded + cached)

@@ -13,7 +13,8 @@ import {
   type TemplateEntry,
   type SpellDict,
   type GitChanges,
-  type GitResult
+  type GitResult,
+  type GitBranch
 } from '../shared/ipc'
 import type { NoteGraph } from '../shared/noteGraph'
 
@@ -181,6 +182,15 @@ const api = {
   /** Commit the staged changes with a message. */
   gitCommit: (folder: string, message: string): Promise<GitResult> =>
     ipcRenderer.invoke(IPC.gitCommit, folder, message),
+
+  /** Push the current branch to its upstream. */
+  gitPush: (folder: string): Promise<GitResult> => ipcRenderer.invoke(IPC.gitPush, folder),
+
+  /** Pull the current branch from its upstream. */
+  gitPull: (folder: string): Promise<GitResult> => ipcRenderer.invoke(IPC.gitPull, folder),
+
+  /** Branch name + ahead/behind counts for the status-bar indicator. */
+  gitBranch: (folder: string): Promise<GitBranch | null> => ipcRenderer.invoke(IPC.gitBranch, folder),
 
   /** Build the wiki-link graph for the workspace. */
   noteGraph: (folder: string): Promise<NoteGraph> => ipcRenderer.invoke(IPC.noteGraph, folder),

@@ -1,7 +1,7 @@
 import { ipcMain } from 'electron'
 import { execFile } from 'child_process'
 import { promisify } from 'util'
-import { IPC, type GitChanges, type GitResult } from '../../shared/ipc'
+import { IPC, type GitChanges, type GitResult, type GitBranch } from '../../shared/ipc'
 import { gitStatusChar, parseGitChanges } from '../../shared/gitStatus'
 
 /**
@@ -52,12 +52,25 @@ export function registerGitIpc(): void {
   // Detailed staged/unstaged lists for the Source Control panel.
   ipcMain.handle(IPC.gitChanges, async (_e, folder: string): Promise<GitChanges> => {
     const top = await repoTop(folder)
-    if (!top) return { branch: null, staged: [], unstaged: [] }
+    if (!top) return { branch: null, ahead: 0, behind: 0, staged: [], unstaged: [] }
     try {
       const out = await git(top, ['status', '--porcelain=v1', '--branch', '--untracked-files=all'])
       return parseGitChanges(out)
     } catch {
-      return { branch: null, staged: [], unstaged: [] }
+      return { branch: null, ahead: 0, behind: 0, staged: [], unstaged: [] }
+    }
+  })
+
+  // Lightweight branch + ahead/behind for the status-bar indicator.
+  ipcMain.handle(IPC.gitBranch, async (_e, folder: string): Promise<GitBranch | null> => {
+    const top = await repoTop(folder)
+    if (!top) return null
+    try {
+      const out = await git(top, ['status', '--porcelain=v1', '--branch', '--untracked-files=no'])
+      const { branch, ahead, behind } = parseGitChanges(out)
+      return branch ? { branch, ahead, behind } : null
+    } catch {
+      return null
     }
   })
 
@@ -75,6 +88,21 @@ export function registerGitIpc(): void {
   ipcMain.handle(IPC.gitCommit, async (_e, folder: string, message: string): Promise<GitResult> => {
     return mutate(folder, (top) => git(top, ['commit', '-m', message]))
   })
+
+  // Push / pull the current branch. A 60s timeout keeps a credential prompt or
+  // network stall from hanging the handler forever (auth is expected to be
+  // cached via the user's git credential helper / SSH agent).
+  ipcMain.handle(IPC.gitPush, async (_e, folder: string): Promise<GitResult> => {
+    return mutate(folder, (top) => gitNet(top, ['push']))
+  })
+  ipcMain.handle(IPC.gitPull, async (_e, folder: string): Promise<GitResult> => {
+    return mutate(folder, (top) => gitNet(top, ['pull']))
+  })
+}
+
+/** Run a network git command (push/pull) with a timeout. */
+function gitNet(cwd: string, args: string[]): Promise<string> {
+  return run('git', ['-C', cwd, ...args], { windowsHide: true, timeout: 60_000 }).then((r) => r.stdout)
 }
 
 /** Resolve the repo root, run a mutation, and normalise success/error. */

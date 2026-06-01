@@ -20,6 +20,8 @@ export function gitStatusChar(xy: string): string {
  */
 export function parseGitChanges(out: string): GitChanges {
   let branch: string | null = null
+  let ahead = 0
+  let behind = 0
   const staged: GitChange[] = []
   const unstaged: GitChange[] = []
   for (const line of out.split('\n')) {
@@ -28,6 +30,11 @@ export function parseGitChanges(out: string): GitChanges {
       branch = head.startsWith('No commits yet on ')
         ? head.slice('No commits yet on '.length)
         : head.split(/\.\.\.| /)[0]
+      const ab = head.match(/\[([^\]]+)\]/) // e.g. "[ahead 2, behind 1]"
+      if (ab) {
+        ahead = Number(/ahead (\d+)/.exec(ab[1])?.[1] ?? 0)
+        behind = Number(/behind (\d+)/.exec(ab[1])?.[1] ?? 0)
+      }
       continue
     }
     if (line.length < 4) continue
@@ -41,5 +48,5 @@ export function parseGitChanges(out: string): GitChanges {
     if (!untracked && index !== ' ') staged.push({ path: rel, index, worktree: ' ' })
     if (untracked || worktree !== ' ') unstaged.push({ path: rel, index: ' ', worktree })
   }
-  return { branch, staged, unstaged }
+  return { branch, ahead, behind, staged, unstaged }
 }

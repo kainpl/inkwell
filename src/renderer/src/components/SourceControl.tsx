@@ -4,10 +4,12 @@ import {
   fetchGitChanges,
   stagePaths,
   unstagePaths,
-  commitStaged
+  commitStaged,
+  pushBranch,
+  pullBranch
 } from '@renderer/lib/gitActions'
 
-const EMPTY: GitChanges = { branch: null, staged: [], unstaged: [] }
+const EMPTY: GitChanges = { branch: null, ahead: 0, behind: 0, staged: [], unstaged: [] }
 
 /** Status-char colours, matching the file-tree badges. */
 const CHAR_COLOR: Record<string, string> = {
@@ -98,7 +100,13 @@ export default function SourceControl(): JSX.Element | null {
         <div className="flex items-center justify-between border-b border-line px-4 py-2">
           <span className="text-sm font-semibold text-ink">
             Source Control{' '}
-            {isRepo && <span className="text-faint">⎇ {changes.branch}</span>}
+            {isRepo && (
+              <span className="font-normal text-faint">
+                ⎇ {changes.branch}
+                {changes.ahead > 0 && ` ↑${changes.ahead}`}
+                {changes.behind > 0 && ` ↓${changes.behind}`}
+              </span>
+            )}
           </span>
           <button onClick={() => setOpen(false)} className="text-faint hover:text-ink">
             ✕
@@ -126,6 +134,24 @@ export default function SourceControl(): JSX.Element | null {
               >
                 Commit {changes.staged.length > 0 ? `(${changes.staged.length})` : ''}
               </button>
+              <div className="mt-2 flex gap-2">
+                <button
+                  onClick={() => void run(() => pullBranch())}
+                  disabled={busy}
+                  title="git pull"
+                  className="flex-1 rounded border border-line px-3 py-1 text-sm text-ink hover:border-accent hover:text-accent disabled:opacity-40"
+                >
+                  Pull{changes.behind > 0 ? ` ↓${changes.behind}` : ''}
+                </button>
+                <button
+                  onClick={() => void run(() => pushBranch())}
+                  disabled={busy}
+                  title="git push"
+                  className="flex-1 rounded border border-line px-3 py-1 text-sm text-ink hover:border-accent hover:text-accent disabled:opacity-40"
+                >
+                  Push{changes.ahead > 0 ? ` ↑${changes.ahead}` : ''}
+                </button>
+              </div>
               {error && <p className="mt-2 whitespace-pre-wrap text-xs text-[#d35454]">{error}</p>}
             </div>
 

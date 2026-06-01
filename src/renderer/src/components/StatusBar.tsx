@@ -1,4 +1,5 @@
 import { useMemo } from 'react'
+import { IPC } from '@shared/ipc'
 import { useAppStore } from '@renderer/store/useAppStore'
 import { computeStats, readingTimeLabel } from '@renderer/lib/textStats'
 
@@ -14,11 +15,24 @@ export default function StatusBar(): JSX.Element {
   const toggleSourceMode = useAppStore((s) => s.toggleSourceMode)
   const toggleAutoSave = useAppStore((s) => s.toggleAutoSave)
 
+  const gitBranch = useAppStore((s) => s.gitBranch)
+
   const stats = useMemo(() => computeStats(content), [content])
 
   return (
     <footer className="flex h-7 shrink-0 items-center justify-between border-t border-line bg-chrome px-3 text-[12px] text-faint">
       <div className="flex items-center gap-3">
+        {gitBranch && (
+          <button
+            onClick={() => window.api.triggerMenu(IPC.menuSourceControl)}
+            title="Source Control (Ctrl+Shift+G)"
+            className="flex items-center gap-1 hover:text-ink"
+          >
+            <span>⎇ {gitBranch.branch}</span>
+            {gitBranch.ahead > 0 && <span>↑{gitBranch.ahead}</span>}
+            {gitBranch.behind > 0 && <span>↓{gitBranch.behind}</span>}
+          </button>
+        )}
         <span title="Words">{stats.words} words</span>
         <span title="Characters">{stats.chars} chars</span>
         {stats.readingMinutes > 0 && <span>{readingTimeLabel(stats.readingMinutes)}</span>}
