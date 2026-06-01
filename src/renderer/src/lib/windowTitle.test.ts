@@ -22,10 +22,10 @@ describe('documentTitle', () => {
 
 describe('windowTitle', () => {
   it('appends the app name, heading first', () => {
-    expect(windowTitle('notes.md', '# Hello', false)).toBe('Hello — Inkwell')
+    expect(windowTitle('notes.md', '# Hello', false)).toBe('Hello - Inkwell')
   })
 
   it('marks unsaved changes with a leading bullet', () => {
-    expect(windowTitle('notes.md', '# Hello', true)).toBe('• Hello — Inkwell')
+    expect(windowTitle('notes.md', '# Hello', true)).toBe('• Hello - Inkwell')
   })
 })
