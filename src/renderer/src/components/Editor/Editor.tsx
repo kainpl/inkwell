@@ -11,7 +11,7 @@ import { useAppStore } from '@renderer/store/useAppStore'
 import { useEditor } from '@renderer/store/useEditor'
 import { getCaret, setCaret } from '@renderer/lib/persistence'
 
-/** OutlinePanel dispatches this to jump the caret to a heading. */
+/** OutlineView dispatches this to jump the caret to a heading. */
 export const GOTO_EVENT = 'ink:goto'
 
 export default function Editor(): JSX.Element {

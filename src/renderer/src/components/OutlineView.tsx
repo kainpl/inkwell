@@ -4,15 +4,16 @@ import { useAppStore } from '@renderer/store/useAppStore'
 import { useEditor } from '@renderer/store/useEditor'
 import { parseOutline } from '@renderer/lib/outline'
 import { openPath } from '@renderer/lib/docActions'
-import ResizeHandle from './ResizeHandle'
 import { GOTO_EVENT } from './Editor/Editor'
 
 const escapeRe = (s: string): string => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 
-export default function OutlinePanel(): JSX.Element | null {
-  const outlineOpen = useAppStore((s) => s.outlineOpen)
-  const outlineWidth = useAppStore((s) => s.outlineWidth)
-  const setOutlineWidth = useAppStore((s) => s.setOutlineWidth)
+/**
+ * Table of contents for the open document, plus its backlinks. Rendered inside
+ * the sidebar's "Outline" tab (so its visibility is driven by the active tab,
+ * not an `outlineOpen` flag).
+ */
+export default function OutlineView(): JSX.Element {
   const content = useAppStore((s) => s.doc.content)
   // Re-render on caret moves so the active heading highlight stays current.
   const selVersion = useEditor((s) => s.selVersion)
@@ -58,8 +59,6 @@ export default function OutlinePanel(): JSX.Element | null {
     return active
   }, [headings, selVersion, view])
 
-  if (!outlineOpen) return null
-
   const toggle = (from: number): void => {
     setCollapsed((prev) => {
       const next = new Set(prev)
@@ -89,11 +88,7 @@ export default function OutlinePanel(): JSX.Element | null {
     i + 1 < headings.length && headings[i + 1].level > headings[i].level
 
   return (
-    <aside
-      style={{ width: outlineWidth }}
-      className="relative flex shrink-0 flex-col overflow-hidden border-l border-line bg-chrome"
-    >
-      <ResizeHandle side="left" onResize={setOutlineWidth} />
+    <div className="flex h-full flex-col">
       <div className="flex items-center justify-between px-3 py-1">
         <span className="text-[11px] font-semibold uppercase tracking-wider text-faint">Outline</span>
         {headings.length > 0 && (
@@ -153,6 +148,6 @@ export default function OutlinePanel(): JSX.Element | null {
           ))}
         </div>
       )}
-    </aside>
+    </div>
   )
 }

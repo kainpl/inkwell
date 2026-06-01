@@ -1,6 +1,6 @@
 import { useState } from 'react'
-import FileTree from './FileTree'
-import ArticlesPanel from './ArticlesPanel'
+import FilesPanel from './FilesPanel'
+import OutlineView from './OutlineView'
 import ResizeHandle from './ResizeHandle'
 import { useAppStore } from '@renderer/store/useAppStore'
 
@@ -24,7 +24,7 @@ export default function Sidebar(): JSX.Element {
       {open && (
         <>
           <div className="flex shrink-0 border-b border-line text-[12px]">
-            {(['files', 'articles'] as const).map((t) => (
+            {(['files', 'outline'] as const).map((t) => (
               <button
                 key={t}
                 onClick={() => setTab(t)}
@@ -33,12 +33,12 @@ export default function Sidebar(): JSX.Element {
                   (tab === t ? 'text-accent border-b-2 border-accent' : 'text-muted hover:text-ink')
                 }
               >
-                {t === 'files' ? 'Files' : 'Articles'}
+                {t === 'files' ? 'Files' : 'Outline'}
               </button>
             ))}
           </div>
-          <div className="min-h-0 flex-1 overflow-y-auto">
-            {tab === 'files' ? <FileTree /> : <ArticlesPanel />}
+          <div className="min-h-0 flex-1 overflow-hidden">
+            {tab === 'files' ? <FilesPanel /> : <OutlineView />}
           </div>
           <ResizeHandle side="right" onResize={setWidth} onActive={setDragging} />
         </>

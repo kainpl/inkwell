@@ -17,7 +17,6 @@ function currentSettings(): Settings {
     editorLineHeight: s.editorLineHeight,
     contentWidth: s.contentWidth,
     sidebarWidth: s.sidebarWidth,
-    outlineWidth: s.outlineWidth,
     autoHideMenuBar: s.autoHideMenuBar,
     embedImages: s.embedImages,
     exportStyle: s.exportStyle,

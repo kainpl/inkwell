@@ -20,14 +20,12 @@ describe('settings persistence', () => {
     expect(loadSettings().contentWidth).toBe(DEFAULT_SETTINGS.contentWidth)
   })
 
-  it('clamps out-of-range panel widths back to the default', () => {
-    saveSettings({ ...DEFAULT_SETTINGS, sidebarWidth: 9000, outlineWidth: 5 })
-    const s = loadSettings()
-    expect(s.sidebarWidth).toBe(DEFAULT_SETTINGS.sidebarWidth)
-    expect(s.outlineWidth).toBe(DEFAULT_SETTINGS.outlineWidth)
+  it('clamps an out-of-range sidebar width back to the default', () => {
+    saveSettings({ ...DEFAULT_SETTINGS, sidebarWidth: 9000 })
+    expect(loadSettings().sidebarWidth).toBe(DEFAULT_SETTINGS.sidebarWidth)
   })
 
-  it('keeps an in-range panel width', () => {
+  it('keeps an in-range sidebar width', () => {
     saveSettings({ ...DEFAULT_SETTINGS, sidebarWidth: 300 })
     expect(loadSettings().sidebarWidth).toBe(300)
   })

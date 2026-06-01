@@ -53,9 +53,8 @@ interface AppState {
   toggleMode: () => void
   sidebarOpen: boolean
   /** Which sidebar tab is shown when it's open. */
-  sidebarTab: 'files' | 'articles'
-  setSidebarTab: (tab: 'files' | 'articles') => void
-  outlineOpen: boolean
+  sidebarTab: 'files' | 'outline'
+  setSidebarTab: (tab: 'files' | 'outline') => void
   focusMode: boolean
   typewriterMode: boolean
   sourceMode: boolean
@@ -80,15 +79,13 @@ interface AppState {
   editorFontSize: number
   editorLineHeight: number
   contentWidth: number
-  /** Pixel widths of the resizable side panels (drag handles + persisted). */
+  /** Pixel width of the resizable sidebar (drag handle + persisted). */
   sidebarWidth: number
-  outlineWidth: number
   setEditorFont: (font: EditorFont) => void
   setEditorFontSize: (px: number) => void
   setEditorLineHeight: (lh: number) => void
   setContentWidth: (px: number) => void
   setSidebarWidth: (px: number) => void
-  setOutlineWidth: (px: number) => void
   /** Embed local images as data: URIs in exported HTML. */
   embedImages: boolean
   setEmbedImages: (on: boolean) => void
@@ -260,7 +257,6 @@ export const useAppStore = create<AppState>((set) => ({
   sidebarOpen: true,
   sidebarTab: 'files',
   setSidebarTab: (tab) => set({ sidebarTab: tab }),
-  outlineOpen: false,
   focusMode: false,
   typewriterMode: false,
   sourceMode: false,
@@ -274,7 +270,6 @@ export const useAppStore = create<AppState>((set) => ({
   editorLineHeight: s0.editorLineHeight,
   contentWidth: s0.contentWidth,
   sidebarWidth: s0.sidebarWidth,
-  outlineWidth: s0.outlineWidth,
   embedImages: s0.embedImages,
   smartPunctuation: s0.smartPunctuation,
   spellCheck: s0.spellCheck,
@@ -291,7 +286,6 @@ export const useAppStore = create<AppState>((set) => ({
   setEditorLineHeight: (lh) => set({ editorLineHeight: lh }),
   setContentWidth: (px) => set({ contentWidth: px }),
   setSidebarWidth: (px) => set({ sidebarWidth: clampPanel(px) }),
-  setOutlineWidth: (px) => set({ outlineWidth: clampPanel(px) }),
   setEmbedImages: (on) => set({ embedImages: on }),
   setSmartPunctuation: (on) => set({ smartPunctuation: on }),
   setSpellCheck: (on) => set({ spellCheck: on }),
@@ -326,7 +320,14 @@ export const useAppStore = create<AppState>((set) => ({
       return { pageSetup: next }
     }),
   toggleSidebar: () => set((s) => ({ sidebarOpen: !s.sidebarOpen })),
-  toggleOutline: () => set((s) => ({ outlineOpen: !s.outlineOpen })),
+  // The outline now lives as a sidebar tab: show it (opening the sidebar), or
+  // flip back to the file tree if it's already the active tab.
+  toggleOutline: () =>
+    set((s) =>
+      s.sidebarOpen && s.sidebarTab === 'outline'
+        ? { sidebarTab: 'files' }
+        : { sidebarOpen: true, sidebarTab: 'outline' }
+    ),
   toggleFocusMode: () => set((s) => ({ focusMode: !s.focusMode })),
   toggleTypewriter: () => set((s) => ({ typewriterMode: !s.typewriterMode })),
   toggleSourceMode: () => set((s) => ({ sourceMode: !s.sourceMode })),

@@ -43,7 +43,6 @@ import { startSettingsSync } from '@renderer/lib/settingsSync'
 import TitleBar from '@renderer/components/TitleBar'
 import TabBar from '@renderer/components/TabBar'
 import Sidebar from '@renderer/components/Sidebar'
-import OutlinePanel from '@renderer/components/OutlinePanel'
 import StatusBar from '@renderer/components/StatusBar'
 import Editor from '@renderer/components/Editor/Editor'
 import Toolbar from '@renderer/components/Toolbar'
@@ -207,7 +206,6 @@ export default function App(): JSX.Element {
         <main className="min-w-0 flex-1">
           <Editor />
         </main>
-        <OutlinePanel />
       </div>
       <StatusBar />
       <FloatingToolbar />

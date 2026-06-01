@@ -32,10 +32,8 @@ export interface Settings {
   editorLineHeight: number
   /** Width of the centred writing column, as a percentage of the editor width. */
   contentWidth: number
-  /** Width of the left sidebar (file tree), in pixels. */
+  /** Width of the left sidebar, in pixels. */
   sidebarWidth: number
-  /** Width of the right outline panel, in pixels. */
-  outlineWidth: number
   /** Auto-hide the native menu bar (Windows/Linux; press Alt to reveal). */
   autoHideMenuBar: boolean
   /** Embed local images as data: URIs in exported HTML. */
@@ -78,7 +76,6 @@ export const DEFAULT_SETTINGS: Settings = {
   editorLineHeight: 1.75,
   contentWidth: 80,
   sidebarWidth: 240,
-  outlineWidth: 240,
   autoHideMenuBar: false,
   embedImages: true,
   exportStyle: 'default',
@@ -123,8 +120,7 @@ function sanitize(s: Settings): Settings {
     editorFontSize: clamp(s.editorFontSize, 10, 40, DEFAULT_SETTINGS.editorFontSize),
     editorLineHeight: clamp(s.editorLineHeight, 1, 3, DEFAULT_SETTINGS.editorLineHeight),
     contentWidth: clamp(s.contentWidth, 40, 100, DEFAULT_SETTINGS.contentWidth),
-    sidebarWidth: clamp(s.sidebarWidth, PANEL_MIN, PANEL_MAX, DEFAULT_SETTINGS.sidebarWidth),
-    outlineWidth: clamp(s.outlineWidth, PANEL_MIN, PANEL_MAX, DEFAULT_SETTINGS.outlineWidth)
+    sidebarWidth: clamp(s.sidebarWidth, PANEL_MIN, PANEL_MAX, DEFAULT_SETTINGS.sidebarWidth)
   }
 }
 

@@ -34,8 +34,9 @@ function IconButton({
 }
 
 export default function TitleBar(): JSX.Element {
-  const { doc, sidebarOpen, outlineOpen, theme, mode, externalThemes, formatBarOpen } =
+  const { doc, sidebarOpen, sidebarTab, theme, mode, externalThemes, formatBarOpen } =
     useAppStore()
+  const outlineOpen = sidebarOpen && sidebarTab === 'outline'
   const toggleSidebar = useAppStore((s) => s.toggleSidebar)
   const toggleOutline = useAppStore((s) => s.toggleOutline)
   const toggleMode = useAppStore((s) => s.toggleMode)
