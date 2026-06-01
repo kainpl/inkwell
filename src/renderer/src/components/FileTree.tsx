@@ -12,6 +12,7 @@ import {
   deleteEntry,
   revealEntry
 } from '@renderer/lib/fileOps'
+import StartScreen from './StartScreen'
 
 /** Colours for git status badges (fixed semantic colours, theme-independent). */
 const GIT_COLORS: Record<string, string> = {
@@ -188,13 +189,7 @@ export default function FileTree(): JSX.Element {
   }, [root, setRoot])
 
   if (!root) {
-    return (
-      <div className="px-3 py-6 text-[13px] leading-relaxed text-faint">
-        No folder open.
-        <br />
-        <span className="text-muted">⌘/Ctrl + Shift + O</span> to open one.
-      </div>
-    )
+    return <StartScreen />
   }
 
   return (

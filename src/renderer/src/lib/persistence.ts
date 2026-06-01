@@ -6,6 +6,7 @@ import { addRecent, removeRecent } from './recentFiles'
  */
 
 const RECENT_KEY = 'inkwell.recentFiles'
+const RECENT_FOLDERS_KEY = 'inkwell.recentFolders'
 const SESSION_KEY = 'inkwell.session'
 const CARET_KEY = 'inkwell.caret'
 /** Max remembered caret positions before the oldest are evicted. */
@@ -53,6 +54,26 @@ export function dropRecentFile(path: string): string[] {
 
 export function clearRecentFiles(): void {
   write(RECENT_KEY, [])
+}
+
+export function getRecentFolders(): string[] {
+  return read<string[]>(RECENT_FOLDERS_KEY, [])
+}
+
+export function pushRecentFolder(path: string): string[] {
+  const next = addRecent(getRecentFolders(), path)
+  write(RECENT_FOLDERS_KEY, next)
+  return next
+}
+
+export function dropRecentFolder(path: string): string[] {
+  const next = removeRecent(getRecentFolders(), path)
+  write(RECENT_FOLDERS_KEY, next)
+  return next
+}
+
+export function clearRecentFolders(): void {
+  write(RECENT_FOLDERS_KEY, [])
 }
 
 export function getSession(): Session {

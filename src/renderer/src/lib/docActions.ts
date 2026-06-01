@@ -2,9 +2,11 @@ import { useAppStore } from '@renderer/store/useAppStore'
 import { useConfirm } from '@renderer/store/useConfirm'
 import {
   dropRecentFile,
+  dropRecentFolder,
   getRecentFiles,
   getSession,
   pushRecentFile,
+  pushRecentFolder,
   setSessionFolder
 } from './persistence'
 import { normalizeForSave } from './saveOptions'
@@ -107,7 +109,21 @@ export async function openFolderFromDialog(): Promise<void> {
   if (node) {
     useAppStore.getState().setRoot(node)
     setSessionFolder(node.path)
+    pushRecentFolder(node.path)
   }
+}
+
+/** Open a workspace folder by path (recent-folders picker / start screen). A
+ *  path that no longer exists is dropped from the recent list. */
+export async function openFolderByPath(path: string): Promise<void> {
+  const node = await window.api.readFolder(path).catch(() => null)
+  if (!node) {
+    dropRecentFolder(path)
+    return
+  }
+  useAppStore.getState().setRoot(node)
+  setSessionFolder(node.path)
+  pushRecentFolder(node.path)
 }
 
 /** Open a file path in a tab (focuses an existing tab for it, if any). */
@@ -184,7 +200,10 @@ export async function restoreSession(): Promise<boolean> {
   const { folderPath, filePath } = getSession()
   if (folderPath) {
     const node = await window.api.readFolder(folderPath).catch(() => null)
-    if (node) useAppStore.getState().setRoot(node)
+    if (node) {
+      useAppStore.getState().setRoot(node)
+      pushRecentFolder(node.path)
+    }
   }
   if (filePath) {
     const file = await window.api.readFile(filePath).catch(() => null)

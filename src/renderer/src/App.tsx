@@ -55,7 +55,7 @@ import NoteGraph from '@renderer/components/NoteGraph'
 import SourceControl from '@renderer/components/SourceControl'
 import TemplatePicker from '@renderer/components/TemplatePicker'
 import GlobalSearch from '@renderer/components/GlobalSearch'
-import RecentFiles from '@renderer/components/RecentFiles'
+import RecentPicker from '@renderer/components/RecentPicker'
 import BrowseVersions from '@renderer/components/BrowseVersions'
 import PageSetupModal from '@renderer/components/PageSetupModal'
 import PreferencesModal from '@renderer/components/PreferencesModal'
@@ -218,7 +218,7 @@ export default function App(): JSX.Element {
       <SourceControl />
       <TemplatePicker />
       <GlobalSearch />
-      <RecentFiles />
+      <RecentPicker />
       <BrowseVersions />
       <PageSetupModal />
       <PreferencesModal />
