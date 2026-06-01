@@ -4,26 +4,32 @@ import { useAppStore } from '@renderer/store/useAppStore'
 import { openPath } from '@renderer/lib/docActions'
 import { prepareArticles, relativeTime, type ArticleSort } from '@renderer/lib/articles'
 import FileTree from './FileTree'
-import DriveSection from './DriveSection'
+import DriveAccountTree from './DriveTree'
 
 /**
- * The "Files" tab: the hierarchical file tree for browsing/managing, with a
- * filter box + sort toggle on top. Typing a filter — or switching to "Recent"
- * — flips the body to a flat, cross-folder list of markdown files (sorted by
- * name or modified time); clearing the filter with "A–Z" returns to the tree.
+ * The "Files" tab. A source dropdown at the top selects what the panel shows:
+ * "Local" (the workspace file tree, with filter/sort) or — when Google accounts
+ * are connected — a specific account's Drive. Connecting accounts lives in
+ * Preferences ▸ Cloud, not here.
  */
 export default function FilesPanel(): JSX.Element {
   const root = useAppStore((s) => s.root)
   const activePath = useAppStore((s) => s.doc.path)
+  const accounts = useAppStore((s) => s.driveAccounts)
+  const [source, setSource] = useState('local')
   const [articles, setArticles] = useState<ArticleEntry[]>([])
   const [query, setQuery] = useState('')
   const [sort, setSort] = useState<ArticleSort>('name')
   const [now, setNow] = useState(0)
 
-  // "Find" mode = a flat list; otherwise the tree. Default is the tree.
-  const finding = query.trim() !== '' || sort === 'modified'
+  // Fall back to local if the selected account is gone (disconnected).
+  const activeSource =
+    source === 'local' || accounts.some((a) => a.accountId === source) ? source : 'local'
+  const local = activeSource === 'local'
 
-  // Load the flat markdown list only while we're in find mode.
+  // "Find" mode = a flat list; otherwise the tree. Local source only.
+  const finding = local && (query.trim() !== '' || sort === 'modified')
+
   useEffect(() => {
     if (!root || !finding) return
     let cancelled = false
@@ -42,7 +48,27 @@ export default function FilesPanel(): JSX.Element {
 
   return (
     <div className="flex h-full flex-col">
-      {root && (
+      {accounts.length > 0 && (
+        <div className="border-b border-line p-2">
+          <select
+            value={activeSource}
+            onChange={(e) => setSource(e.target.value)}
+            title="File source"
+            className="w-full rounded border border-line bg-paper px-2 py-1 text-[12px] text-ink outline-none focus:border-accent"
+          >
+            <option value="local">📁 Local</option>
+            <optgroup label="Google Drive">
+              {accounts.map((a) => (
+                <option key={a.accountId} value={a.accountId}>
+                  ☁ {a.email}
+                </option>
+              ))}
+            </optgroup>
+          </select>
+        </div>
+      )}
+
+      {local && root && (
         <div className="flex items-center gap-1 p-2">
           <input
             value={query}
@@ -59,8 +85,11 @@ export default function FilesPanel(): JSX.Element {
           </button>
         </div>
       )}
+
       <div className="min-h-0 flex-1 overflow-y-auto">
-        {!finding ? (
+        {!local ? (
+          <DriveAccountTree accountId={activeSource} />
+        ) : !finding ? (
           <FileTree />
         ) : shown.length === 0 ? (
           <div className="px-3 py-2 text-[13px] text-faint">No markdown files</div>
@@ -84,7 +113,6 @@ export default function FilesPanel(): JSX.Element {
             ))}
           </div>
         )}
-        <DriveSection />
       </div>
     </div>
   )

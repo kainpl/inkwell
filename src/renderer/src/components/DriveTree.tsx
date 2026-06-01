@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { gdriveRef, isGoogleDoc, type DriveNode } from '@shared/drive'
 import { useAppStore } from '@renderer/store/useAppStore'
 import { usePrompt } from '@renderer/store/usePrompt'
-import { listChildren, openDriveFile, createDriveFile, triggerConnect } from '@renderer/lib/drive'
+import { listChildren, openDriveFile, createDriveFile } from '@renderer/lib/drive'
 
 /** Window event to refresh a Drive folder's listing (detail = folderId). */
 const REFRESH = 'ink:drive-refresh'
@@ -15,58 +15,20 @@ async function newFileIn(accountId: string, parentId: string): Promise<void> {
   window.dispatchEvent(new CustomEvent(REFRESH, { detail: parentId }))
 }
 
-/**
- * The "Cloud" section of the Files sidebar: each connected Google account is a
- * browsable root. Folders lazy-load their children on expand; clicking a file
- * opens it in a tab (as a `gdrive://` doc).
- */
-export default function DriveSection(): JSX.Element {
-  const accounts = useAppStore((s) => s.driveAccounts)
-
+/** The selected Google account's Drive, browsable from its root. */
+export default function DriveAccountTree({ accountId }: { accountId: string }): JSX.Element {
   return (
-    <div className="mt-2 border-t border-line pt-1">
-      <div className="flex items-center justify-between px-3 py-1">
-        <span className="text-[11px] font-semibold uppercase tracking-wider text-faint">Cloud</span>
-        <button
-          onClick={triggerConnect}
-          title="Connect a Google account"
-          className="text-[11px] text-accent hover:underline"
-        >
-          ＋ Connect
-        </button>
-      </div>
-      {accounts.length === 0 ? (
-        <div className="px-3 pb-2 text-[12px] text-faint">No Google Drive connected.</div>
-      ) : (
-        accounts.map((a) => <DriveRoot key={a.accountId} accountId={a.accountId} email={a.email} />)
-      )}
-    </div>
-  )
-}
-
-function DriveRoot({ accountId, email }: { accountId: string; email: string }): JSX.Element {
-  const [open, setOpen] = useState(true)
-  return (
-    <div>
-      <div className="group flex items-center px-2 py-1 hover:bg-ink/5">
-        <button
-          onClick={() => setOpen((o) => !o)}
-          title={email}
-          className="flex min-w-0 flex-1 items-center gap-1.5 text-left text-[12px] font-medium text-ink/70"
-        >
-          <span className="w-3 shrink-0 text-faint">{open ? '▾' : '▸'}</span>
-          <span className="shrink-0">☁️</span>
-          <span className="min-w-0 flex-1 truncate">{email}</span>
-        </button>
+    <div className="py-1">
+      <div className="flex items-center justify-end px-2 py-0.5">
         <button
           onClick={() => void newFileIn(accountId, 'root')}
           title="New file in this account’s root"
-          className="shrink-0 px-1 text-faint opacity-0 hover:text-ink group-hover:opacity-100"
+          className="text-[11px] text-faint hover:text-ink"
         >
-          ＋
+          ＋ New file
         </button>
       </div>
-      {open && <DriveChildren accountId={accountId} folderId="root" depth={1} />}
+      <DriveChildren accountId={accountId} folderId="root" depth={0} />
     </div>
   )
 }
