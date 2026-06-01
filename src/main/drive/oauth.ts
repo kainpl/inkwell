@@ -11,15 +11,14 @@ import { pkceChallenge } from '../../shared/pkce'
  */
 
 /**
- * Built-in OAuth client (Google Cloud "Desktop app"). Google requires the
- * client_secret in the token exchange even for installed apps with PKCE — but
- * for a desktop client it is "not treated as a secret" (per Google's docs), so
- * it is shipped in the app just like the client id. Empty ⇒ BYO only.
+ * No credentials are shipped in the repo. The user supplies their own Google
+ * Cloud "Desktop app" client id + secret in Preferences ▸ Cloud; they are
+ * persisted locally (renderer settings) and the secret is also stored
+ * per-account, encrypted, in userData. See docs/google-drive-setup.md.
+ * (Google requires the client_secret in the token exchange even for installed
+ * apps with PKCE.)
  */
-export const BUILTIN_CLIENT_ID = '108642972558-5k6kbg6ofhghd5r2o55tbuhs2ttj518a.apps.googleusercontent.com'
-// Intentionally empty in the repo — do NOT commit a real client secret here.
-// Provide it at runtime via Preferences ▸ Cloud (BYO), or load it from an
-// untracked source for a built-in distribution. See docs/google-drive-setup.md.
+export const BUILTIN_CLIENT_ID = ''
 export const BUILTIN_CLIENT_SECRET = ''
 
 const SCOPE = 'https://www.googleapis.com/auth/drive openid email'

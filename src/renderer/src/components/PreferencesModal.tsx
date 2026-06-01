@@ -353,10 +353,13 @@ function Cloud(): JSX.Element {
         Connect account
       </button>
 
-      <div className="mt-6 mb-1 text-sm font-medium text-ink">Advanced</div>
+      <div className="mt-6 mb-1 text-sm font-medium text-ink">OAuth credentials</div>
+      <p className="mb-1 text-[11px] text-faint">
+        Required to connect. Create a Google Cloud “Desktop app” client — see docs/google-drive-setup.md.
+      </p>
       <Row
-        label="Custom OAuth client ID"
-        hint="Optional. Use your own Google Cloud “Desktop app” client to avoid the unverified-app screen and user cap. Leave empty for the built-in client."
+        label="OAuth client ID"
+        hint="Required. Create a Google Cloud “Desktop app” OAuth client (see docs/google-drive-setup.md) and paste its ID here."
       >
         <input
           className={FIELD + ' w-64'}
@@ -365,7 +368,10 @@ function Cloud(): JSX.Element {
           onChange={(e) => setClientId(e.target.value.trim())}
         />
       </Row>
-      <Row label="Custom OAuth client secret" hint="Required when a custom client ID is set (Google requires it even for desktop apps).">
+      <Row
+        label="OAuth client secret"
+        hint="Required — Google needs it even for desktop apps. Stored locally on this machine."
+      >
         <input
           className={FIELD + ' w-64'}
           type="password"
