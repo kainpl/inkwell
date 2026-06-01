@@ -19,5 +19,5 @@ export function documentTitle(name: string, content: string): string {
  * narrow taskbar button truncates to the file/heading, not the app name.
  */
 export function windowTitle(name: string, content: string, dirty: boolean): string {
-  return `${dirty ? '• ' : ''}${documentTitle(name, content)} — Inkwell`
+  return `${dirty ? '• ' : ''}${documentTitle(name, content)} - Inkwell`
 }
