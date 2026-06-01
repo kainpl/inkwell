@@ -12,6 +12,9 @@ import {
 import { normalizeForSave } from './saveOptions'
 import { draftId, isRecoverable, newestDraft } from './drafts'
 import { refreshGitStatus } from './git'
+import { isGdrive } from '@shared/drive'
+import { readRef, writeRef } from './fileSource'
+import { getDriveBase, setDriveBase } from './drive'
 
 /** Content shaped for disk per the user's line-ending / final-newline settings. */
 function contentForDisk(): string {
@@ -44,6 +47,7 @@ export async function saveDoc(): Promise<boolean> {
   const { doc, markSaved } = useAppStore.getState()
   if (doc.path) {
     const content = contentForDisk()
+    if (isGdrive(doc.path)) return saveDriveDoc(doc.path, content)
     await window.api.saveFile(doc.path, content)
     markSaved()
     snapshotVersion(doc.path, content)
@@ -51,6 +55,29 @@ export async function saveDoc(): Promise<boolean> {
     return true
   }
   return saveDocAs()
+}
+
+/** Upload a Drive-backed doc, guarding against a remote change since open. */
+async function saveDriveDoc(path: string, content: string): Promise<boolean> {
+  const res = await writeRef(path, content, getDriveBase(path))
+  if (!res.ok) {
+    const choice = await useConfirm.getState().ask({
+      title: 'File changed on Drive',
+      message:
+        'This file was modified on Google Drive since you opened it. Overwrite it with your version?',
+      confirmLabel: 'Overwrite',
+      discardLabel: 'Cancel'
+    })
+    if (choice !== 'save') return false
+    const forced = await writeRef(path, content, '') // empty base skips the conflict check
+    if (!forced.ok) return false
+    useAppStore.getState().markSaved()
+    setDriveBase(path, forced.modifiedTime)
+    return true
+  }
+  useAppStore.getState().markSaved()
+  setDriveBase(path, res.modifiedTime)
+  return true
 }
 
 /** Save As via a native dialog. Returns false if the user cancels the dialog. */
@@ -126,8 +153,15 @@ export async function openFolderByPath(path: string): Promise<void> {
   pushRecentFolder(node.path)
 }
 
-/** Open a file path in a tab (focuses an existing tab for it, if any). */
+/** Open a file path in a tab (focuses an existing tab for it, if any). Handles
+ *  both local paths and `gdrive://` Drive refs. */
 export async function openPath(path: string): Promise<void> {
+  if (isGdrive(path)) {
+    const { content, name, modifiedTime } = await readRef(path)
+    setDriveBase(path, modifiedTime)
+    useAppStore.getState().openInTab({ path, name, content })
+    return
+  }
   const file = await window.api.readFile(path)
   useAppStore.getState().openInTab(file)
   rememberFile(file.path)

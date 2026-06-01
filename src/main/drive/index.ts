@@ -52,10 +52,13 @@ class DriveService {
     return api.list(await this.token(accountId), folderId || 'root')
   }
 
-  async read(accountId: string, fileId: string): Promise<{ content: string; modifiedTime: string }> {
+  async read(
+    accountId: string,
+    fileId: string
+  ): Promise<{ content: string; modifiedTime: string; name: string }> {
     const token = await this.token(accountId)
     const [content, m] = await Promise.all([api.read(token, fileId), api.meta(token, fileId)])
-    return { content, modifiedTime: m.modifiedTime }
+    return { content, modifiedTime: m.modifiedTime, name: m.name }
   }
 
   async write(

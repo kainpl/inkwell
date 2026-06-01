@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import type { FileNode, ExternalTheme, GitBranch } from '@shared/ipc'
+import type { FileNode, ExternalTheme, GitBranch, DriveAccount } from '@shared/ipc'
 import { type Tab, findByPath, isReplaceable, closeTab } from '@renderer/lib/tabsModel'
 import { type PageSetup, loadPageSetup, savePageSetup } from '@renderer/lib/pageSetup'
 import { type EditorFont, loadSettings, PANEL_MIN, PANEL_MAX } from '@renderer/lib/settings'
@@ -45,6 +45,9 @@ interface AppState {
   /** Current branch + ahead/behind for the status-bar indicator (null = not a repo). */
   gitBranch: GitBranch | null
   setGitBranch: (b: GitBranch | null) => void
+  /** Connected Google Drive accounts (see lib/drive.ts). */
+  driveAccounts: DriveAccount[]
+  setDriveAccounts: (a: DriveAccount[]) => void
 
   // --- ui ---
   /** Active theme id (see lib/themes.ts). */
@@ -245,6 +248,8 @@ export const useAppStore = create<AppState>((set) => ({
   setGitStatus: (gitStatus) => set({ gitStatus }),
   gitBranch: null,
   setGitBranch: (gitBranch) => set({ gitBranch }),
+  driveAccounts: [],
+  setDriveAccounts: (driveAccounts) => set({ driveAccounts }),
 
   theme: s0.theme,
   mode: s0.mode,

@@ -203,7 +203,10 @@ const api = {
     disconnect: (accountId: string): Promise<void> => ipcRenderer.invoke(IPC.driveDisconnect, accountId),
     list: (accountId: string, folderId: string): Promise<DriveNode[]> =>
       ipcRenderer.invoke(IPC.driveList, accountId, folderId),
-    read: (accountId: string, fileId: string): Promise<{ content: string; modifiedTime: string }> =>
+    read: (
+      accountId: string,
+      fileId: string
+    ): Promise<{ content: string; modifiedTime: string; name: string }> =>
       ipcRenderer.invoke(IPC.driveRead, accountId, fileId),
     write: (
       accountId: string,
