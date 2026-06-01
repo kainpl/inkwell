@@ -9,7 +9,7 @@ import { RangeSetBuilder, StateEffect, type EditorState, type Extension } from '
 import { syntaxTree } from '@codemirror/language'
 import type { SyntaxNode } from '@lezer/common'
 import { useAppStore } from '@renderer/store/useAppStore'
-import { getChecker, spellCorrect } from '@renderer/lib/spell'
+import { hasCheckers, spellCorrect } from '@renderer/lib/spell'
 
 /**
  * Spell-check decorations: underline misspelled words. Inline marks are legal
@@ -49,7 +49,7 @@ function inCode(view: EditorView, pos: number): boolean {
 
 function build(view: EditorView): DecorationSet {
   const builder = new RangeSetBuilder<Decoration>()
-  if (!useAppStore.getState().spellCheck || !getChecker()) return builder.finish()
+  if (!useAppStore.getState().spellCheck || !hasCheckers()) return builder.finish()
   for (const { from, to } of view.visibleRanges) {
     const text = view.state.sliceDoc(from, to)
     for (const r of misspelledRanges(text, from, spellCorrect)) {
@@ -77,7 +77,7 @@ function wordAt(state: EditorState, pos: number): { from: number; to: number; te
  */
 export const spellContextMenu: Extension = EditorView.domEventHandlers({
   contextmenu(event, view) {
-    if (!useAppStore.getState().spellCheck || !getChecker()) return false
+    if (!useAppStore.getState().spellCheck || !hasCheckers()) return false
     const pos = view.posAtCoords({ x: event.clientX, y: event.clientY })
     if (pos == null) return false
     const word = wordAt(view.state, pos)

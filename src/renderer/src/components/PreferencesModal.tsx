@@ -127,16 +127,26 @@ function Editor(): JSX.Element {
       <Row label="Spell check" hint="underline misspellings; right-click for suggestions">
         <input type="checkbox" className="h-4 w-4 accent-accent" checked={s.spellCheck} onChange={() => s.setSpellCheck(!s.spellCheck)} />
       </Row>
-      <Row label="Spell-check language" hint="English is built in; others download on first use">
-        <select className={FIELD} value={s.spellLanguage} disabled={!s.spellCheck}
-          onChange={(e) => s.setSpellLanguage(e.target.value)}>
+      <div className="py-2">
+        <div className="text-sm text-ink">Spell-check languages</div>
+        <div className="text-[11px] text-faint">
+          check several; English is built in, others download on first use
+        </div>
+        <div className="mt-1.5 grid grid-cols-2 gap-x-4 gap-y-1">
           {SPELL_LANGUAGES.map((l) => (
-            <option key={l.code} value={l.code}>
+            <label key={l.code} className="flex items-center gap-2 text-sm text-ink">
+              <input
+                type="checkbox"
+                className="h-4 w-4 accent-accent"
+                disabled={!s.spellCheck}
+                checked={s.spellLanguages.includes(l.code)}
+                onChange={() => s.toggleSpellLanguage(l.code)}
+              />
               {l.label}
-            </option>
+            </label>
           ))}
-        </select>
-      </Row>
+        </div>
+      </div>
     </>
   )
 }

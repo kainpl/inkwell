@@ -90,8 +90,8 @@ interface AppState {
   /** Spell check (persisted). */
   spellCheck: boolean
   setSpellCheck: (on: boolean) => void
-  spellLanguage: string
-  setSpellLanguage: (lang: string) => void
+  spellLanguages: string[]
+  toggleSpellLanguage: (lang: string) => void
   learnedWords: string[]
   addLearnedWord: (word: string) => void
   /** Bumped when the active spell checker (re)loads, to retrigger decoration. */
@@ -257,7 +257,7 @@ export const useAppStore = create<AppState>((set) => ({
   embedImages: s0.embedImages,
   smartPunctuation: s0.smartPunctuation,
   spellCheck: s0.spellCheck,
-  spellLanguage: s0.spellLanguage,
+  spellLanguages: s0.spellLanguages,
   learnedWords: s0.learnedWords,
   spellVersion: 0,
   exportStyle: s0.exportStyle,
@@ -270,7 +270,12 @@ export const useAppStore = create<AppState>((set) => ({
   setEmbedImages: (on) => set({ embedImages: on }),
   setSmartPunctuation: (on) => set({ smartPunctuation: on }),
   setSpellCheck: (on) => set({ spellCheck: on }),
-  setSpellLanguage: (lang) => set({ spellLanguage: lang }),
+  toggleSpellLanguage: (lang) =>
+    set((s) => ({
+      spellLanguages: s.spellLanguages.includes(lang)
+        ? s.spellLanguages.filter((l) => l !== lang)
+        : [...s.spellLanguages, lang]
+    })),
   addLearnedWord: (word) =>
     set((s) => ({
       learnedWords: s.learnedWords.includes(word) ? s.learnedWords : [...s.learnedWords, word]

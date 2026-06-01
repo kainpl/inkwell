@@ -40,8 +40,8 @@ export interface Settings {
   smartPunctuation: boolean
   /** Spell check (underline misspellings, right-click suggestions). */
   spellCheck: boolean
-  /** Active spell-check dictionary language (bundled `en`, others on demand). */
-  spellLanguage: string
+  /** Active spell-check languages (bundled `en`, others downloaded on demand). */
+  spellLanguages: string[]
   /** Words the user added to their dictionary. */
   learnedWords: string[]
 }
@@ -71,7 +71,7 @@ export const DEFAULT_SETTINGS: Settings = {
   markdownFeatures: DEFAULT_MARKDOWN_FEATURES,
   smartPunctuation: false,
   spellCheck: false,
-  spellLanguage: 'en',
+  spellLanguages: ['en'],
   learnedWords: []
 }
 
@@ -79,6 +79,13 @@ const KEY = 'inkwell.settings'
 
 /** Clamp numeric fields to sane ranges (also migrates legacy values, e.g. a
  *  content width once stored in pixels falls outside the % range → default). */
+/** Active spell languages, migrating the legacy single `spellLanguage` string. */
+function normalizeSpellLanguages(s: Settings): string[] {
+  if (Array.isArray(s.spellLanguages) && s.spellLanguages.length) return s.spellLanguages
+  const legacy = (s as unknown as { spellLanguage?: unknown }).spellLanguage
+  return typeof legacy === 'string' ? [legacy] : ['en']
+}
+
 function sanitize(s: Settings): Settings {
   const clamp = (n: number, lo: number, hi: number, dflt: number): number =>
     Number.isFinite(n) && n >= lo && n <= hi ? n : dflt
@@ -90,6 +97,7 @@ function sanitize(s: Settings): Settings {
     exportStyle: s.exportStyle === 'theme' ? 'theme' : 'default',
     markdownFeatures: normalizeFeatures(s.markdownFeatures),
     learnedWords: Array.isArray(s.learnedWords) ? s.learnedWords : [],
+    spellLanguages: normalizeSpellLanguages(s),
     editorFontSize: clamp(s.editorFontSize, 10, 40, DEFAULT_SETTINGS.editorFontSize),
     editorLineHeight: clamp(s.editorLineHeight, 1, 3, DEFAULT_SETTINGS.editorLineHeight),
     contentWidth: clamp(s.contentWidth, 40, 100, DEFAULT_SETTINGS.contentWidth)

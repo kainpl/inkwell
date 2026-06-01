@@ -22,7 +22,7 @@ function currentSettings(): Settings {
     markdownFeatures: s.markdownFeatures,
     smartPunctuation: s.smartPunctuation,
     spellCheck: s.spellCheck,
-    spellLanguage: s.spellLanguage,
+    spellLanguages: s.spellLanguages,
     learnedWords: s.learnedWords
   }
 }

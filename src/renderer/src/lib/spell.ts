@@ -27,23 +27,41 @@ export const SPELL_LANGUAGES: SpellLanguage[] = [
 ]
 
 type Checker = ReturnType<typeof nspell>
-let checker: Checker | null = null
-let loadedLang = ''
-let loadToken = 0
+/** One checker per active language. A word is correct if ANY of them accepts it. */
+const checkers = new Map<string, Checker>()
 const ignored = new Set<string>()
+let loadToken = 0
 
-export function getChecker(): Checker | null {
-  return checker
+export function hasCheckers(): boolean {
+  return checkers.size > 0
 }
 
-/** Whether a word is spelled correctly (or ignored this session). */
+/** Correct if ignored this session, no checker is loaded yet, or any accepts it. */
 export function spellCorrect(word: string): boolean {
-  return !checker || ignored.has(word) || checker.correct(word)
+  if (ignored.has(word) || checkers.size === 0) return true
+  for (const c of checkers.values()) if (c.correct(word)) return true
+  return false
+}
+
+/** Merged suggestions across all active languages (deduped). */
+export function spellSuggest(word: string): string[] {
+  const out: string[] = []
+  for (const c of checkers.values()) {
+    for (const s of c.suggest(word)) if (!out.includes(s)) out.push(s)
+  }
+  return out
 }
 
 /** Ignore a word for this session only (not persisted). */
 export function ignoreWord(word: string): void {
   ignored.add(word)
+  useAppStore.getState().bumpSpellVersion()
+}
+
+/** Add a word to every active dictionary (this session + persisted). */
+export function learnWord(word: string): void {
+  for (const c of checkers.values()) c.add(word)
+  useAppStore.getState().addLearnedWord(word)
   useAppStore.getState().bumpSpellVersion()
 }
 
@@ -54,42 +72,45 @@ async function loadDict(lang: string): Promise<{ aff: string; dic: string } | nu
   return d.aff && d.dic ? d : null
 }
 
-async function activate(lang: string): Promise<void> {
+/** Reconcile the loaded checkers with the active language set. */
+async function syncCheckers(): Promise<void> {
   const token = ++loadToken
-  const dict = await loadDict(lang).catch(() => null)
-  if (token !== loadToken) return // a newer activation started
-  checker = dict ? nspell(dict.aff, dict.dic) : null
-  loadedLang = checker ? lang : ''
-  if (checker) for (const w of useAppStore.getState().learnedWords) checker.add(w)
-  useAppStore.getState().bumpSpellVersion()
-}
+  const { spellCheck, spellLanguages, learnedWords } = useAppStore.getState()
+  const want = new Set(spellCheck ? spellLanguages : [])
 
-export function spellSuggest(word: string): string[] {
-  return checker ? checker.suggest(word) : []
-}
-
-/** Add a word to the dictionary (this session + persisted) and re-decorate. */
-export function learnWord(word: string): void {
-  checker?.add(word)
-  useAppStore.getState().addLearnedWord(word)
+  for (const lang of [...checkers.keys()]) if (!want.has(lang)) checkers.delete(lang)
+  for (const lang of want) {
+    if (checkers.has(lang)) continue
+    const dict = await loadDict(lang).catch(() => null)
+    if (token !== loadToken) return // a newer sync superseded this one
+    if (!dict) continue
+    try {
+      const sp = nspell(dict.aff, dict.dic)
+      for (const w of learnedWords) sp.add(w)
+      checkers.set(lang, sp)
+    } catch {
+      /* a malformed dictionary shouldn't break the others */
+    }
+    useAppStore.getState().bumpSpellVersion()
+  }
   useAppStore.getState().bumpSpellVersion()
 }
 
 /**
- * Keep the active checker in sync with the spell-check setting + language.
+ * Keep the loaded checkers in sync with the spell-check setting + language set.
  * Returns an unsubscribe function.
  */
 export function startSpellSync(): () => void {
   let lastCheck = useAppStore.getState().spellCheck
-  let lastLang = useAppStore.getState().spellLanguage
-  if (lastCheck) void activate(lastLang)
+  let lastLangs = useAppStore.getState().spellLanguages.join(',')
+  void syncCheckers()
 
   return useAppStore.subscribe(() => {
-    const { spellCheck, spellLanguage } = useAppStore.getState()
-    if (spellCheck === lastCheck && spellLanguage === lastLang) return
+    const { spellCheck, spellLanguages } = useAppStore.getState()
+    const langs = spellLanguages.join(',')
+    if (spellCheck === lastCheck && langs === lastLangs) return
     lastCheck = spellCheck
-    lastLang = spellLanguage
-    if (spellCheck && spellLanguage !== loadedLang) void activate(spellLanguage)
-    else useAppStore.getState().bumpSpellVersion()
+    lastLangs = langs
+    void syncCheckers()
   })
 }
