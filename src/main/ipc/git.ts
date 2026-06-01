@@ -14,7 +14,14 @@ import { gitStatusChar, parseGitChanges } from '../../shared/gitStatus'
 const run = promisify(execFile)
 
 async function git(cwd: string, args: string[]): Promise<string> {
-  const { stdout } = await run('git', ['-C', cwd, ...args], { windowsHide: true })
+  // core.quotePath=false → non-ASCII paths (e.g. Cyrillic) are emitted as raw
+  // UTF-8 instead of "\320\222…" octal escapes, so we parse and stage them by
+  // their real names.
+  const { stdout } = await run('git', ['-C', cwd, '-c', 'core.quotePath=false', ...args], {
+    windowsHide: true,
+    encoding: 'utf8',
+    maxBuffer: 1024 * 1024 * 16
+  })
   return stdout
 }
 
