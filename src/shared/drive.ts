@@ -47,24 +47,37 @@ export function isGdrive(path: string | null): boolean {
 }
 
 const FOLDER_MIME = 'application/vnd.google-apps.folder'
+const SHORTCUT_MIME = 'application/vnd.google-apps.shortcut'
 
 interface RawFile {
   id: string
   name: string
   mimeType: string
   modifiedTime?: string
+  /** Present for shortcuts (e.g. "shared with me" items added to My Drive). */
+  shortcutDetails?: { targetId?: string; targetMimeType?: string }
 }
 
-/** Map a Drive `files.list` payload to sorted nodes (folders first, then name). */
+/**
+ * Map a Drive `files.list` payload to sorted nodes (folders first, then name).
+ * Shortcuts are transparently resolved to the object they point at — the
+ * shortcut's display name is kept, but its id/type come from the target, so
+ * expanding/opening acts on the real file or folder.
+ */
 export function mapDriveFiles(files: RawFile[]): DriveNode[] {
   return files
-    .map((f) => ({
-      id: f.id,
-      name: f.name,
-      type: f.mimeType === FOLDER_MIME ? ('directory' as const) : ('file' as const),
-      mimeType: f.mimeType,
-      modifiedTime: f.modifiedTime ?? ''
-    }))
+    .map((f) => {
+      const sc = f.mimeType === SHORTCUT_MIME ? f.shortcutDetails : undefined
+      const id = sc?.targetId || f.id
+      const mimeType = sc ? sc.targetMimeType || '' : f.mimeType
+      return {
+        id,
+        name: f.name,
+        type: mimeType === FOLDER_MIME ? ('directory' as const) : ('file' as const),
+        mimeType,
+        modifiedTime: f.modifiedTime ?? ''
+      }
+    })
     .sort((a, b) =>
       a.type !== b.type ? (a.type === 'directory' ? -1 : 1) : a.name.localeCompare(b.name)
     )

@@ -55,6 +55,27 @@ describe('mapDriveFiles', () => {
     expect(isGoogleDoc('application/vnd.google-apps.folder')).toBe(false)
     expect(isGoogleDoc('text/markdown')).toBe(false)
   })
+
+  it('resolves shortcuts to their target (keeping the shortcut name)', () => {
+    const nodes = mapDriveFiles([
+      {
+        id: 'sc1',
+        name: 'Shared note',
+        mimeType: 'application/vnd.google-apps.shortcut',
+        shortcutDetails: { targetId: 'real1', targetMimeType: 'text/markdown' }
+      },
+      {
+        id: 'sc2',
+        name: 'Shared folder',
+        mimeType: 'application/vnd.google-apps.shortcut',
+        shortcutDetails: { targetId: 'realDir', targetMimeType: 'application/vnd.google-apps.folder' }
+      }
+    ])
+    expect(nodes).toEqual([
+      { id: 'realDir', name: 'Shared folder', type: 'directory', mimeType: 'application/vnd.google-apps.folder', modifiedTime: '' },
+      { id: 'real1', name: 'Shared note', type: 'file', mimeType: 'text/markdown', modifiedTime: '' }
+    ])
+  })
 })
 
 describe('isConflict', () => {

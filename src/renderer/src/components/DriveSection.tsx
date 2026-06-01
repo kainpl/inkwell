@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { gdriveRef, type DriveNode } from '@shared/drive'
+import { gdriveRef, isGoogleDoc, type DriveNode } from '@shared/drive'
 import { useAppStore } from '@renderer/store/useAppStore'
 import { usePrompt } from '@renderer/store/usePrompt'
 import { listChildren, openDriveFile, createDriveFile, triggerConnect } from '@renderer/lib/drive'
@@ -147,11 +147,16 @@ function DriveTreeRow({
   const [open, setOpen] = useState(false)
   const activePath = useAppStore((s) => s.doc.path)
   const isDir = node.type === 'directory'
+  const gdoc = !isDir && isGoogleDoc(node.mimeType) // Google Docs/Sheets/… aren't raw text
   const isActive = !isDir && activePath === gdriveRef(accountId, node.id)
 
   const onClick = (): void => {
-    if (isDir) setOpen((o) => !o)
-    else void openDriveFile(accountId, node)
+    if (isDir) {
+      setOpen((o) => !o)
+      return
+    }
+    if (gdoc) return // can't download a Docs-Editors file as text yet
+    void openDriveFile(accountId, node).catch((e) => console.error('Drive open failed:', e))
   }
 
   return (
@@ -164,9 +169,12 @@ function DriveTreeRow({
       >
         <button
           onClick={onClick}
-          title={node.name}
+          title={gdoc ? 'Google Docs editors files aren’t supported yet (text/Markdown only)' : node.name}
           style={{ paddingLeft: depth * 12 + 8 }}
-          className="flex min-w-0 flex-1 items-center gap-1.5 px-2 py-1 text-left text-[13px]"
+          className={
+            'flex min-w-0 flex-1 items-center gap-1.5 px-2 py-1 text-left text-[13px] ' +
+            (gdoc ? 'cursor-default opacity-40' : '')
+          }
         >
           <span className="w-3 shrink-0 text-faint">{isDir ? (open ? '▾' : '▸') : ''}</span>
           <span className="min-w-0 flex-1 truncate">{node.name}</span>

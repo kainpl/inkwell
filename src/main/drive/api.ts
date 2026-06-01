@@ -16,6 +16,7 @@ interface RawFile {
   name: string
   mimeType: string
   modifiedTime?: string
+  shortcutDetails?: { targetId?: string; targetMimeType?: string }
 }
 
 /** List a folder's children (folders first, then name), following paging. */
@@ -25,7 +26,10 @@ export async function list(token: string, folderId: string): Promise<DriveNode[]
   do {
     const u = new URL(`${BASE}/files`)
     u.searchParams.set('q', `'${folderId}' in parents and trashed=false`)
-    u.searchParams.set('fields', 'nextPageToken,files(id,name,mimeType,modifiedTime)')
+    u.searchParams.set(
+      'fields',
+      'nextPageToken,files(id,name,mimeType,modifiedTime,shortcutDetails(targetId,targetMimeType))'
+    )
     u.searchParams.set('pageSize', '200')
     if (pageToken) u.searchParams.set('pageToken', pageToken)
     const r = await net.fetch(u.toString(), { headers: auth(token) })
