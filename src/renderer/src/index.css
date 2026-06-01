@@ -214,6 +214,13 @@
     padding: 0;
   }
 
+  /* Wiki-links [[Note]] — clickable (Ctrl/Cmd+click). */
+  .ink-wikilink {
+    color: rgb(var(--accent));
+    cursor: pointer;
+    border-bottom: 1px solid rgb(var(--accent) / 0.35);
+  }
+
   /* Misspelled words (spell check). */
   .ink-misspelled {
     text-decoration: underline wavy rgb(220 70 70);

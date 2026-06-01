@@ -7,6 +7,7 @@ import { get as emojiGet, search as emojiSearch } from 'node-emoji'
 import type { CompletionSource } from '@codemirror/autocomplete'
 import { useAppStore } from '@renderer/store/useAppStore'
 import { clampMode } from '@renderer/lib/themes'
+import { wikiLinkDecos } from './wikiLinks'
 import { type MarkdownFeatures, DEFAULT_MARKDOWN_FEATURES } from '@renderer/lib/markdownFeatures'
 import { parseHtmlImage, parseImage, toHtmlImage } from '@renderer/lib/imageInput'
 import katex from 'katex'
@@ -1173,6 +1174,7 @@ export function buildDecorations(
     })
     const slice = doc.sliceString(from, to)
     inlineRegexDecos(slice, from, active, doc, decos)
+    wikiLinkDecos(slice, from, active, doc, decos)
     if (features.emoji) emojiDecos(slice, from, active, doc, decos)
     htmlImageDecos(slice, from, active, doc, docPath, decos)
     if (features.math) mathDecos(slice, from, active, doc, decos)

@@ -20,6 +20,7 @@ import { autocompletion, closeBrackets, closeBracketsKeymap } from '@codemirror/
 import { search, searchKeymap, selectNextOccurrence } from '@codemirror/search'
 import { inkTheme, inkHighlight } from './theme'
 import { emojiCompletion } from './livePreview'
+import { wikiLinkClick, wikiLinkCompletion } from './wikiLinks'
 import { smartPunctuation } from './smartPunctuation'
 import { spellCheckPlugin, editorContextMenu } from './spellCheck'
 import { keybindingsCompartment, customKeymap } from './customKeymap'
@@ -142,13 +143,15 @@ export function inkwellExtensions(onChange: (value: string) => void): Extension[
     imagePaste,
     // Auto-pair brackets/quotes and common markdown symbols (wraps a selection).
     markdownLanguage.data.of({
-      closeBrackets: { brackets: ['(', '[', '{', "'", '"', '`', '*', '_', '~'] }
+      // `[` omitted so `[[` doesn't auto-pair and fight wiki-link autocomplete.
+      closeBrackets: { brackets: ['(', '{', "'", '"', '`', '*', '_', '~'] }
     }),
     closeBrackets(),
+    wikiLinkClick,
     // Typographic punctuation runs before closeBrackets so `"`/`'` become curly
     // quotes (when enabled) instead of an auto-paired straight quote.
     Prec.high(smartPunctuation()),
-    autocompletion({ override: [emojiCompletion] }),
+    autocompletion({ override: [emojiCompletion, wikiLinkCompletion] }),
     search({ top: true }),
     // Editing "magic": continue lists/quotes on Enter, smart Backspace, Tab to
     // indent, and smart-selection commands. High precedence to beat the defaults.
