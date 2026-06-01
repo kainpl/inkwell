@@ -149,6 +149,10 @@ export interface DraftEntry {
   savedAt: number
 }
 
+// Drive types live in their (renderer-safe) own module; re-export for consumers
+// that already import everything from `ipc`.
+export type { DriveAccount, DriveNode } from './drive'
+
 /** IPC channel names. One source of truth for both sides. */
 export const IPC = {
   // renderer -> main (invoke/handle)
@@ -206,6 +210,17 @@ export const IPC = {
   gitBranch: 'git:branch',
   // note graph (wiki-link connections across the workspace)
   noteGraph: 'graph:notes',
+  // google drive (cloud mode)
+  driveListAccounts: 'drive:listAccounts',
+  driveConnect: 'drive:connect',
+  driveDisconnect: 'drive:disconnect',
+  driveList: 'drive:list',
+  driveRead: 'drive:read',
+  driveWrite: 'drive:write',
+  driveCreate: 'drive:create',
+  driveSetClientId: 'drive:setClientId',
+  // main -> renderer: the connected-accounts list changed
+  driveAccountsChanged: 'drive:accountsChanged',
   // spell-check dictionaries (bundled en; others downloaded + cached)
   getSpellDict: 'spell:getDict',
   // main -> renderer: dictionary download progress (0–100; -1 done/error)

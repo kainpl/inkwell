@@ -17,6 +17,7 @@ import {
   type GitBranch
 } from '../shared/ipc'
 import type { NoteGraph } from '../shared/noteGraph'
+import type { DriveAccount, DriveNode } from '../shared/drive'
 
 const menuChannels = [
   IPC.menuNewFile,
@@ -194,6 +195,34 @@ const api = {
 
   /** Build the wiki-link graph for the workspace. */
   noteGraph: (folder: string): Promise<NoteGraph> => ipcRenderer.invoke(IPC.noteGraph, folder),
+
+  /** Google Drive (cloud mode). All calls go through the main-process service. */
+  drive: {
+    listAccounts: (): Promise<DriveAccount[]> => ipcRenderer.invoke(IPC.driveListAccounts),
+    connect: (): Promise<DriveAccount> => ipcRenderer.invoke(IPC.driveConnect),
+    disconnect: (accountId: string): Promise<void> => ipcRenderer.invoke(IPC.driveDisconnect, accountId),
+    list: (accountId: string, folderId: string): Promise<DriveNode[]> =>
+      ipcRenderer.invoke(IPC.driveList, accountId, folderId),
+    read: (accountId: string, fileId: string): Promise<{ content: string; modifiedTime: string }> =>
+      ipcRenderer.invoke(IPC.driveRead, accountId, fileId),
+    write: (
+      accountId: string,
+      fileId: string,
+      content: string,
+      base: string
+    ): Promise<{ modifiedTime: string } | { conflict: true }> =>
+      ipcRenderer.invoke(IPC.driveWrite, accountId, fileId, content, base),
+    create: (accountId: string, parentId: string, name: string, content: string): Promise<DriveNode> =>
+      ipcRenderer.invoke(IPC.driveCreate, accountId, parentId, name, content),
+    setClientId: (id: string | null): Promise<void> => ipcRenderer.invoke(IPC.driveSetClientId, id)
+  },
+
+  /** main -> renderer: the connected Drive accounts changed. */
+  onDriveAccountsChanged: (handler: () => void): (() => void) => {
+    const l = (): void => handler()
+    ipcRenderer.on(IPC.driveAccountsChanged, l)
+    return () => ipcRenderer.removeListener(IPC.driveAccountsChanged, l)
+  },
 
   /** Document templates (userData/templates). */
   listTemplates: (): Promise<TemplateEntry[]> => ipcRenderer.invoke(IPC.listTemplates),
