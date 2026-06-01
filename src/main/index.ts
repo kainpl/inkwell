@@ -38,6 +38,10 @@ function createWindow(): BrowserWindow {
     minWidth: 680,
     minHeight: 480,
     show: false,
+    // Window/taskbar icon for the dev run (out/main → ../../resources). Packaged
+    // builds get their icon from the exe/app bundle via electron-builder, which
+    // picks up resources/icon.ico (win) / icon.png (linux) from buildResources.
+    icon: join(__dirname, '../../resources/icon.png'),
     autoHideMenuBar: false,
     // A frameless-ish, content-first feel similar to Typora. Flip to your taste.
     titleBarStyle: process.platform === 'darwin' ? 'hiddenInset' : 'default',

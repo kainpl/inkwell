@@ -31,6 +31,11 @@ export default tseslint.config(
     }
   },
   {
+    // Node tooling scripts (icon generator, etc.).
+    files: ['scripts/**/*.mjs'],
+    languageOptions: { sourceType: 'module', globals: { ...globals.node } }
+  },
+  {
     // Vitest globals (globals: true in vitest.config.ts).
     files: ['**/*.{test,spec}.{ts,tsx}'],
     languageOptions: {

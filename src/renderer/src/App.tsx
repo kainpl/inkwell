@@ -21,6 +21,7 @@ import { startThemeSync } from '@renderer/lib/themeApply'
 import { startSpeaking, stopSpeaking } from '@renderer/lib/tts'
 import { startSpellSync } from '@renderer/lib/spell'
 import { startGitSync } from '@renderer/lib/git'
+import { windowTitle } from '@renderer/lib/windowTitle'
 import { EditorView } from '@codemirror/view'
 import { cursorDocStart, cursorDocEnd } from '@codemirror/commands'
 import { useEditor } from '@renderer/store/useEditor'
@@ -195,6 +196,14 @@ export default function App(): JSX.Element {
       .then((restored) => (restored ? undefined : loadWelcome()))
       .then(() => recoverDrafts())
   }, [])
+
+  // Keep the OS window / taskbar title in sync with the open document.
+  const docName = useAppStore((s) => s.doc.name)
+  const docContent = useAppStore((s) => s.doc.content)
+  const docDirty = useAppStore((s) => s.doc.dirty)
+  useEffect(() => {
+    document.title = windowTitle(docName, docContent, docDirty)
+  }, [docName, docContent, docDirty])
 
   return (
     <div className="flex h-full w-full flex-col bg-paper">

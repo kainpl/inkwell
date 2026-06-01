@@ -21,7 +21,8 @@
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
     "lint": "eslint .",
-    "format": "prettier --write ."
+    "format": "prettier --write .",
+    "gen-icon": "node scripts/gen-icon.mjs"
   },
   "dependencies": {
     "@codemirror/commands": "^6.6.0",
