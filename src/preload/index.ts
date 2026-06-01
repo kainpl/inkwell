@@ -54,6 +54,7 @@ const menuChannels = [
   IPC.menuCommandPalette,
   IPC.menuNoteGraph,
   IPC.menuSourceControl,
+  IPC.menuConnectDrive,
   IPC.menuNewFromTemplate,
   IPC.menuStartSpeaking,
   IPC.menuStopSpeaking,

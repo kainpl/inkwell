@@ -25,6 +25,7 @@ export function buildMenu(win: BrowserWindow): void {
           accelerator: 'CmdOrCtrl+Shift+T',
           click: send(IPC.menuReopenClosed)
         },
+        { label: 'Connect Google Drive…', click: send(IPC.menuConnectDrive) },
         { type: 'separator' },
         { label: 'Close', click: send(IPC.menuClose) },
         { label: 'Close Folder', click: send(IPC.menuCloseFolder) },

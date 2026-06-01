@@ -26,6 +26,7 @@ export const COMMANDS: Command[] = [
   { id: 'file.newTemplate', title: 'New from Template…', category: 'File', channel: IPC.menuNewFromTemplate },
   { id: 'file.open', title: 'Open File…', category: 'File', channel: IPC.menuOpenFile },
   { id: 'file.openFolder', title: 'Open Folder…', category: 'File', channel: IPC.menuOpenFolder },
+  { id: 'file.connectDrive', title: 'Connect Google Drive…', category: 'File', channel: IPC.menuConnectDrive },
   { id: 'file.save', title: 'Save', category: 'File', channel: IPC.menuSave },
   { id: 'file.saveAs', title: 'Save As…', category: 'File', channel: IPC.menuSaveAs },
   { id: 'file.reopen', title: 'Reopen Closed File', category: 'File', channel: IPC.menuReopenClosed },

@@ -4,6 +4,7 @@ import { useAppStore } from '@renderer/store/useAppStore'
 import { openPath } from '@renderer/lib/docActions'
 import { prepareArticles, relativeTime, type ArticleSort } from '@renderer/lib/articles'
 import FileTree from './FileTree'
+import DriveSection from './DriveSection'
 
 /**
  * The "Files" tab: the hierarchical file tree for browsing/managing, with a
@@ -83,6 +84,7 @@ export default function FilesPanel(): JSX.Element {
             ))}
           </div>
         )}
+        <DriveSection />
       </div>
     </div>
   )

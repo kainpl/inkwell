@@ -18,6 +18,12 @@ export function getDriveBase(path: string): string {
   return baseTimes.get(path) ?? ''
 }
 
+/** Window event that opens the connect modal (from buttons that aren't menus). */
+export const DRIVE_CONNECT_EVENT = 'ink:drive-connect'
+export function triggerConnect(): void {
+  window.dispatchEvent(new Event(DRIVE_CONNECT_EVENT))
+}
+
 export async function refreshAccounts(): Promise<void> {
   useAppStore.getState().setDriveAccounts(await window.api.drive.listAccounts().catch(() => []))
 }

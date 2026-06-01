@@ -21,6 +21,7 @@ import { startThemeSync } from '@renderer/lib/themeApply'
 import { startSpeaking, stopSpeaking } from '@renderer/lib/tts'
 import { startSpellSync } from '@renderer/lib/spell'
 import { startGitSync } from '@renderer/lib/git'
+import { refreshAccounts } from '@renderer/lib/drive'
 import { windowTitle } from '@renderer/lib/windowTitle'
 import { EditorView } from '@codemirror/view'
 import { cursorDocStart, cursorDocEnd } from '@codemirror/commands'
@@ -53,6 +54,7 @@ import QuickOpen from '@renderer/components/QuickOpen'
 import CommandPalette from '@renderer/components/CommandPalette'
 import NoteGraph from '@renderer/components/NoteGraph'
 import SourceControl from '@renderer/components/SourceControl'
+import DriveConnect from '@renderer/components/DriveConnect'
 import TemplatePicker from '@renderer/components/TemplatePicker'
 import GlobalSearch from '@renderer/components/GlobalSearch'
 import RecentPicker from '@renderer/components/RecentPicker'
@@ -178,6 +180,8 @@ export default function App(): JSX.Element {
     const stopThemes = startThemeSync()
     const stopSpell = startSpellSync()
     const stopGit = startGitSync()
+    void refreshAccounts()
+    const offDrive = window.api.onDriveAccountsChanged(() => void refreshAccounts())
     return () => {
       stopAutoSave()
       stopDrafts()
@@ -186,6 +190,7 @@ export default function App(): JSX.Element {
       stopThemes()
       stopSpell()
       stopGit()
+      offDrive()
     }
   }, [])
 
@@ -223,6 +228,7 @@ export default function App(): JSX.Element {
       <CommandPalette />
       <NoteGraph />
       <SourceControl />
+      <DriveConnect />
       <TemplatePicker />
       <GlobalSearch />
       <RecentPicker />

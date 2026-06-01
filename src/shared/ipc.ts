@@ -275,6 +275,7 @@ export const IPC = {
   menuCommandPalette: 'menu:commandPalette',
   menuNoteGraph: 'menu:noteGraph',
   menuSourceControl: 'menu:sourceControl',
+  menuConnectDrive: 'menu:connectDrive',
   menuNewFromTemplate: 'menu:newFromTemplate',
   menuStartSpeaking: 'menu:startSpeaking',
   menuStopSpeaking: 'menu:stopSpeaking',
