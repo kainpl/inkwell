@@ -145,6 +145,12 @@ describe('buildDecorations — horizontal rule & links', () => {
     expect(linkUrlAt(parsed('ping <https://a.io> ok'), 8)).toBe('https://a.io')
   })
 
+  it('styles and resolves a bare URL (no brackets) via GFM autolink', () => {
+    const items = decorate('visit https://example.com today')
+    expect(items.some((i) => i.spec.class === 'ink-link')).toBe(true)
+    expect(linkUrlAt(parsed('visit https://example.com today'), 12)).toBe('https://example.com')
+  })
+
   it('returns the #anchor target for an internal link', () => {
     expect(linkUrlAt(parsed('jump to [tasks](#tasks)'), 10)).toBe('#tasks')
   })
