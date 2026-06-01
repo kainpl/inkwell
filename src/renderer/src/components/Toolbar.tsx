@@ -16,7 +16,9 @@ const GROUPS: Btn[][] = [
     { action: 'italic', label: 'Italic (Ctrl+I)', glyph: 'I' },
     { action: 'strike', label: 'Strikethrough', glyph: 'S' },
     { action: 'code', label: 'Inline code', glyph: '<>' },
-    { action: 'highlight', label: 'Highlight', glyph: '▖' }
+    { action: 'highlight', label: 'Highlight', glyph: '▖' },
+    { action: 'sub', label: 'Subscript', glyph: 'x₂' },
+    { action: 'sup', label: 'Superscript', glyph: 'x²' }
   ],
   [
     { action: 'h1', label: 'Heading 1', glyph: 'H1' },
@@ -35,6 +37,11 @@ const GROUPS: Btn[][] = [
     { action: 'table', label: 'Table', glyph: '▦' },
     { action: 'codeblock', label: 'Code block', glyph: '{ }' },
     { action: 'hr', label: 'Horizontal rule', glyph: '―' }
+  ],
+  [
+    { action: 'footnote', label: 'Footnote', glyph: '†' },
+    { action: 'mathBlock', label: 'Math block', glyph: 'Σ' },
+    { action: 'mermaid', label: 'Mermaid diagram', glyph: '◈' }
   ]
 ]
 

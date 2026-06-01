@@ -13,9 +13,14 @@ export type FormatAction =
   | 'strike'
   | 'code'
   | 'highlight'
+  | 'sub'
+  | 'sup'
   | 'h1'
   | 'h2'
   | 'h3'
+  | 'h4'
+  | 'h5'
+  | 'h6'
   | 'quote'
   | 'ul'
   | 'ol'
@@ -25,6 +30,16 @@ export type FormatAction =
   | 'table'
   | 'codeblock'
   | 'hr'
+  | 'mathInline'
+  | 'mathBlock'
+  | 'mermaid'
+  | 'footnote'
+  | 'toc'
+  | 'alert:note'
+  | 'alert:tip'
+  | 'alert:important'
+  | 'alert:warning'
+  | 'alert:caution'
   | 'toggleImageSyntax'
   | 'clearFormat'
   | 'prettify'
@@ -275,6 +290,42 @@ export function prettifySource(view: EditorView): boolean {
   return true
 }
 
+/** The next unused footnote number in a document. Pure. */
+export function nextFootnoteId(docText: string): number {
+  const used = new Set<number>()
+  for (const m of docText.matchAll(/\[\^(\d+)\]/g)) used.add(Number(m[1]))
+  let n = 1
+  while (used.has(n)) n++
+  return n
+}
+
+/** Insert a footnote reference at the cursor + its definition at the end of the doc. */
+export function insertFootnote(view: EditorView): boolean {
+  const { state } = view
+  const pos = state.selection.main.head
+  const n = nextFootnoteId(state.doc.toString())
+  const ref = `[^${n}]`
+  const defLine = `[^${n}]: `
+  const docLen = state.doc.length
+  const lead = docLen > 0 && state.sliceDoc(docLen - 1, docLen) !== '\n' ? '\n' : ''
+  view.dispatch({
+    changes: [
+      { from: pos, insert: ref },
+      { from: docLen, insert: lead + defLine + '\n' }
+    ],
+    // Caret after "[^n]: " in the appended definition (shifted by the inserted ref).
+    selection: { anchor: docLen + ref.length + lead.length + defLine.length }
+  })
+  view.focus()
+  return true
+}
+
+/** Insert a GitHub-style alert block (`> [!NOTE]` …). */
+export function insertAlert(view: EditorView, kind: string): boolean {
+  const head = `> [!${kind.toUpperCase()}]\n> `
+  return insertBlock(view, head + '\n', head.length)
+}
+
 /** Insert the emoji glyph at the cursor. */
 export function insertEmoji(view: EditorView, emoji: string): boolean {
   const pos = view.state.selection.main.head
@@ -296,12 +347,22 @@ export function applyFormat(view: EditorView, action: FormatAction): boolean {
       return wrapSelection(view, '`')
     case 'highlight':
       return wrapSelection(view, '==')
+    case 'sub':
+      return wrapSelection(view, '~')
+    case 'sup':
+      return wrapSelection(view, '^')
     case 'h1':
       return setHeading(view, 1)
     case 'h2':
       return setHeading(view, 2)
     case 'h3':
       return setHeading(view, 3)
+    case 'h4':
+      return setHeading(view, 4)
+    case 'h5':
+      return setHeading(view, 5)
+    case 'h6':
+      return setHeading(view, 6)
     case 'quote':
       return toggleLines(view, /^>\s?/, () => '> ')
     case 'ul':
@@ -320,6 +381,22 @@ export function applyFormat(view: EditorView, action: FormatAction): boolean {
       return insertBlock(view, '```\n\n```\n', 4)
     case 'hr':
       return insertBlock(view, '---\n', 4)
+    case 'mathInline':
+      return wrapSelection(view, '$')
+    case 'mathBlock':
+      return insertBlock(view, '$$\n\n$$\n', 3)
+    case 'mermaid':
+      return insertBlock(view, '```mermaid\n\n```\n', 11)
+    case 'footnote':
+      return insertFootnote(view)
+    case 'toc':
+      return insertBlock(view, '[toc]\n', 5)
+    case 'alert:note':
+    case 'alert:tip':
+    case 'alert:important':
+    case 'alert:warning':
+    case 'alert:caution':
+      return insertAlert(view, action.slice(6))
     case 'toggleImageSyntax':
       return toggleImageSyntax(view)
     case 'clearFormat':

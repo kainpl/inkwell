@@ -102,10 +102,15 @@ export function buildMenu(win: BrowserWindow): void {
         { label: 'Strikethrough', click: fmt('strike') },
         { label: 'Inline Code', click: fmt('code') },
         { label: 'Highlight', click: fmt('highlight') },
+        { label: 'Subscript', click: fmt('sub') },
+        { label: 'Superscript', click: fmt('sup') },
         { type: 'separator' },
         { label: 'Heading 1', accelerator: 'CmdOrCtrl+1', click: fmt('h1') },
         { label: 'Heading 2', accelerator: 'CmdOrCtrl+2', click: fmt('h2') },
         { label: 'Heading 3', accelerator: 'CmdOrCtrl+3', click: fmt('h3') },
+        { label: 'Heading 4', click: fmt('h4') },
+        { label: 'Heading 5', click: fmt('h5') },
+        { label: 'Heading 6', click: fmt('h6') },
         { type: 'separator' },
         { label: 'Bullet List', click: fmt('ul') },
         { label: 'Numbered List', click: fmt('ol') },
@@ -117,6 +122,22 @@ export function buildMenu(win: BrowserWindow): void {
         { label: 'Table', accelerator: 'CmdOrCtrl+T', click: fmt('table') },
         { label: 'Code Block', click: fmt('codeblock') },
         { label: 'Horizontal Rule', click: fmt('hr') },
+        { type: 'separator' },
+        { label: 'Footnote', click: fmt('footnote') },
+        { label: 'Inline Math', click: fmt('mathInline') },
+        { label: 'Math Block', click: fmt('mathBlock') },
+        { label: 'Mermaid Diagram', click: fmt('mermaid') },
+        { label: 'Table of Contents', click: fmt('toc') },
+        {
+          label: 'Alert',
+          submenu: [
+            { label: 'Note', click: fmt('alert:note') },
+            { label: 'Tip', click: fmt('alert:tip') },
+            { label: 'Important', click: fmt('alert:important') },
+            { label: 'Warning', click: fmt('alert:warning') },
+            { label: 'Caution', click: fmt('alert:caution') }
+          ]
+        },
         { type: 'separator' },
         {
           label: 'Table',

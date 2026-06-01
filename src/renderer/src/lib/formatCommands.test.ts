@@ -11,7 +11,8 @@ import {
   setImageSrc,
   imageSrcOnLine,
   stripInlineMarkdown,
-  prettifyMarkdown
+  prettifyMarkdown,
+  nextFootnoteId
 } from './formatCommands'
 
 function mkView(doc: string, from: number, to = from): EditorView {
@@ -113,6 +114,67 @@ describe('formatCommands', () => {
     applyFormat(view, 'clearFormat')
     expect(view.state.doc.toString()).toBe('a bold it no c hi t z')
     view.destroy()
+  })
+
+  it('wraps sub/sup/inline-math around the selection', () => {
+    const sub = mkView('H2O', 1, 2)
+    applyFormat(sub, 'sub')
+    expect(sub.state.doc.toString()).toBe('H~2~O')
+    sub.destroy()
+    const sup = mkView('x2', 1, 2)
+    applyFormat(sup, 'sup')
+    expect(sup.state.doc.toString()).toBe('x^2^')
+    sup.destroy()
+    const math = mkView('E=mc2', 0, 5)
+    applyFormat(math, 'mathInline')
+    expect(math.state.doc.toString()).toBe('$E=mc2$')
+    math.destroy()
+  })
+
+  it('sets headings 4–6', () => {
+    const view = mkView('title', 0)
+    applyFormat(view, 'h4')
+    expect(view.state.doc.toString()).toBe('#### title')
+    applyFormat(view, 'h6')
+    expect(view.state.doc.toString()).toBe('###### title')
+    view.destroy()
+  })
+
+  it('inserts a math block, mermaid block and toc', () => {
+    const math = mkView('', 0)
+    applyFormat(math, 'mathBlock')
+    expect(math.state.doc.toString()).toBe('$$\n\n$$\n')
+    math.destroy()
+    const mer = mkView('', 0)
+    applyFormat(mer, 'mermaid')
+    expect(mer.state.doc.toString()).toBe('```mermaid\n\n```\n')
+    mer.destroy()
+    const toc = mkView('', 0)
+    applyFormat(toc, 'toc')
+    expect(toc.state.doc.toString()).toBe('[toc]\n')
+    toc.destroy()
+  })
+
+  it('inserts an alert block', () => {
+    const view = mkView('', 0)
+    applyFormat(view, 'alert:warning')
+    expect(view.state.doc.toString()).toBe('> [!WARNING]\n> \n')
+    view.destroy()
+  })
+
+  it('inserts a footnote reference + definition with the next free id', () => {
+    const view = mkView('see here', 8)
+    applyFormat(view, 'footnote')
+    expect(view.state.doc.toString()).toBe('see here[^1]\n[^1]: \n')
+    view.destroy()
+  })
+})
+
+describe('nextFootnoteId', () => {
+  it('returns the first free footnote number', () => {
+    expect(nextFootnoteId('no notes')).toBe(1)
+    expect(nextFootnoteId('a[^1] b[^2]')).toBe(3)
+    expect(nextFootnoteId('a[^1] b[^3]')).toBe(2) // fills the gap
   })
 })
 
