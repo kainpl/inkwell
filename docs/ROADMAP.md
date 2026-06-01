@@ -73,6 +73,7 @@ Auto Save & Version Control*) і з поточним кодом Inkwell.
 - ✅ **Outline**: згортуваний (per-heading + Expand/Collapse All), підсвітка поточного заголовка за кареткою
   - ⬜ popover-варіант аутлайну — за потреби у Фазі 7
 - ✅ **Сайдбар**: дві вкладки — **File Tree** і **Articles** (рекурсивний список md, сортування Recent/A–Z, фільтр, relative-time)
+  - ✅ **Перетягувані ширини панелей**: ліва (сайдбар) і права (Outline) панелі ресайзяться мишкою за тонкою ручкою на внутрішній грані (`ResizeHandle`, `cursor-col-resize`, без анімації під час drag), межі 160–520px, ширини зберігаються в налаштуваннях (`sidebarWidth`/`outlineWidth`). Перевірено наживо (drag → 320/300px, persist у localStorage)
 - ✅ **Пошук/заміна** в документі (`@codemirror/search`: панель угорі, `Ctrl+F`/`Ctrl+H`, regex, підсвітка)
 - ✅ **Глобальний пошук** по теці (`Ctrl/⌘+Shift+F`) ⭐ — рекурсивно по всіх md, результати по файлах із рядками, клік відкриває й скролить до місця
 - ✅ **Jump To**: Top (`Ctrl+Home`) / Bottom (`Ctrl+End`) через меню

@@ -20,6 +20,18 @@ describe('settings persistence', () => {
     expect(loadSettings().contentWidth).toBe(DEFAULT_SETTINGS.contentWidth)
   })
 
+  it('clamps out-of-range panel widths back to the default', () => {
+    saveSettings({ ...DEFAULT_SETTINGS, sidebarWidth: 9000, outlineWidth: 5 })
+    const s = loadSettings()
+    expect(s.sidebarWidth).toBe(DEFAULT_SETTINGS.sidebarWidth)
+    expect(s.outlineWidth).toBe(DEFAULT_SETTINGS.outlineWidth)
+  })
+
+  it('keeps an in-range panel width', () => {
+    saveSettings({ ...DEFAULT_SETTINGS, sidebarWidth: 300 })
+    expect(loadSettings().sidebarWidth).toBe(300)
+  })
+
   it('clamps a corrupt font size to the default', () => {
     saveSettings({ ...DEFAULT_SETTINGS, editorFontSize: 0 })
     expect(loadSettings().editorFontSize).toBe(DEFAULT_SETTINGS.editorFontSize)

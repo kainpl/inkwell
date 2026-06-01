@@ -2,7 +2,7 @@ import { create } from 'zustand'
 import type { FileNode, ExternalTheme } from '@shared/ipc'
 import { type Tab, findByPath, isReplaceable, closeTab } from '@renderer/lib/tabsModel'
 import { type PageSetup, loadPageSetup, savePageSetup } from '@renderer/lib/pageSetup'
-import { type EditorFont, loadSettings } from '@renderer/lib/settings'
+import { type EditorFont, loadSettings, PANEL_MIN, PANEL_MAX } from '@renderer/lib/settings'
 import { type Mode, hasBothEditions } from '@renderer/lib/themes'
 import type { MarkdownFeatures } from '@renderer/lib/markdownFeatures'
 
@@ -80,10 +80,15 @@ interface AppState {
   editorFontSize: number
   editorLineHeight: number
   contentWidth: number
+  /** Pixel widths of the resizable side panels (drag handles + persisted). */
+  sidebarWidth: number
+  outlineWidth: number
   setEditorFont: (font: EditorFont) => void
   setEditorFontSize: (px: number) => void
   setEditorLineHeight: (lh: number) => void
   setContentWidth: (px: number) => void
+  setSidebarWidth: (px: number) => void
+  setOutlineWidth: (px: number) => void
   /** Embed local images as data: URIs in exported HTML. */
   embedImages: boolean
   setEmbedImages: (on: boolean) => void
@@ -151,6 +156,9 @@ const firstTab: Tab = { id: genId(), path: null, name: 'Welcome.md', content: ''
 
 // Preferences-managed settings, seeded from localStorage (persisted by settingsSync).
 const s0 = loadSettings()
+
+/** Keep a dragged panel width within the allowed range. */
+const clampPanel = (px: number): number => Math.max(PANEL_MIN, Math.min(PANEL_MAX, Math.round(px)))
 
 export const useAppStore = create<AppState>((set) => ({
   doc: docOf(firstTab),
@@ -265,6 +273,8 @@ export const useAppStore = create<AppState>((set) => ({
   editorFontSize: s0.editorFontSize,
   editorLineHeight: s0.editorLineHeight,
   contentWidth: s0.contentWidth,
+  sidebarWidth: s0.sidebarWidth,
+  outlineWidth: s0.outlineWidth,
   embedImages: s0.embedImages,
   smartPunctuation: s0.smartPunctuation,
   spellCheck: s0.spellCheck,
@@ -280,6 +290,8 @@ export const useAppStore = create<AppState>((set) => ({
   setEditorFontSize: (px) => set({ editorFontSize: px }),
   setEditorLineHeight: (lh) => set({ editorLineHeight: lh }),
   setContentWidth: (px) => set({ contentWidth: px }),
+  setSidebarWidth: (px) => set({ sidebarWidth: clampPanel(px) }),
+  setOutlineWidth: (px) => set({ outlineWidth: clampPanel(px) }),
   setEmbedImages: (on) => set({ embedImages: on }),
   setSmartPunctuation: (on) => set({ smartPunctuation: on }),
   setSpellCheck: (on) => set({ spellCheck: on }),

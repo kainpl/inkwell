@@ -1,18 +1,24 @@
+import { useState } from 'react'
 import FileTree from './FileTree'
 import ArticlesPanel from './ArticlesPanel'
+import ResizeHandle from './ResizeHandle'
 import { useAppStore } from '@renderer/store/useAppStore'
 
 export default function Sidebar(): JSX.Element {
   const open = useAppStore((s) => s.sidebarOpen)
   const tab = useAppStore((s) => s.sidebarTab)
   const setTab = useAppStore((s) => s.setSidebarTab)
+  const width = useAppStore((s) => s.sidebarWidth)
+  const setWidth = useAppStore((s) => s.setSidebarWidth)
+  const [dragging, setDragging] = useState(false)
 
   return (
     <aside
+      style={{ width: open ? width : 0 }}
       className={
-        'flex h-full shrink-0 flex-col border-r border-line bg-chrome ' +
-        'transition-all duration-200 ' +
-        (open ? 'w-60' : 'w-0 overflow-hidden border-r-0')
+        'relative flex h-full shrink-0 flex-col border-r border-line bg-chrome ' +
+        (dragging ? '' : 'transition-[width] duration-200 ') +
+        (open ? '' : 'overflow-hidden border-r-0')
       }
     >
       {open && (
@@ -34,6 +40,7 @@ export default function Sidebar(): JSX.Element {
           <div className="min-h-0 flex-1 overflow-y-auto">
             {tab === 'files' ? <FileTree /> : <ArticlesPanel />}
           </div>
+          <ResizeHandle side="right" onResize={setWidth} onActive={setDragging} />
         </>
       )}
     </aside>
