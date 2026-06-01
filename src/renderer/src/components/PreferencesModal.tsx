@@ -4,6 +4,7 @@ import { useAppStore } from '@renderer/store/useAppStore'
 import type { EditorFont } from '@renderer/lib/settings'
 import { THEMES, hasBothEditions, type Mode } from '@renderer/lib/themes'
 import { MARKDOWN_FEATURE_LIST } from '@renderer/lib/markdownFeatures'
+import { SPELL_LANGUAGES } from '@renderer/lib/spell'
 
 type Section = 'appearance' | 'editor' | 'markdown' | 'image' | 'export'
 
@@ -122,6 +123,19 @@ function Editor(): JSX.Element {
       </Row>
       <Row label="Smart punctuation" hint="straight quotes/dashes/ellipsis → typographic as you type">
         <input type="checkbox" className="h-4 w-4 accent-accent" checked={s.smartPunctuation} onChange={() => s.setSmartPunctuation(!s.smartPunctuation)} />
+      </Row>
+      <Row label="Spell check" hint="underline misspellings; right-click for suggestions">
+        <input type="checkbox" className="h-4 w-4 accent-accent" checked={s.spellCheck} onChange={() => s.setSpellCheck(!s.spellCheck)} />
+      </Row>
+      <Row label="Spell-check language" hint="English is built in; others download on first use">
+        <select className={FIELD} value={s.spellLanguage} disabled={!s.spellCheck}
+          onChange={(e) => s.setSpellLanguage(e.target.value)}>
+          {SPELL_LANGUAGES.map((l) => (
+            <option key={l.code} value={l.code}>
+              {l.label}
+            </option>
+          ))}
+        </select>
       </Row>
     </>
   )

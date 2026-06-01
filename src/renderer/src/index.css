@@ -214,6 +214,13 @@
     padding: 0;
   }
 
+  /* Misspelled words (spell check). */
+  .ink-misspelled {
+    text-decoration: underline wavy rgb(220 70 70);
+    text-decoration-skip-ink: none;
+    text-underline-offset: 2px;
+  }
+
   /* Heading sizes applied by the live-preview decorations. */
   .ink-h1 { font-size: 1.9em; font-weight: 700; line-height: 1.25; }
   .ink-h2 { font-size: 1.55em; font-weight: 700; line-height: 1.3; }

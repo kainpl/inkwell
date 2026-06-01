@@ -18,6 +18,7 @@ import {
 import { setSessionFile } from '@renderer/lib/persistence'
 import { startThemeSync } from '@renderer/lib/themeApply'
 import { startSpeaking, stopSpeaking } from '@renderer/lib/tts'
+import { startSpellSync } from '@renderer/lib/spell'
 import { EditorView } from '@codemirror/view'
 import { cursorDocStart, cursorDocEnd } from '@codemirror/commands'
 import { useEditor } from '@renderer/store/useEditor'
@@ -55,6 +56,8 @@ import BrowseVersions from '@renderer/components/BrowseVersions'
 import PageSetupModal from '@renderer/components/PageSetupModal'
 import PreferencesModal from '@renderer/components/PreferencesModal'
 import PandocDownload from '@renderer/components/PandocDownload'
+import SpellMenu from '@renderer/components/SpellMenu'
+import SpellDownload from '@renderer/components/SpellDownload'
 import PromptModal from '@renderer/components/PromptModal'
 import ConfirmUnsavedModal from '@renderer/components/ConfirmUnsavedModal'
 
@@ -166,12 +169,14 @@ export default function App(): JSX.Element {
     const stopDiskWatch = startDiskWatch()
     const stopSettings = startSettingsSync()
     const stopThemes = startThemeSync()
+    const stopSpell = startSpellSync()
     return () => {
       stopAutoSave()
       stopDrafts()
       stopDiskWatch()
       stopSettings()
       stopThemes()
+      stopSpell()
     }
   }, [])
 
@@ -207,6 +212,8 @@ export default function App(): JSX.Element {
       <PageSetupModal />
       <PreferencesModal />
       <PandocDownload />
+      <SpellMenu />
+      <SpellDownload />
       <PromptModal />
       <ConfirmUnsavedModal />
     </div>

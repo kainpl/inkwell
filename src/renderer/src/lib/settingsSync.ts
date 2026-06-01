@@ -20,7 +20,10 @@ function currentSettings(): Settings {
     embedImages: s.embedImages,
     exportStyle: s.exportStyle,
     markdownFeatures: s.markdownFeatures,
-    smartPunctuation: s.smartPunctuation
+    smartPunctuation: s.smartPunctuation,
+    spellCheck: s.spellCheck,
+    spellLanguage: s.spellLanguage,
+    learnedWords: s.learnedWords
   }
 }
 

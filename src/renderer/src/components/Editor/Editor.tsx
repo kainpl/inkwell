@@ -4,6 +4,7 @@ import { EditorView, keymap } from '@codemirror/view'
 import { defaultKeymap, history, historyKeymap } from '@codemirror/commands'
 import { inkwellExtensions } from './markdownExtensions'
 import { refreshPreview } from './livePreview'
+import { spellRefresh } from './spellCheck'
 import { setSourceMode, setTypewriter } from './editorModes'
 import { useAppStore } from '@renderer/store/useAppStore'
 import { useEditor } from '@renderer/store/useEditor'
@@ -103,15 +104,24 @@ export default function Editor(): JSX.Element {
     }
   }, [makeState, restoreCaret])
 
-  // Re-render the live preview when the Markdown feature flags change (the
-  // StateField recomputes on a refresh effect, no doc edit needed).
+  // Re-render the live preview when the Markdown feature flags change, and the
+  // spell-check underlines when the checker (re)loads — both via a refresh
+  // effect, no doc edit needed.
   useEffect(() => {
-    let last = useAppStore.getState().markdownFeatures
+    let lastFeatures = useAppStore.getState().markdownFeatures
+    let lastSpell = useAppStore.getState().spellVersion
     return useAppStore.subscribe(() => {
-      const cur = useAppStore.getState().markdownFeatures
-      if (cur === last) return
-      last = cur
-      viewRef.current?.dispatch({ effects: refreshPreview.of(null) })
+      const s = useAppStore.getState()
+      const effects = []
+      if (s.markdownFeatures !== lastFeatures) {
+        lastFeatures = s.markdownFeatures
+        effects.push(refreshPreview.of(null))
+      }
+      if (s.spellVersion !== lastSpell) {
+        lastSpell = s.spellVersion
+        effects.push(spellRefresh.of(null))
+      }
+      if (effects.length) viewRef.current?.dispatch({ effects })
     })
   }, [])
 

@@ -83,6 +83,12 @@ export interface ThemeCss {
   themeUser: string | null
 }
 
+/** A hunspell dictionary's two files, as text (empty strings on failure). */
+export interface SpellDict {
+  aff: string
+  dic: string
+}
+
 /** A document template found in the user's templates folder. */
 export interface TemplateEntry {
   /** Filename without `.md` — also the template id. */
@@ -149,6 +155,10 @@ export const IPC = {
   listTemplates: 'template:list',
   readTemplate: 'template:read',
   openTemplatesFolder: 'template:openFolder',
+  // spell-check dictionaries (bundled en; others downloaded + cached)
+  getSpellDict: 'spell:getDict',
+  // main -> renderer: dictionary download progress (0–100; -1 done/error)
+  spellProgress: 'spell:progress',
   // export / print
   exportHtml: 'export:html',
   exportPdf: 'export:pdf',

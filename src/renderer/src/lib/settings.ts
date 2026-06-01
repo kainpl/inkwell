@@ -38,6 +38,12 @@ export interface Settings {
   markdownFeatures: MarkdownFeatures
   /** Convert straight quotes/dashes/ellipsis to typographic ones as you type. */
   smartPunctuation: boolean
+  /** Spell check (underline misspellings, right-click suggestions). */
+  spellCheck: boolean
+  /** Active spell-check dictionary language (bundled `en`, others on demand). */
+  spellLanguage: string
+  /** Words the user added to their dictionary. */
+  learnedWords: string[]
 }
 
 export const FONT_STACKS: Record<EditorFont, string> = {
@@ -63,7 +69,10 @@ export const DEFAULT_SETTINGS: Settings = {
   embedImages: true,
   exportStyle: 'default',
   markdownFeatures: DEFAULT_MARKDOWN_FEATURES,
-  smartPunctuation: false
+  smartPunctuation: false,
+  spellCheck: false,
+  spellLanguage: 'en',
+  learnedWords: []
 }
 
 const KEY = 'inkwell.settings'
@@ -80,6 +89,7 @@ function sanitize(s: Settings): Settings {
     mode: migrated.mode,
     exportStyle: s.exportStyle === 'theme' ? 'theme' : 'default',
     markdownFeatures: normalizeFeatures(s.markdownFeatures),
+    learnedWords: Array.isArray(s.learnedWords) ? s.learnedWords : [],
     editorFontSize: clamp(s.editorFontSize, 10, 40, DEFAULT_SETTINGS.editorFontSize),
     editorLineHeight: clamp(s.editorLineHeight, 1, 3, DEFAULT_SETTINGS.editorLineHeight),
     contentWidth: clamp(s.contentWidth, 40, 100, DEFAULT_SETTINGS.contentWidth)

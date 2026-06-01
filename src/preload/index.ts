@@ -10,7 +10,8 @@ import {
   type PdfOptions,
   type ExternalTheme,
   type ThemeCss,
-  type TemplateEntry
+  type TemplateEntry,
+  type SpellDict
 } from '../shared/ipc'
 
 const menuChannels = [
@@ -147,6 +148,15 @@ const api = {
   listVersions: (id: string): Promise<VersionEntry[]> => ipcRenderer.invoke(IPC.listVersions, id),
   readVersion: (id: string, savedAt: number): Promise<string | null> =>
     ipcRenderer.invoke(IPC.readVersion, id, savedAt),
+
+  /** Download (or read cached) a hunspell dictionary for a language. */
+  getSpellDict: (lang: string): Promise<SpellDict> => ipcRenderer.invoke(IPC.getSpellDict, lang),
+  /** Dictionary download progress (0–100; -1 done/error → hide). */
+  onSpellProgress: (handler: (pct: number) => void): (() => void) => {
+    const listener = (_e: unknown, pct: number): void => handler(pct)
+    ipcRenderer.on(IPC.spellProgress, listener)
+    return () => ipcRenderer.removeListener(IPC.spellProgress, listener)
+  },
 
   /** Document templates (userData/templates). */
   listTemplates: (): Promise<TemplateEntry[]> => ipcRenderer.invoke(IPC.listTemplates),

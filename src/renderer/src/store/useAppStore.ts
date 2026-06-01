@@ -87,6 +87,16 @@ interface AppState {
   /** Typographic substitution as you type (quotes/dashes/ellipsis). */
   smartPunctuation: boolean
   setSmartPunctuation: (on: boolean) => void
+  /** Spell check (persisted). */
+  spellCheck: boolean
+  setSpellCheck: (on: boolean) => void
+  spellLanguage: string
+  setSpellLanguage: (lang: string) => void
+  learnedWords: string[]
+  addLearnedWord: (word: string) => void
+  /** Bumped when the active spell checker (re)loads, to retrigger decoration. */
+  spellVersion: number
+  bumpSpellVersion: () => void
   /** Export CSS: built-in print stylesheet vs the active editor theme. */
   exportStyle: 'default' | 'theme'
   setExportStyle: (style: 'default' | 'theme') => void
@@ -246,6 +256,10 @@ export const useAppStore = create<AppState>((set) => ({
   contentWidth: s0.contentWidth,
   embedImages: s0.embedImages,
   smartPunctuation: s0.smartPunctuation,
+  spellCheck: s0.spellCheck,
+  spellLanguage: s0.spellLanguage,
+  learnedWords: s0.learnedWords,
+  spellVersion: 0,
   exportStyle: s0.exportStyle,
   markdownFeatures: s0.markdownFeatures,
   autoHideMenuBar: s0.autoHideMenuBar,
@@ -255,6 +269,13 @@ export const useAppStore = create<AppState>((set) => ({
   setContentWidth: (px) => set({ contentWidth: px }),
   setEmbedImages: (on) => set({ embedImages: on }),
   setSmartPunctuation: (on) => set({ smartPunctuation: on }),
+  setSpellCheck: (on) => set({ spellCheck: on }),
+  setSpellLanguage: (lang) => set({ spellLanguage: lang }),
+  addLearnedWord: (word) =>
+    set((s) => ({
+      learnedWords: s.learnedWords.includes(word) ? s.learnedWords : [...s.learnedWords, word]
+    })),
+  bumpSpellVersion: () => set((s) => ({ spellVersion: s.spellVersion + 1 })),
   setExportStyle: (exportStyle) => set({ exportStyle }),
   setMarkdownFeature: (key, on) =>
     set((s) => ({ markdownFeatures: { ...s.markdownFeatures, [key]: on } })),
