@@ -10,13 +10,18 @@ import * as api from './api'
 class DriveService {
   private tokens = new Map<string, { accessToken: string; expiresAt: number }>()
   private byoClientId: string | null = null
+  private byoClientSecret: string | null = null
 
-  setClientId(id: string | null): void {
+  setCredentials(id: string | null, secret: string | null): void {
     this.byoClientId = id && id.trim() ? id.trim() : null
+    this.byoClientSecret = secret && secret.trim() ? secret.trim() : null
   }
 
-  private clientId(): string {
-    return this.byoClientId || oauth.BUILTIN_CLIENT_ID
+  private creds(): { clientId: string; clientSecret: string } {
+    return {
+      clientId: this.byoClientId || oauth.BUILTIN_CLIENT_ID,
+      clientSecret: this.byoClientSecret || oauth.BUILTIN_CLIENT_SECRET
+    }
   }
 
   list(): Promise<DriveAccount[]> {
@@ -24,10 +29,10 @@ class DriveService {
   }
 
   async connect(): Promise<DriveAccount> {
-    const clientId = this.clientId()
+    const { clientId, clientSecret } = this.creds()
     if (!clientId) throw new Error('No Google client id configured. Set one in Preferences ▸ Cloud.')
-    const r = await oauth.connect(clientId)
-    await accounts.upsertAccount(r.accountId, r.email, clientId, r.refreshToken)
+    const r = await oauth.connect(clientId, clientSecret)
+    await accounts.upsertAccount(r.accountId, r.email, clientId, clientSecret, r.refreshToken)
     this.tokens.set(r.accountId, { accessToken: r.accessToken, expiresAt: r.expiresAt })
     return { accountId: r.accountId, email: r.email }
   }
@@ -43,7 +48,7 @@ class DriveService {
     if (cached && cached.expiresAt - 60_000 > Date.now()) return cached.accessToken
     const secret = await accounts.accountSecret(accountId)
     if (!secret) throw new Error('Account not connected.')
-    const fresh = await oauth.refresh(secret.clientId, secret.refreshToken)
+    const fresh = await oauth.refresh(secret.clientId, secret.clientSecret, secret.refreshToken)
     this.tokens.set(accountId, fresh)
     return fresh.accessToken
   }

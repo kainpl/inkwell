@@ -10,8 +10,17 @@ import { pkceChallenge } from '../../shared/pkce'
  * stored refresh token for a fresh access token.
  */
 
-/** Built-in OAuth client (Google Cloud "Desktop app"). Empty ⇒ BYO only. */
+/**
+ * Built-in OAuth client (Google Cloud "Desktop app"). Google requires the
+ * client_secret in the token exchange even for installed apps with PKCE — but
+ * for a desktop client it is "not treated as a secret" (per Google's docs), so
+ * it is shipped in the app just like the client id. Empty ⇒ BYO only.
+ */
 export const BUILTIN_CLIENT_ID = '108642972558-5k6kbg6ofhghd5r2o55tbuhs2ttj518a.apps.googleusercontent.com'
+// Intentionally empty in the repo — do NOT commit a real client secret here.
+// Provide it at runtime via Preferences ▸ Cloud (BYO), or load it from an
+// untracked source for a built-in distribution. See docs/google-drive-setup.md.
+export const BUILTIN_CLIENT_SECRET = ''
 
 const SCOPE = 'https://www.googleapis.com/auth/drive openid email'
 const AUTH = 'https://accounts.google.com/o/oauth2/v2/auth'
@@ -35,7 +44,7 @@ interface TokenResponse {
 const b64url = (b: Buffer): string => b.toString('base64url')
 
 /** Run the full interactive connect flow; resolves with tokens + identity. */
-export async function connect(clientId: string): Promise<ConnectResult> {
+export async function connect(clientId: string, clientSecret: string): Promise<ConnectResult> {
   const verifier = b64url(randomBytes(32))
   const challenge = pkceChallenge(verifier)
   const state = b64url(randomBytes(16))
@@ -58,6 +67,7 @@ export async function connect(clientId: string): Promise<ConnectResult> {
     grant_type: 'authorization_code',
     code,
     client_id: clientId,
+    client_secret: clientSecret,
     code_verifier: verifier,
     redirect_uri: redirectUri
   })
@@ -75,12 +85,14 @@ export async function connect(clientId: string): Promise<ConnectResult> {
 /** Exchange a stored refresh token for a fresh access token. */
 export async function refresh(
   clientId: string,
+  clientSecret: string,
   refreshToken: string
 ): Promise<{ accessToken: string; expiresAt: number }> {
   const tok = await postForm(TOKEN, {
     grant_type: 'refresh_token',
     refresh_token: refreshToken,
-    client_id: clientId
+    client_id: clientId,
+    client_secret: clientSecret
   })
   return { accessToken: tok.access_token, expiresAt: Date.now() + tok.expires_in * 1000 }
 }

@@ -56,6 +56,8 @@ export interface Settings {
   keyBindings: Record<string, string>
   /** BYO Google OAuth client id (empty ⇒ use the built-in one). */
   driveClientId: string
+  /** BYO Google OAuth client secret (pairs with driveClientId). */
+  driveClientSecret: string
 }
 
 export const FONT_STACKS: Record<EditorFont, string> = {
@@ -92,7 +94,8 @@ export const DEFAULT_SETTINGS: Settings = {
     { name: 'Wikipedia', url: 'https://en.wikipedia.org/w/index.php?search=%s' }
   ],
   keyBindings: {},
-  driveClientId: ''
+  driveClientId: '',
+  driveClientSecret: ''
 }
 
 const KEY = 'inkwell.settings'
@@ -124,7 +127,8 @@ function sanitize(s: Settings): Settings {
     editorLineHeight: clamp(s.editorLineHeight, 1, 3, DEFAULT_SETTINGS.editorLineHeight),
     contentWidth: clamp(s.contentWidth, 40, 100, DEFAULT_SETTINGS.contentWidth),
     sidebarWidth: clamp(s.sidebarWidth, PANEL_MIN, PANEL_MAX, DEFAULT_SETTINGS.sidebarWidth),
-    driveClientId: typeof s.driveClientId === 'string' ? s.driveClientId : ''
+    driveClientId: typeof s.driveClientId === 'string' ? s.driveClientId : '',
+    driveClientSecret: typeof s.driveClientSecret === 'string' ? s.driveClientSecret : ''
   }
 }
 

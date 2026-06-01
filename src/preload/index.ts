@@ -218,7 +218,8 @@ const api = {
       ipcRenderer.invoke(IPC.driveWrite, accountId, fileId, content, base),
     create: (accountId: string, parentId: string, name: string, content: string): Promise<DriveNode> =>
       ipcRenderer.invoke(IPC.driveCreate, accountId, parentId, name, content),
-    setClientId: (id: string | null): Promise<void> => ipcRenderer.invoke(IPC.driveSetClientId, id)
+    setCredentials: (id: string | null, secret: string | null): Promise<void> =>
+      ipcRenderer.invoke(IPC.driveSetCredentials, id, secret)
   },
 
   /** main -> renderer: the connected Drive accounts changed. */

@@ -9,11 +9,12 @@ import type { DriveAccount } from '../../shared/drive'
  * memory by the DriveService). The file lives in userData.
  */
 
-/** Persisted record: refresh token is base64 of safeStorage ciphertext. */
+/** Persisted record: refresh token + client secret are base64 safeStorage ciphertext. */
 interface StoredAccount {
   accountId: string
   email: string
   clientId: string
+  clientSecretEnc: string
   refreshTokenEnc: string
 }
 
@@ -50,10 +51,17 @@ export async function upsertAccount(
   accountId: string,
   email: string,
   clientId: string,
+  clientSecret: string,
   refreshToken: string
 ): Promise<void> {
   const list = await readAll()
-  const rec: StoredAccount = { accountId, email, clientId, refreshTokenEnc: enc(refreshToken) }
+  const rec: StoredAccount = {
+    accountId,
+    email,
+    clientId,
+    clientSecretEnc: enc(clientSecret),
+    refreshTokenEnc: enc(refreshToken)
+  }
   const i = list.findIndex((a) => a.accountId === accountId)
   if (i >= 0) list[i] = rec
   else list.push(rec)
@@ -64,11 +72,15 @@ export async function removeAccount(accountId: string): Promise<void> {
   await writeAll((await readAll()).filter((a) => a.accountId !== accountId))
 }
 
-/** The decrypted refresh token + clientId used for an account, or null. */
+/** The decrypted refresh token + clientId/secret used for an account, or null. */
 export async function accountSecret(
   accountId: string
-): Promise<{ refreshToken: string; clientId: string } | null> {
+): Promise<{ refreshToken: string; clientId: string; clientSecret: string } | null> {
   const rec = (await readAll()).find((a) => a.accountId === accountId)
   if (!rec) return null
-  return { refreshToken: dec(rec.refreshTokenEnc), clientId: rec.clientId }
+  return {
+    refreshToken: dec(rec.refreshTokenEnc),
+    clientId: rec.clientId,
+    clientSecret: rec.clientSecretEnc ? dec(rec.clientSecretEnc) : ''
+  }
 }

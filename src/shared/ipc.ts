@@ -218,7 +218,7 @@ export const IPC = {
   driveRead: 'drive:read',
   driveWrite: 'drive:write',
   driveCreate: 'drive:create',
-  driveSetClientId: 'drive:setClientId',
+  driveSetCredentials: 'drive:setCredentials',
   // main -> renderer: the connected-accounts list changed
   driveAccountsChanged: 'drive:accountsChanged',
   // spell-check dictionaries (bundled en; others downloaded + cached)

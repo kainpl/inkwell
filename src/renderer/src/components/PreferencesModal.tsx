@@ -326,6 +326,8 @@ function Cloud(): JSX.Element {
   const accounts = useAppStore((s) => s.driveAccounts)
   const clientId = useAppStore((s) => s.driveClientId)
   const setClientId = useAppStore((s) => s.setDriveClientId)
+  const clientSecret = useAppStore((s) => s.driveClientSecret)
+  const setClientSecret = useAppStore((s) => s.setDriveClientSecret)
   return (
     <>
       <div className="mb-2 text-sm font-medium text-ink">Google Drive accounts</div>
@@ -361,6 +363,15 @@ function Cloud(): JSX.Element {
           value={clientId}
           placeholder="xx…apps.googleusercontent.com"
           onChange={(e) => setClientId(e.target.value.trim())}
+        />
+      </Row>
+      <Row label="Custom OAuth client secret" hint="Required when a custom client ID is set (Google requires it even for desktop apps).">
+        <input
+          className={FIELD + ' w-64'}
+          type="password"
+          value={clientSecret}
+          placeholder="GOCSPX-…"
+          onChange={(e) => setClientSecret(e.target.value.trim())}
         />
       </Row>
     </>

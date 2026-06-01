@@ -27,7 +27,8 @@ function currentSettings(): Settings {
     learnedWords: s.learnedWords,
     searchServices: s.searchServices,
     keyBindings: s.keyBindings,
-    driveClientId: s.driveClientId
+    driveClientId: s.driveClientId,
+    driveClientSecret: s.driveClientSecret
   }
 }
 
@@ -45,9 +46,9 @@ function applyWindow(s: Settings): void {
   window.api.setMenuBarAutoHide(s.autoHideMenuBar)
 }
 
-/** Push the BYO Drive OAuth client id to the main process (empty ⇒ built-in). */
+/** Push the BYO Drive OAuth credentials to the main process (empty ⇒ built-in). */
 function applyDrive(s: Settings): void {
-  void window.api.drive.setClientId(s.driveClientId || null)
+  void window.api.drive.setCredentials(s.driveClientId || null, s.driveClientSecret || null)
 }
 
 function equal(a: Settings, b: Settings): boolean {

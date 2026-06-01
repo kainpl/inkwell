@@ -35,5 +35,7 @@ export function registerDriveIpc(): void {
     (_e, accountId: string, parentId: string, name: string, content: string) =>
       drive.create(accountId, parentId, name, content)
   )
-  ipcMain.handle(IPC.driveSetClientId, (_e, id: string | null) => drive.setClientId(id))
+  ipcMain.handle(IPC.driveSetCredentials, (_e, id: string | null, secret: string | null) =>
+    drive.setCredentials(id, secret)
+  )
 }
