@@ -89,6 +89,33 @@ export interface SpellDict {
   dic: string
 }
 
+/** One changed path in the working tree, for the Source Control panel. */
+export interface GitChange {
+  /** Path relative to the repo root (used for git ops and display). */
+  path: string
+  /** Index (staged) status char: M/A/D/R/C, or ' ' when not staged. */
+  index: string
+  /** Worktree (unstaged) status char: M/D/?, or ' ' when clean there. */
+  worktree: string
+}
+
+/** Detailed working-tree state for the Source Control panel. */
+export interface GitChanges {
+  /** Current branch name (or a label like "HEAD (no branch)"), null if not a repo. */
+  branch: string | null
+  /** Files with staged changes (present in the index). */
+  staged: GitChange[]
+  /** Files with unstaged changes or untracked files. */
+  unstaged: GitChange[]
+}
+
+/** Result of a git mutation (stage/unstage/commit). */
+export interface GitResult {
+  ok: boolean
+  /** Trimmed stderr/message when `ok` is false. */
+  error?: string
+}
+
 /** A document template found in the user's templates folder. */
 export interface TemplateEntry {
   /** Filename without `.md` — also the template id. */
@@ -157,6 +184,11 @@ export const IPC = {
   openTemplatesFolder: 'template:openFolder',
   // git status for the file tree (read-only)
   gitStatus: 'git:status',
+  // git: detailed staged/unstaged changes for the Source Control panel
+  gitChanges: 'git:changes',
+  gitStage: 'git:stage',
+  gitUnstage: 'git:unstage',
+  gitCommit: 'git:commit',
   // note graph (wiki-link connections across the workspace)
   noteGraph: 'graph:notes',
   // spell-check dictionaries (bundled en; others downloaded + cached)
@@ -212,6 +244,7 @@ export const IPC = {
   menuPreferences: 'menu:preferences',
   menuCommandPalette: 'menu:commandPalette',
   menuNoteGraph: 'menu:noteGraph',
+  menuSourceControl: 'menu:sourceControl',
   menuNewFromTemplate: 'menu:newFromTemplate',
   menuStartSpeaking: 'menu:startSpeaking',
   menuStopSpeaking: 'menu:stopSpeaking',

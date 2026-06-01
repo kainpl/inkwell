@@ -1,14 +1,14 @@
 import { ipcMain } from 'electron'
 import { execFile } from 'child_process'
 import { promisify } from 'util'
-import { IPC } from '../../shared/ipc'
-import { gitStatusChar } from '../../shared/gitStatus'
+import { IPC, type GitChanges, type GitResult } from '../../shared/ipc'
+import { gitStatusChar, parseGitChanges } from '../../shared/gitStatus'
 
 /**
- * Read-only git status for the file tree. Runs `git status --porcelain` in the
- * open folder (via execFile — no shell) and maps each changed path to a single
- * status char keyed by its absolute, forward-slash path (so it matches tree
- * node paths once those are normalised).
+ * Git integration for the file tree and Source Control panel. Everything runs
+ * through `execFile` (no shell) so paths and messages are passed as argv and
+ * never interpolated into a command line. Mutations (stage/unstage/commit) run
+ * with cwd = the repo root so the porcelain-relative paths line up.
  */
 
 const run = promisify(execFile)
@@ -18,10 +18,21 @@ async function git(cwd: string, args: string[]): Promise<string> {
   return stdout
 }
 
+/** Resolve the repo root for a folder, or null if it is not a git repo. */
+async function repoTop(folder: string): Promise<string | null> {
+  try {
+    return (await git(folder, ['rev-parse', '--show-toplevel'])).trim()
+  } catch {
+    return null
+  }
+}
+
 export function registerGitIpc(): void {
+  // Read-only status for the file-tree badges (path → single status char).
   ipcMain.handle(IPC.gitStatus, async (_e, folder: string): Promise<Record<string, string> | null> => {
+    const top = await repoTop(folder)
+    if (!top) return null
     try {
-      const top = (await git(folder, ['rev-parse', '--show-toplevel'])).trim()
       const out = await git(folder, ['status', '--porcelain', '--untracked-files=all'])
       const map: Record<string, string> = {}
       for (const line of out.split('\n')) {
@@ -34,7 +45,47 @@ export function registerGitIpc(): void {
       }
       return map
     } catch {
-      return null // not a repo, or git unavailable
+      return null
     }
   })
+
+  // Detailed staged/unstaged lists for the Source Control panel.
+  ipcMain.handle(IPC.gitChanges, async (_e, folder: string): Promise<GitChanges> => {
+    const top = await repoTop(folder)
+    if (!top) return { branch: null, staged: [], unstaged: [] }
+    try {
+      const out = await git(top, ['status', '--porcelain=v1', '--branch', '--untracked-files=all'])
+      return parseGitChanges(out)
+    } catch {
+      return { branch: null, staged: [], unstaged: [] }
+    }
+  })
+
+  // Stage the given repo-relative paths (handles modifications and deletions).
+  ipcMain.handle(IPC.gitStage, async (_e, folder: string, paths: string[]): Promise<GitResult> => {
+    return mutate(folder, (top) => git(top, ['add', '-A', '--', ...paths]))
+  })
+
+  // Unstage the given repo-relative paths (restore them in the index).
+  ipcMain.handle(IPC.gitUnstage, async (_e, folder: string, paths: string[]): Promise<GitResult> => {
+    return mutate(folder, (top) => git(top, ['reset', '-q', '--', ...paths]))
+  })
+
+  // Commit the staged changes with the given message.
+  ipcMain.handle(IPC.gitCommit, async (_e, folder: string, message: string): Promise<GitResult> => {
+    return mutate(folder, (top) => git(top, ['commit', '-m', message]))
+  })
+}
+
+/** Resolve the repo root, run a mutation, and normalise success/error. */
+async function mutate(folder: string, fn: (top: string) => Promise<string>): Promise<GitResult> {
+  const top = await repoTop(folder)
+  if (!top) return { ok: false, error: 'Not a git repository.' }
+  try {
+    await fn(top)
+    return { ok: true }
+  } catch (e) {
+    const err = e as { stderr?: string; message?: string }
+    return { ok: false, error: (err.stderr || err.message || 'git failed').trim() }
+  }
 }

@@ -11,7 +11,9 @@ import {
   type ExternalTheme,
   type ThemeCss,
   type TemplateEntry,
-  type SpellDict
+  type SpellDict,
+  type GitChanges,
+  type GitResult
 } from '../shared/ipc'
 import type { NoteGraph } from '../shared/noteGraph'
 
@@ -49,6 +51,7 @@ const menuChannels = [
   IPC.menuPreferences,
   IPC.menuCommandPalette,
   IPC.menuNoteGraph,
+  IPC.menuSourceControl,
   IPC.menuNewFromTemplate,
   IPC.menuStartSpeaking,
   IPC.menuStopSpeaking,
@@ -163,6 +166,21 @@ const api = {
   /** Git status of the open folder (path → status char), or null if not a repo. */
   gitStatus: (folder: string): Promise<Record<string, string> | null> =>
     ipcRenderer.invoke(IPC.gitStatus, folder),
+
+  /** Detailed staged/unstaged changes for the Source Control panel. */
+  gitChanges: (folder: string): Promise<GitChanges> => ipcRenderer.invoke(IPC.gitChanges, folder),
+
+  /** Stage the given repo-relative paths. */
+  gitStage: (folder: string, paths: string[]): Promise<GitResult> =>
+    ipcRenderer.invoke(IPC.gitStage, folder, paths),
+
+  /** Unstage the given repo-relative paths. */
+  gitUnstage: (folder: string, paths: string[]): Promise<GitResult> =>
+    ipcRenderer.invoke(IPC.gitUnstage, folder, paths),
+
+  /** Commit the staged changes with a message. */
+  gitCommit: (folder: string, message: string): Promise<GitResult> =>
+    ipcRenderer.invoke(IPC.gitCommit, folder, message),
 
   /** Build the wiki-link graph for the workspace. */
   noteGraph: (folder: string): Promise<NoteGraph> => ipcRenderer.invoke(IPC.noteGraph, folder),

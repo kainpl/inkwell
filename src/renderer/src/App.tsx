@@ -52,6 +52,7 @@ import ImageZoom from '@renderer/components/ImageZoom'
 import QuickOpen from '@renderer/components/QuickOpen'
 import CommandPalette from '@renderer/components/CommandPalette'
 import NoteGraph from '@renderer/components/NoteGraph'
+import SourceControl from '@renderer/components/SourceControl'
 import TemplatePicker from '@renderer/components/TemplatePicker'
 import GlobalSearch from '@renderer/components/GlobalSearch'
 import RecentFiles from '@renderer/components/RecentFiles'
@@ -214,6 +215,7 @@ export default function App(): JSX.Element {
       <QuickOpen />
       <CommandPalette />
       <NoteGraph />
+      <SourceControl />
       <TemplatePicker />
       <GlobalSearch />
       <RecentFiles />
