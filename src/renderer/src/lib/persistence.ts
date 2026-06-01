@@ -76,6 +76,12 @@ export function clearRecentFolders(): void {
   write(RECENT_FOLDERS_KEY, [])
 }
 
+/** Clear both the recent-files and recent-folders lists. */
+export function clearRecents(): void {
+  clearRecentFiles()
+  clearRecentFolders()
+}
+
 export function getSession(): Session {
   return read<Session>(SESSION_KEY, { filePath: null, folderPath: null })
 }

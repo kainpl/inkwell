@@ -1,6 +1,26 @@
-import { getCaret, setCaret } from './persistence'
+import {
+  getCaret,
+  setCaret,
+  pushRecentFile,
+  pushRecentFolder,
+  getRecentFiles,
+  getRecentFolders,
+  clearRecents
+} from './persistence'
 
 beforeEach(() => localStorage.clear())
+
+describe('clearRecents', () => {
+  it('empties both the recent-files and recent-folders lists', () => {
+    pushRecentFile('/a.md')
+    pushRecentFolder('/notes')
+    expect(getRecentFiles()).toHaveLength(1)
+    expect(getRecentFolders()).toHaveLength(1)
+    clearRecents()
+    expect(getRecentFiles()).toEqual([])
+    expect(getRecentFolders()).toEqual([])
+  })
+})
 
 describe('caret persistence', () => {
   it('round-trips a caret offset per path', () => {

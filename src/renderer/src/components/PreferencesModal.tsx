@@ -8,10 +8,12 @@ import { SPELL_LANGUAGES } from '@renderer/lib/spell'
 import { COMMANDS } from '@renderer/lib/commands'
 import { keyComboToCM } from '@renderer/components/Editor/customKeymap'
 import { triggerConnect, disconnectAccount } from '@renderer/lib/drive'
+import { clearRecents } from '@renderer/lib/persistence'
 
-type Section = 'appearance' | 'editor' | 'keyboard' | 'markdown' | 'image' | 'export' | 'cloud'
+type Section = 'general' | 'appearance' | 'editor' | 'keyboard' | 'markdown' | 'image' | 'export' | 'cloud'
 
 const SECTIONS: { id: Section; label: string }[] = [
+  { id: 'general', label: 'General' },
   { id: 'appearance', label: 'Appearance' },
   { id: 'editor', label: 'Editor' },
   { id: 'keyboard', label: 'Keyboard' },
@@ -322,6 +324,28 @@ function Export(): JSX.Element {
   )
 }
 
+function General(): JSX.Element {
+  const [cleared, setCleared] = useState(false)
+  return (
+    <>
+      <Row
+        label="Recent files & folders"
+        hint="Clear the history shown in File ▸ Open Recent and the sidebar start screen."
+      >
+        <button
+          onClick={() => {
+            clearRecents()
+            setCleared(true)
+          }}
+          className="rounded border border-line px-3 py-1 text-sm text-ink hover:border-[#d35454] hover:text-[#d35454]"
+        >
+          {cleared ? 'Cleared ✓' : 'Clear recents'}
+        </button>
+      </Row>
+    </>
+  )
+}
+
 function Cloud(): JSX.Element {
   const accounts = useAppStore((s) => s.driveAccounts)
   const clientId = useAppStore((s) => s.driveClientId)
@@ -425,6 +449,7 @@ export default function PreferencesModal(): JSX.Element | null {
           ))}
         </div>
         <div className="min-w-0 flex-1 overflow-y-auto p-5">
+          {section === 'general' && <General />}
           {section === 'appearance' && <Appearance />}
           {section === 'editor' && <Editor />}
           {section === 'keyboard' && <Keyboard />}
