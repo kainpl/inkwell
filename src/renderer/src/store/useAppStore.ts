@@ -111,6 +111,9 @@ interface AppState {
   /** Custom keyboard shortcuts: command id → CodeMirror key. */
   keyBindings: Record<string, string>
   setKeyBinding: (commandId: string, key: string | null) => void
+  /** BYO Google OAuth client id (persisted; empty ⇒ built-in). */
+  driveClientId: string
+  setDriveClientId: (id: string) => void
   /** Bumped when the active spell checker (re)loads, to retrigger decoration. */
   spellVersion: number
   bumpSpellVersion: () => void
@@ -287,6 +290,7 @@ export const useAppStore = create<AppState>((set) => ({
   learnedWords: s0.learnedWords,
   searchServices: s0.searchServices,
   keyBindings: s0.keyBindings,
+  driveClientId: s0.driveClientId,
   spellVersion: 0,
   exportStyle: s0.exportStyle,
   markdownFeatures: s0.markdownFeatures,
@@ -318,6 +322,7 @@ export const useAppStore = create<AppState>((set) => ({
       else delete next[commandId]
       return { keyBindings: next }
     }),
+  setDriveClientId: (driveClientId) => set({ driveClientId }),
   setExportStyle: (exportStyle) => set({ exportStyle }),
   setMarkdownFeature: (key, on) =>
     set((s) => ({ markdownFeatures: { ...s.markdownFeatures, [key]: on } })),

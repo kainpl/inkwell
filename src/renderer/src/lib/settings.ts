@@ -54,6 +54,8 @@ export interface Settings {
   searchServices: { name: string; url: string }[]
   /** Custom keyboard shortcuts: command id → CodeMirror key (e.g. `Mod-Shift-k`). */
   keyBindings: Record<string, string>
+  /** BYO Google OAuth client id (empty ⇒ use the built-in one). */
+  driveClientId: string
 }
 
 export const FONT_STACKS: Record<EditorFont, string> = {
@@ -89,7 +91,8 @@ export const DEFAULT_SETTINGS: Settings = {
     { name: 'DuckDuckGo', url: 'https://duckduckgo.com/?q=%s' },
     { name: 'Wikipedia', url: 'https://en.wikipedia.org/w/index.php?search=%s' }
   ],
-  keyBindings: {}
+  keyBindings: {},
+  driveClientId: ''
 }
 
 const KEY = 'inkwell.settings'
@@ -120,7 +123,8 @@ function sanitize(s: Settings): Settings {
     editorFontSize: clamp(s.editorFontSize, 10, 40, DEFAULT_SETTINGS.editorFontSize),
     editorLineHeight: clamp(s.editorLineHeight, 1, 3, DEFAULT_SETTINGS.editorLineHeight),
     contentWidth: clamp(s.contentWidth, 40, 100, DEFAULT_SETTINGS.contentWidth),
-    sidebarWidth: clamp(s.sidebarWidth, PANEL_MIN, PANEL_MAX, DEFAULT_SETTINGS.sidebarWidth)
+    sidebarWidth: clamp(s.sidebarWidth, PANEL_MIN, PANEL_MAX, DEFAULT_SETTINGS.sidebarWidth),
+    driveClientId: typeof s.driveClientId === 'string' ? s.driveClientId : ''
   }
 }
 

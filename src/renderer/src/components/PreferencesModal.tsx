@@ -7,8 +7,9 @@ import { MARKDOWN_FEATURE_LIST } from '@renderer/lib/markdownFeatures'
 import { SPELL_LANGUAGES } from '@renderer/lib/spell'
 import { COMMANDS } from '@renderer/lib/commands'
 import { keyComboToCM } from '@renderer/components/Editor/customKeymap'
+import { triggerConnect, disconnectAccount } from '@renderer/lib/drive'
 
-type Section = 'appearance' | 'editor' | 'keyboard' | 'markdown' | 'image' | 'export'
+type Section = 'appearance' | 'editor' | 'keyboard' | 'markdown' | 'image' | 'export' | 'cloud'
 
 const SECTIONS: { id: Section; label: string }[] = [
   { id: 'appearance', label: 'Appearance' },
@@ -16,7 +17,8 @@ const SECTIONS: { id: Section; label: string }[] = [
   { id: 'keyboard', label: 'Keyboard' },
   { id: 'markdown', label: 'Markdown' },
   { id: 'image', label: 'Image' },
-  { id: 'export', label: 'Export' }
+  { id: 'export', label: 'Export' },
+  { id: 'cloud', label: 'Cloud' }
 ]
 
 /** Capture a shortcut: click, press a key combo (Esc cancels). */
@@ -320,6 +322,51 @@ function Export(): JSX.Element {
   )
 }
 
+function Cloud(): JSX.Element {
+  const accounts = useAppStore((s) => s.driveAccounts)
+  const clientId = useAppStore((s) => s.driveClientId)
+  const setClientId = useAppStore((s) => s.setDriveClientId)
+  return (
+    <>
+      <div className="mb-2 text-sm font-medium text-ink">Google Drive accounts</div>
+      {accounts.length === 0 ? (
+        <p className="py-1 text-[13px] text-faint">No accounts connected.</p>
+      ) : (
+        accounts.map((a) => (
+          <div key={a.accountId} className="flex items-center justify-between gap-3 py-1.5">
+            <span className="min-w-0 flex-1 truncate text-sm text-ink">☁️ {a.email}</span>
+            <button
+              onClick={() => void disconnectAccount(a.accountId)}
+              className="shrink-0 rounded border border-line px-2 py-0.5 text-xs text-ink hover:border-[#d35454] hover:text-[#d35454]"
+            >
+              Disconnect
+            </button>
+          </div>
+        ))
+      )}
+      <button
+        onClick={triggerConnect}
+        className="mt-2 rounded bg-accent px-3 py-1.5 text-sm font-medium text-paper"
+      >
+        Connect account
+      </button>
+
+      <div className="mt-6 mb-1 text-sm font-medium text-ink">Advanced</div>
+      <Row
+        label="Custom OAuth client ID"
+        hint="Optional. Use your own Google Cloud “Desktop app” client to avoid the unverified-app screen and user cap. Leave empty for the built-in client."
+      >
+        <input
+          className={FIELD + ' w-64'}
+          value={clientId}
+          placeholder="xx…apps.googleusercontent.com"
+          onChange={(e) => setClientId(e.target.value.trim())}
+        />
+      </Row>
+    </>
+  )
+}
+
 /** Preferences panel (Edit → Preferences…). */
 export default function PreferencesModal(): JSX.Element | null {
   const [open, setOpen] = useState(false)
@@ -367,6 +414,7 @@ export default function PreferencesModal(): JSX.Element | null {
           {section === 'markdown' && <Markdown />}
           {section === 'image' && <Image />}
           {section === 'export' && <Export />}
+          {section === 'cloud' && <Cloud />}
         </div>
       </div>
     </div>

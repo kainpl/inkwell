@@ -26,7 +26,8 @@ function currentSettings(): Settings {
     spellLanguages: s.spellLanguages,
     learnedWords: s.learnedWords,
     searchServices: s.searchServices,
-    keyBindings: s.keyBindings
+    keyBindings: s.keyBindings,
+    driveClientId: s.driveClientId
   }
 }
 
@@ -44,6 +45,11 @@ function applyWindow(s: Settings): void {
   window.api.setMenuBarAutoHide(s.autoHideMenuBar)
 }
 
+/** Push the BYO Drive OAuth client id to the main process (empty ⇒ built-in). */
+function applyDrive(s: Settings): void {
+  void window.api.drive.setClientId(s.driveClientId || null)
+}
+
 function equal(a: Settings, b: Settings): boolean {
   return (Object.keys(a) as (keyof Settings)[]).every((k) => a[k] === b[k])
 }
@@ -57,12 +63,14 @@ export function startSettingsSync(): () => void {
   let last = currentSettings()
   applyTypography(last)
   applyWindow(last)
+  applyDrive(last)
   return useAppStore.subscribe(() => {
     const cur = currentSettings()
     if (equal(cur, last)) return
     last = cur
     applyTypography(cur)
     applyWindow(cur)
+    applyDrive(cur)
     saveSettings(cur)
   })
 }
