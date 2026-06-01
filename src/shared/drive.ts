@@ -45,3 +45,39 @@ export function parseRef(path: string | null): FileRef {
 export function isGdrive(path: string | null): boolean {
   return parseRef(path).provider === 'gdrive'
 }
+
+const FOLDER_MIME = 'application/vnd.google-apps.folder'
+
+interface RawFile {
+  id: string
+  name: string
+  mimeType: string
+  modifiedTime?: string
+}
+
+/** Map a Drive `files.list` payload to sorted nodes (folders first, then name). */
+export function mapDriveFiles(files: RawFile[]): DriveNode[] {
+  return files
+    .map((f) => ({
+      id: f.id,
+      name: f.name,
+      type: f.mimeType === FOLDER_MIME ? ('directory' as const) : ('file' as const),
+      mimeType: f.mimeType,
+      modifiedTime: f.modifiedTime ?? ''
+    }))
+    .sort((a, b) =>
+      a.type !== b.type ? (a.type === 'directory' ? -1 : 1) : a.name.localeCompare(b.name)
+    )
+}
+
+/** True for Google-native docs (Docs/Sheets/…) that aren't raw text in v1. */
+export function isGoogleDoc(mimeType: string): boolean {
+  return mimeType.startsWith('application/vnd.google-apps.') && mimeType !== FOLDER_MIME
+}
+
+/** True when the remote file changed since we loaded `base` (both RFC-3339).
+ *  An empty/unknown time on either side never blocks. */
+export function isConflict(base: string, remote: string): boolean {
+  if (!remote || !base) return false
+  return new Date(remote).getTime() > new Date(base).getTime()
+}

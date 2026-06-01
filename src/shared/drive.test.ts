@@ -1,4 +1,4 @@
-import { gdriveRef, parseRef, isGdrive } from './drive'
+import { gdriveRef, parseRef, isGdrive, mapDriveFiles, isGoogleDoc, isConflict } from './drive'
 
 describe('drive refs', () => {
   it('builds a gdrive uri', () => {
@@ -27,5 +27,41 @@ describe('drive refs', () => {
     expect(isGdrive('gdrive://a/b')).toBe(true)
     expect(isGdrive('C:/x.md')).toBe(false)
     expect(isGdrive(null)).toBe(false)
+  })
+})
+
+describe('mapDriveFiles', () => {
+  const files = [
+    { id: 'd1', name: 'Notes', mimeType: 'application/vnd.google-apps.folder', modifiedTime: '2026-01-01T00:00:00Z' },
+    { id: 'f1', name: 'a.md', mimeType: 'text/markdown', modifiedTime: '2026-01-02T00:00:00Z' },
+    { id: 'f2', name: 'b.txt', mimeType: 'text/plain', modifiedTime: '2026-01-03T00:00:00Z' }
+  ]
+
+  it('marks folders vs files and sorts folders-first then by name', () => {
+    const nodes = mapDriveFiles(files)
+    expect(nodes.map((n) => [n.name, n.type])).toEqual([
+      ['Notes', 'directory'],
+      ['a.md', 'file'],
+      ['b.txt', 'file']
+    ])
+  })
+
+  it('tolerates a missing modifiedTime', () => {
+    expect(mapDriveFiles([{ id: 'x', name: 'x', mimeType: 'text/markdown' }])[0].modifiedTime).toBe('')
+  })
+
+  it('flags Google-native docs', () => {
+    expect(isGoogleDoc('application/vnd.google-apps.document')).toBe(true)
+    expect(isGoogleDoc('application/vnd.google-apps.folder')).toBe(false)
+    expect(isGoogleDoc('text/markdown')).toBe(false)
+  })
+})
+
+describe('isConflict', () => {
+  it('flags a remote change since the doc was loaded', () => {
+    expect(isConflict('2026-01-01T00:00:00Z', '2026-01-02T00:00:00Z')).toBe(true)
+    expect(isConflict('2026-01-02T00:00:00Z', '2026-01-02T00:00:00Z')).toBe(false)
+    expect(isConflict('2026-01-02T00:00:00Z', '')).toBe(false) // unknown remote → don't block
+    expect(isConflict('', '2026-01-02T00:00:00Z')).toBe(false) // unknown base → don't block
   })
 })
