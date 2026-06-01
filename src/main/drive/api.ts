@@ -31,6 +31,9 @@ export async function list(token: string, folderId: string): Promise<DriveNode[]
       'nextPageToken,files(id,name,mimeType,modifiedTime,shortcutDetails(targetId,targetMimeType))'
     )
     u.searchParams.set('pageSize', '200')
+    // Include shared drives + shared-with-me content (e.g. a shortcut's target).
+    u.searchParams.set('supportsAllDrives', 'true')
+    u.searchParams.set('includeItemsFromAllDrives', 'true')
     if (pageToken) u.searchParams.set('pageToken', pageToken)
     const r = await net.fetch(u.toString(), { headers: auth(token) })
     if (!r.ok) throw new Error(`list ${r.status}: ${await r.text()}`)
@@ -43,21 +46,26 @@ export async function list(token: string, folderId: string): Promise<DriveNode[]
 
 /** Read a file's raw text content. */
 export async function read(token: string, fileId: string): Promise<string> {
-  const r = await net.fetch(`${BASE}/files/${fileId}?alt=media`, { headers: auth(token) })
+  const r = await net.fetch(`${BASE}/files/${fileId}?alt=media&supportsAllDrives=true`, {
+    headers: auth(token)
+  })
   if (!r.ok) throw new Error(`read ${r.status}: ${await r.text()}`)
   return r.text()
 }
 
 /** Fetch lightweight metadata (modifiedTime) for conflict detection. */
 export async function meta(token: string, fileId: string): Promise<{ modifiedTime: string; name: string }> {
-  const r = await net.fetch(`${BASE}/files/${fileId}?fields=id,name,modifiedTime`, { headers: auth(token) })
+  const r = await net.fetch(
+    `${BASE}/files/${fileId}?fields=id,name,modifiedTime&supportsAllDrives=true`,
+    { headers: auth(token) }
+  )
   if (!r.ok) throw new Error(`meta ${r.status}: ${await r.text()}`)
   return r.json() as Promise<{ modifiedTime: string; name: string }>
 }
 
 /** Overwrite a file's content; returns the new modifiedTime. */
 export async function write(token: string, fileId: string, content: string): Promise<{ modifiedTime: string }> {
-  const r = await net.fetch(`${UPLOAD}/files/${fileId}?uploadType=media&fields=modifiedTime`, {
+  const r = await net.fetch(`${UPLOAD}/files/${fileId}?uploadType=media&fields=modifiedTime&supportsAllDrives=true`, {
     method: 'PATCH',
     headers: { ...auth(token), 'content-type': 'text/markdown' },
     body: content
@@ -78,7 +86,7 @@ export async function create(
   const body =
     `--${boundary}\r\ncontent-type: application/json; charset=UTF-8\r\n\r\n${metadata}\r\n` +
     `--${boundary}\r\ncontent-type: text/markdown\r\n\r\n${content}\r\n--${boundary}--`
-  const r = await net.fetch(`${UPLOAD}/files?uploadType=multipart&fields=id,name,mimeType,modifiedTime`, {
+  const r = await net.fetch(`${UPLOAD}/files?uploadType=multipart&fields=id,name,mimeType,modifiedTime&supportsAllDrives=true`, {
     method: 'POST',
     headers: { ...auth(token), 'content-type': `multipart/related; boundary=${boundary}` },
     body
