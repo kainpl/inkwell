@@ -9,6 +9,7 @@ import {
   newDocument,
   openFileFromDialog,
   openFolderFromDialog,
+  openPath,
   reopenClosedFile,
   restoreSession,
   recoverDrafts,
@@ -131,6 +132,9 @@ export default function App(): JSX.Element {
 
   // Pandoc export-menu commands (docx/odt/rtf/epub/latex).
   useEffect(() => window.api.onExportPandoc((format) => void exportPandocFile(format)), [])
+
+  // The OS handed us a file to open (file association / double-click).
+  useEffect(() => window.api.onOpenExternalFile((path) => void openPath(path)), [])
 
   // Keep the main process informed of unsaved state across ALL tabs (drives the
   // window-close guard), and keep the restorable session file on the active tab.

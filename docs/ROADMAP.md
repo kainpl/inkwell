@@ -98,6 +98,7 @@ Auto Save & Version Control*) і з поточним кодом Inkwell.
 - ✅ **Line Endings** CRLF/LF (меню File) + **Insert Final Newline on Save** — чистий `saveOptions` (нормалізація при записі), з тестами
   - ⬜ Reopen with Encoding (не-UTF-8) — рідко потрібне, додамо за запитом
 - ✅ **Стеження за змінами файлу на диску** + перезавантаження/конфлікт: `fs.watch` у main (ігнорує власні записи через `lastWritten`); чистий буфер тихо перезавантажується, «брудний» — питає Reload/Keep Mine; видалення файлу робить буфер «брудним» (чистий `externalChangeAction` з тестами)
+- ✅ **Асоціації файлів** (відкриття `.md`/`.markdown`/`.mdown`/`.mkd` подвійним кліком): декларація `fileAssociations` в `electron-builder.yml` (реєструється при встановленні запакованої аппки); у main — single-instance lock + `open-file` (macOS) + парсинг argv (Win/Linux, чистий `fileFromArgv` з тестами) → IPC у рендер → `openPath`. Перевірено наживо ланцюг відкриття; OS-реєстрація — після пакування
 
 ## Фаза 5 — експорт і друк
 > **Фундамент (5.1):** рушій `doc → standalone HTML` (`exportRender.ts`: markdown-it

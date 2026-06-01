@@ -218,6 +218,8 @@ export const IPC = {
   fileRemovedExternally: 'watch:removed',
   // renderer -> main: apply the auto-hide-menu-bar preference to the window
   setMenuBarAutoHide: 'app:setMenuBarAutoHide',
+  // main -> renderer: open a file the OS launched/handed us (file association)
+  openExternalFile: 'app:openExternalFile',
   // app lifecycle / unsaved-changes guard
   setDirty: 'app:setDirty',
   closeWindow: 'app:closeWindow',

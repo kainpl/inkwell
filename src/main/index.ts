@@ -8,6 +8,7 @@ import { registerTemplateIpc } from './ipc/templates'
 import { registerSpellIpc } from './ipc/spell'
 import { buildMenu } from './menu'
 import { IPC } from '../shared/ipc'
+import { fileFromArgv } from '../shared/openFile'
 
 // Local images are referenced via a custom `inkfile://` scheme instead of raw
 // `file://`: Chromium blocks `file://` subresources when the page is served
@@ -90,6 +91,43 @@ function createWindow(): BrowserWindow {
   return win
 }
 
+// A file the OS handed us before a window existed (macOS open-file, or argv).
+let pendingFile: string | null = null
+
+/** Open a path in the running window, or queue it until one exists. */
+function openExternalFile(filePath: string): void {
+  const win = BrowserWindow.getAllWindows()[0]
+  if (win) {
+    win.webContents.send(IPC.openExternalFile, filePath)
+    if (win.isMinimized()) win.restore()
+    win.focus()
+  } else {
+    pendingFile = filePath
+  }
+}
+
+// macOS opens files via this event (may fire before the app is ready).
+app.on('open-file', (event, filePath) => {
+  event.preventDefault()
+  if (app.isReady()) openExternalFile(filePath)
+  else pendingFile = filePath
+})
+
+// Single instance: double-clicking a .md while running routes the file to the
+// existing window instead of launching a second copy.
+if (!app.requestSingleInstanceLock()) {
+  app.quit()
+}
+app.on('second-instance', (_e, argv) => {
+  const file = fileFromArgv(argv)
+  const win = BrowserWindow.getAllWindows()[0]
+  if (file) openExternalFile(file)
+  else if (win) {
+    if (win.isMinimized()) win.restore()
+    win.focus()
+  }
+})
+
 app.whenReady().then(() => {
   protocol.handle('inkfile', handleInkfile)
   registerFileIpc()
@@ -114,6 +152,14 @@ app.whenReady().then(() => {
 
   const win = createWindow()
   buildMenu(win)
+
+  // Open the file we were launched with (argv on Windows/Linux, or a macOS
+  // open-file queued before the window existed) once the renderer is ready.
+  win.webContents.once('did-finish-load', () => {
+    const initial = pendingFile ?? fileFromArgv(process.argv)
+    pendingFile = null
+    if (initial) win.webContents.send(IPC.openExternalFile, initial)
+  })
 
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow()

@@ -196,6 +196,13 @@ const api = {
   triggerMenu: (channel: string, arg?: string): void =>
     ipcRenderer.send(IPC.triggerMenu, channel, arg),
 
+  /** The OS asked us to open a file (file association); handler gets the path. */
+  onOpenExternalFile: (handler: (path: string) => void): (() => void) => {
+    const listener = (_e: unknown, path: string): void => handler(path)
+    ipcRenderer.on(IPC.openExternalFile, listener)
+    return () => ipcRenderer.removeListener(IPC.openExternalFile, listener)
+  },
+
   /** Tell the main process whether the document has unsaved changes. */
   setDirty: (dirty: boolean): void => ipcRenderer.send(IPC.setDirty, dirty),
   /** Ask the main process to close the window (after the guard has passed). */
