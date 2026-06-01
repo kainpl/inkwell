@@ -1,5 +1,9 @@
 import { useAppStore } from '@renderer/store/useAppStore'
 import { useConfirm } from '@renderer/store/useConfirm'
+import { isGdrive } from '@shared/drive'
+
+/** Drive docs have no on-disk file to watch — never point the fs watcher at them. */
+const watchable = (p: string | null): string | null => (isGdrive(p) ? null : p)
 
 /**
  * Watch the open document for changes made by other programs. The main process
@@ -60,12 +64,12 @@ function handleExternalRemoval(): void {
  */
 export function startDiskWatch(): () => void {
   let watched: string | null = useAppStore.getState().doc.path
-  void window.api.watchFile(watched)
+  void window.api.watchFile(watchable(watched))
 
   const unsub = useAppStore.subscribe((s) => {
     if (s.doc.path !== watched) {
       watched = s.doc.path
-      void window.api.watchFile(watched)
+      void window.api.watchFile(watchable(watched))
     }
   })
   const offChanged = window.api.onFileChangedExternally((content) => {

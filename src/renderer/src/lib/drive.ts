@@ -54,3 +54,15 @@ export async function openDriveFile(accountId: string, node: DriveNode): Promise
   setDriveBase(path, modifiedTime)
   useAppStore.getState().openInTab({ path, name: node.name, content })
 }
+
+/** Create an empty markdown file in a Drive folder and open it. */
+export async function createDriveFile(
+  accountId: string,
+  parentId: string,
+  name: string
+): Promise<void> {
+  const node = await window.api.drive.create(accountId, parentId, name, '')
+  const path = gdriveRef(accountId, node.id)
+  setDriveBase(path, node.modifiedTime)
+  useAppStore.getState().openInTab({ path, name: node.name, content: '' })
+}
