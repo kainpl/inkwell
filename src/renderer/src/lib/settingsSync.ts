@@ -23,7 +23,8 @@ function currentSettings(): Settings {
     smartPunctuation: s.smartPunctuation,
     spellCheck: s.spellCheck,
     spellLanguages: s.spellLanguages,
-    learnedWords: s.learnedWords
+    learnedWords: s.learnedWords,
+    searchServices: s.searchServices
   }
 }
 

@@ -94,6 +94,9 @@ interface AppState {
   toggleSpellLanguage: (lang: string) => void
   learnedWords: string[]
   addLearnedWord: (word: string) => void
+  /** "Search With…" context-menu services. */
+  searchServices: { name: string; url: string }[]
+  setSearchServices: (services: { name: string; url: string }[]) => void
   /** Bumped when the active spell checker (re)loads, to retrigger decoration. */
   spellVersion: number
   bumpSpellVersion: () => void
@@ -259,6 +262,7 @@ export const useAppStore = create<AppState>((set) => ({
   spellCheck: s0.spellCheck,
   spellLanguages: s0.spellLanguages,
   learnedWords: s0.learnedWords,
+  searchServices: s0.searchServices,
   spellVersion: 0,
   exportStyle: s0.exportStyle,
   markdownFeatures: s0.markdownFeatures,
@@ -281,6 +285,7 @@ export const useAppStore = create<AppState>((set) => ({
       learnedWords: s.learnedWords.includes(word) ? s.learnedWords : [...s.learnedWords, word]
     })),
   bumpSpellVersion: () => set((s) => ({ spellVersion: s.spellVersion + 1 })),
+  setSearchServices: (searchServices) => set({ searchServices }),
   setExportStyle: (exportStyle) => set({ exportStyle }),
   setMarkdownFeature: (key, on) =>
     set((s) => ({ markdownFeatures: { ...s.markdownFeatures, [key]: on } })),

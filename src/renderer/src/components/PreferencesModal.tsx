@@ -147,6 +147,54 @@ function Editor(): JSX.Element {
           ))}
         </div>
       </div>
+      <div className="py-2">
+        <div className="text-sm text-ink">“Search With…” services</div>
+        <div className="text-[11px] text-faint">right-click a selection; %s is the query</div>
+        <div className="mt-1.5 flex flex-col gap-1">
+          {s.searchServices.map((sv, i) => (
+            <div key={i} className="flex items-center gap-1">
+              <input
+                className={`${FIELD} w-24`}
+                value={sv.name}
+                placeholder="Name"
+                onChange={(e) =>
+                  s.setSearchServices(
+                    s.searchServices.map((x, j) => (j === i ? { ...x, name: e.target.value } : x))
+                  )
+                }
+              />
+              <input
+                className={`${FIELD} flex-1`}
+                value={sv.url}
+                placeholder="https://…?q=%s"
+                onChange={(e) =>
+                  s.setSearchServices(
+                    s.searchServices.map((x, j) => (j === i ? { ...x, url: e.target.value } : x))
+                  )
+                }
+              />
+              <button
+                title="Remove"
+                className="px-1 text-faint hover:text-ink"
+                onClick={() => s.setSearchServices(s.searchServices.filter((_, j) => j !== i))}
+              >
+                ✕
+              </button>
+            </div>
+          ))}
+          <button
+            className="self-start rounded border border-line px-2 py-0.5 text-xs text-ink hover:bg-ink/5"
+            onClick={() =>
+              s.setSearchServices([
+                ...s.searchServices,
+                { name: 'New', url: 'https://example.com/?q=%s' }
+              ])
+            }
+          >
+            + Add service
+          </button>
+        </div>
+      </div>
     </>
   )
 }

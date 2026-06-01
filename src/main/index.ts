@@ -136,6 +136,11 @@ app.whenReady().then(() => {
   registerTemplateIpc()
   registerSpellIpc()
 
+  // "Search With…": open a query URL in the default browser (http/https only).
+  ipcMain.on(IPC.openExternalUrl, (_e, url: string) => {
+    if (/^https?:\/\//i.test(url)) void shell.openExternal(url)
+  })
+
   // Command palette: re-fire a menu channel back to the sender's renderer.
   ipcMain.on(IPC.triggerMenu, (e, channel: string, arg?: string) => {
     BrowserWindow.fromWebContents(e.sender)?.webContents.send(channel, arg)

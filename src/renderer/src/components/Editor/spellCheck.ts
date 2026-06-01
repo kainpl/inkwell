@@ -72,20 +72,33 @@ function wordAt(state: EditorState, pos: number): { from: number; to: number; te
 }
 
 /**
- * Right-clicking a misspelled word opens the suggestions menu. We emit a window
- * event with the word + range + screen position; `SpellMenu` renders the menu.
+ * Right-click in the editor opens our context menu (spell suggestions when on a
+ * misspelled word, plus Search With… / clipboard for a selection or word). We
+ * emit a window event with the details; `EditorContextMenu` renders it.
  */
-export const spellContextMenu: Extension = EditorView.domEventHandlers({
+export const editorContextMenu: Extension = EditorView.domEventHandlers({
   contextmenu(event, view) {
-    if (!useAppStore.getState().spellCheck || !hasCheckers()) return false
     const pos = view.posAtCoords({ x: event.clientX, y: event.clientY })
     if (pos == null) return false
+    const main = view.state.selection.main
+    const selection = view.state.sliceDoc(main.from, main.to)
     const word = wordAt(view.state, pos)
-    if (!word || spellCorrect(word.text)) return false
+    if (!word && !selection.trim()) return false // nothing useful → native menu
+    const spellOn = useAppStore.getState().spellCheck && hasCheckers()
+    const misspelled = !!(spellOn && word && !spellCorrect(word.text))
     event.preventDefault()
     window.dispatchEvent(
-      new CustomEvent('ink:spell-menu', {
-        detail: { ...word, x: event.clientX, y: event.clientY }
+      new CustomEvent('ink:context-menu', {
+        detail: {
+          x: event.clientX,
+          y: event.clientY,
+          word: word?.text ?? null,
+          from: word?.from ?? null,
+          to: word?.to ?? null,
+          misspelled,
+          hasSelection: selection.trim().length > 0,
+          query: (selection.trim() ? selection : word?.text) ?? ''
+        }
       })
     )
     return true

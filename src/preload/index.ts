@@ -196,6 +196,9 @@ const api = {
   triggerMenu: (channel: string, arg?: string): void =>
     ipcRenderer.send(IPC.triggerMenu, channel, arg),
 
+  /** Open a URL in the default browser ("Search With…"). */
+  openExternalUrl: (url: string): void => ipcRenderer.send(IPC.openExternalUrl, url),
+
   /** The OS asked us to open a file (file association); handler gets the path. */
   onOpenExternalFile: (handler: (path: string) => void): (() => void) => {
     const listener = (_e: unknown, path: string): void => handler(path)

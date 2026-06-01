@@ -21,7 +21,7 @@ import { search, searchKeymap, selectNextOccurrence } from '@codemirror/search'
 import { inkTheme, inkHighlight } from './theme'
 import { emojiCompletion } from './livePreview'
 import { smartPunctuation } from './smartPunctuation'
-import { spellCheckPlugin, spellContextMenu } from './spellCheck'
+import { spellCheckPlugin, editorContextMenu } from './spellCheck'
 import { imagePaste } from './imagePaste'
 import {
   previewCompartment,
@@ -126,7 +126,7 @@ export function inkwellExtensions(onChange: (value: string) => void): Extension[
     inkTheme,
     inkHighlight,
     spellCheckPlugin,
-    spellContextMenu,
+    editorContextMenu,
     // Multiple cursors: draw all selection ranges + allow more than one. Add a
     // cursor with Alt-click, Ctrl/Cmd+D (next occurrence), Ctrl/Cmd+Alt+↑/↓.
     drawSelection(),

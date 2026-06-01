@@ -220,6 +220,8 @@ export const IPC = {
   setMenuBarAutoHide: 'app:setMenuBarAutoHide',
   // main -> renderer: open a file the OS launched/handed us (file association)
   openExternalFile: 'app:openExternalFile',
+  // renderer -> main: open a URL in the default browser ("Search With…")
+  openExternalUrl: 'app:openExternalUrl',
   // app lifecycle / unsaved-changes guard
   setDirty: 'app:setDirty',
   closeWindow: 'app:closeWindow',

@@ -57,7 +57,7 @@ import BrowseVersions from '@renderer/components/BrowseVersions'
 import PageSetupModal from '@renderer/components/PageSetupModal'
 import PreferencesModal from '@renderer/components/PreferencesModal'
 import PandocDownload from '@renderer/components/PandocDownload'
-import SpellMenu from '@renderer/components/SpellMenu'
+import EditorContextMenu from '@renderer/components/EditorContextMenu'
 import SpellDownload from '@renderer/components/SpellDownload'
 import PromptModal from '@renderer/components/PromptModal'
 import ConfirmUnsavedModal from '@renderer/components/ConfirmUnsavedModal'
@@ -216,7 +216,7 @@ export default function App(): JSX.Element {
       <PageSetupModal />
       <PreferencesModal />
       <PandocDownload />
-      <SpellMenu />
+      <EditorContextMenu />
       <SpellDownload />
       <PromptModal />
       <ConfirmUnsavedModal />

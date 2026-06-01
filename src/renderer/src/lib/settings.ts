@@ -44,6 +44,8 @@ export interface Settings {
   spellLanguages: string[]
   /** Words the user added to their dictionary. */
   learnedWords: string[]
+  /** "Search With…" context-menu services (`%s` is the query). */
+  searchServices: { name: string; url: string }[]
 }
 
 export const FONT_STACKS: Record<EditorFont, string> = {
@@ -72,7 +74,12 @@ export const DEFAULT_SETTINGS: Settings = {
   smartPunctuation: false,
   spellCheck: false,
   spellLanguages: ['en'],
-  learnedWords: []
+  learnedWords: [],
+  searchServices: [
+    { name: 'Google', url: 'https://www.google.com/search?q=%s' },
+    { name: 'DuckDuckGo', url: 'https://duckduckgo.com/?q=%s' },
+    { name: 'Wikipedia', url: 'https://en.wikipedia.org/w/index.php?search=%s' }
+  ]
 }
 
 const KEY = 'inkwell.settings'
@@ -98,6 +105,7 @@ function sanitize(s: Settings): Settings {
     markdownFeatures: normalizeFeatures(s.markdownFeatures),
     learnedWords: Array.isArray(s.learnedWords) ? s.learnedWords : [],
     spellLanguages: normalizeSpellLanguages(s),
+    searchServices: Array.isArray(s.searchServices) ? s.searchServices : DEFAULT_SETTINGS.searchServices,
     editorFontSize: clamp(s.editorFontSize, 10, 40, DEFAULT_SETTINGS.editorFontSize),
     editorLineHeight: clamp(s.editorLineHeight, 1, 3, DEFAULT_SETTINGS.editorLineHeight),
     contentWidth: clamp(s.contentWidth, 40, 100, DEFAULT_SETTINGS.contentWidth)
