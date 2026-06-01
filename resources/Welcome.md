@@ -114,6 +114,15 @@ columns or change alignment. Click outside the table to see it rendered.
 This heading has a custom id (`{#anchors}` — hidden on idle lines), so
 [this link](#anchors) jumps straight to it, and exports get an `id` you can deep-link.
 
+## Definition lists
+
+Markdown
+: A lightweight markup language for formatting plain text.
+: Created by John Gruber in 2004.
+
+Inkwell
+: A seamless Markdown editor with a live preview.
+
 ### Next
 
 Open a folder (`Ctrl/⌘ Shift O`) to browse files, or just start writing.

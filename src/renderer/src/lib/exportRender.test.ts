@@ -43,6 +43,13 @@ describe('renderMarkdownBody', () => {
     expect(html).not.toContain('id="sec"')
   })
 
+  it('renders a definition list', () => {
+    const html = renderMarkdownBody('Term\n: A definition')
+    expect(html).toContain('<dl>')
+    expect(html).toContain('<dt>Term</dt>')
+    expect(html).toContain('<dd>A definition</dd>')
+  })
+
   it('renders highlight, sub and sup', () => {
     const html = renderMarkdownBody('==hi== H~2~O x^2^')
     expect(html).toContain('<mark>hi</mark>')

@@ -159,6 +159,19 @@ describe('buildDecorations — horizontal rule & links', () => {
     expect(decorate('### Title {#id}', [1]).some((i) => isHidden(i) && i.from === 9 && i.to === 15)).toBe(false)
   })
 
+  it('styles a definition list (bold term, indented definition, hidden marker)', () => {
+    // "Term\n: def" — term at 0, definition line ": def" at 5.
+    const items = decorate('Term\n: def')
+    expect(items.some((i) => i.spec.class === 'ink-dt' && i.from === 0)).toBe(true)
+    expect(items.some((i) => i.spec.class === 'ink-dd' && i.from === 5)).toBe(true)
+    // The ": " marker (5..7) is hidden (replace, no widget/class).
+    expect(
+      items.some(
+        (i) => i.from === 5 && i.to === 7 && i.spec.widget === undefined && i.spec.class === undefined
+      )
+    ).toBe(true)
+  })
+
   it('returns the #anchor target for an internal link', () => {
     expect(linkUrlAt(parsed('jump to [tasks](#tasks)'), 10)).toBe('#tasks')
   })

@@ -4,6 +4,7 @@ import taskLists from 'markdown-it-task-lists'
 import sub from 'markdown-it-sub'
 import sup from 'markdown-it-sup'
 import mark from 'markdown-it-mark'
+import deflist from 'markdown-it-deflist'
 import texmath from 'markdown-it-texmath'
 import katex from 'katex'
 import katexCss from 'katex/dist/katex.min.css?raw'
@@ -81,6 +82,7 @@ function buildMd(f: MarkdownFeatures): MarkdownIt {
   if (f.footnotes) m.use(footnote)
   if (f.subSup) m.use(sub).use(sup)
   if (f.highlight) m.use(mark)
+  if (f.defList) m.use(deflist)
   if (f.math)
     m.use(texmath, { engine: katex, delimiters: 'dollars', katexOptions: { throwOnError: false } })
   if (f.emoji) m.use(emojiPlugin)

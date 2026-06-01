@@ -19,6 +19,11 @@ declare module 'markdown-it-mark' {
   const plugin: PluginSimple
   export default plugin
 }
+declare module 'markdown-it-deflist' {
+  import type { PluginSimple } from 'markdown-it'
+  const plugin: PluginSimple
+  export default plugin
+}
 declare module 'markdown-it-task-lists' {
   import type { PluginWithOptions } from 'markdown-it'
   const plugin: PluginWithOptions<{ enabled?: boolean; label?: boolean; labelAfter?: boolean }>

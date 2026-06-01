@@ -648,6 +648,28 @@ function headingIdDecos(doc: Text, active: Set<number>, out: Range<Decoration>[]
   }
 }
 
+// Definition lists: a term line followed by `: definition` lines (Markdown Extra).
+const DEF_LINE_RE = /^:[ \t]+\S/
+
+/** Style definition lists on idle lines: bold the term, indent the definition,
+ *  and hide the leading `: ` marker. */
+function defListDecos(doc: Text, active: Set<number>, out: Range<Decoration>[]): void {
+  for (let n = 1; n <= doc.lines; n++) {
+    const line = doc.line(n)
+    if (line.text.charCodeAt(0) !== 58 /* ':' */ || !DEF_LINE_RE.test(line.text)) continue
+    const prev = n > 1 ? doc.line(n - 1) : null
+    const firstOfGroup = !prev || !(prev.text.charCodeAt(0) === 58 && DEF_LINE_RE.test(prev.text))
+    if (firstOfGroup && prev && prev.text.trim() !== '' && !active.has(n - 1)) {
+      out.push(Decoration.line({ class: 'ink-dt' }).range(prev.from))
+    }
+    if (!active.has(n)) {
+      out.push(Decoration.line({ class: 'ink-dd' }).range(line.from))
+      const mk = /^:[ \t]+/.exec(line.text)![0]
+      out.push(Decoration.replace({}).range(line.from, line.from + mk.length))
+    }
+  }
+}
+
 // LaTeX math: block `$$…$$` (may span lines) is matched before inline `$…$`.
 const MATH_BLOCK_RE = /\$\$([\s\S]+?)\$\$/g
 const MATH_INLINE_RE = /(?<![\\$])\$(?!\s)([^$\n]+?)(?<!\s)\$(?!\$)/g
@@ -1200,6 +1222,7 @@ export function buildDecorations(
     if (features.footnotes) footnoteDecos(slice, from, active, doc, fnDefs, decos)
     if (features.toc) tocDecos(slice, from, active, doc, tocHeadings, decos)
     if (features.headingIds) headingIdDecos(doc, active, decos)
+    if (features.defList) defListDecos(doc, active, decos)
   }
 
   // RangeSet must be sorted by position; `true` lets CodeMirror sort for us.
