@@ -41,7 +41,7 @@ export const MARKDOWN_FEATURE_LIST: { key: keyof MarkdownFeatures; label: string
   { key: 'footnotes', label: 'Footnotes' },
   { key: 'subSup', label: 'Subscript / superscript' },
   { key: 'highlight', label: 'Highlight (==text==)' },
-  { key: 'emoji', label: 'Emoji shortcodes' },
+  { key: 'emoji', label: 'Render :emoji: shortcodes' },
   { key: 'alerts', label: 'Alerts (> [!NOTE])' },
   { key: 'toc', label: 'Table of contents ([toc])' }
 ]

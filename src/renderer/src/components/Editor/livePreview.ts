@@ -745,8 +745,11 @@ function footnoteDecos(
   }
 }
 
-/** Autocomplete `:shortcode` -> emoji (inserts the glyph). */
+/** Autocomplete `:shortcode` -> emoji (inserts the glyph). Gated by the emoji
+ *  feature flag, like the `:shortcode:` rendering (the emoji picker, which
+ *  inserts a literal glyph, stays available regardless). */
 export const emojiCompletion: CompletionSource = (ctx) => {
+  if (!useAppStore.getState().markdownFeatures.emoji) return null
   const token = ctx.matchBefore(/:[a-z0-9_+-]*/)
   if (!token || (token.from === token.to && !ctx.explicit)) return null
   const query = token.text.slice(1)
