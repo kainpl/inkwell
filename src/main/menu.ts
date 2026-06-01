@@ -145,6 +145,7 @@ export function buildMenu(win: BrowserWindow): void {
       label: 'View',
       submenu: [
         { label: 'Command Palette…', accelerator: 'CmdOrCtrl+Shift+P', click: send(IPC.menuCommandPalette) },
+        { label: 'Note Graph…', click: send(IPC.menuNoteGraph) },
         { type: 'separator' },
         { label: 'Toggle Formatting Bar', accelerator: 'CmdOrCtrl+Shift+B', click: send(IPC.menuToggleFormatBar) },
         { label: 'Toggle Sidebar', accelerator: 'CmdOrCtrl+\\', click: send(IPC.menuToggleSidebar) },

@@ -157,6 +157,8 @@ export const IPC = {
   openTemplatesFolder: 'template:openFolder',
   // git status for the file tree (read-only)
   gitStatus: 'git:status',
+  // note graph (wiki-link connections across the workspace)
+  noteGraph: 'graph:notes',
   // spell-check dictionaries (bundled en; others downloaded + cached)
   getSpellDict: 'spell:getDict',
   // main -> renderer: dictionary download progress (0–100; -1 done/error)
@@ -209,6 +211,7 @@ export const IPC = {
   menuExportPandoc: 'menu:exportPandoc',
   menuPreferences: 'menu:preferences',
   menuCommandPalette: 'menu:commandPalette',
+  menuNoteGraph: 'menu:noteGraph',
   menuNewFromTemplate: 'menu:newFromTemplate',
   menuStartSpeaking: 'menu:startSpeaking',
   menuStopSpeaking: 'menu:stopSpeaking',

@@ -13,6 +13,7 @@ import {
   type TemplateEntry,
   type SpellDict
 } from '../shared/ipc'
+import type { NoteGraph } from '../shared/noteGraph'
 
 const menuChannels = [
   IPC.menuNewFile,
@@ -47,6 +48,7 @@ const menuChannels = [
   IPC.menuExportImage,
   IPC.menuPreferences,
   IPC.menuCommandPalette,
+  IPC.menuNoteGraph,
   IPC.menuNewFromTemplate,
   IPC.menuStartSpeaking,
   IPC.menuStopSpeaking,
@@ -161,6 +163,9 @@ const api = {
   /** Git status of the open folder (path → status char), or null if not a repo. */
   gitStatus: (folder: string): Promise<Record<string, string> | null> =>
     ipcRenderer.invoke(IPC.gitStatus, folder),
+
+  /** Build the wiki-link graph for the workspace. */
+  noteGraph: (folder: string): Promise<NoteGraph> => ipcRenderer.invoke(IPC.noteGraph, folder),
 
   /** Document templates (userData/templates). */
   listTemplates: (): Promise<TemplateEntry[]> => ipcRenderer.invoke(IPC.listTemplates),

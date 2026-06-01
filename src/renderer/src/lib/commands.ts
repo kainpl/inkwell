@@ -93,6 +93,7 @@ export const COMMANDS: Command[] = [
   { id: 'go.search', title: 'Search in Folder…', category: 'Go', channel: IPC.menuGlobalSearch },
   { id: 'go.recent', title: 'Open Recent…', category: 'Go', channel: IPC.menuOpenRecent },
   { id: 'go.versions', title: 'Browse All Versions…', category: 'Go', channel: IPC.menuBrowseVersions },
+  { id: 'go.graph', title: 'Note Graph…', category: 'Go', channel: IPC.menuNoteGraph },
   { id: 'go.top', title: 'Jump to Top', category: 'Go', channel: IPC.menuJumpTop },
   { id: 'go.bottom', title: 'Jump to Bottom', category: 'Go', channel: IPC.menuJumpBottom },
 

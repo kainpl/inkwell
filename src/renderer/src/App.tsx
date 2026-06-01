@@ -51,6 +51,7 @@ import FloatingToolbar from '@renderer/components/FloatingToolbar'
 import ImageZoom from '@renderer/components/ImageZoom'
 import QuickOpen from '@renderer/components/QuickOpen'
 import CommandPalette from '@renderer/components/CommandPalette'
+import NoteGraph from '@renderer/components/NoteGraph'
 import TemplatePicker from '@renderer/components/TemplatePicker'
 import GlobalSearch from '@renderer/components/GlobalSearch'
 import RecentFiles from '@renderer/components/RecentFiles'
@@ -212,6 +213,7 @@ export default function App(): JSX.Element {
       <ImageZoom />
       <QuickOpen />
       <CommandPalette />
+      <NoteGraph />
       <TemplatePicker />
       <GlobalSearch />
       <RecentFiles />

@@ -7,6 +7,7 @@ import { registerThemeIpc } from './ipc/themes'
 import { registerTemplateIpc } from './ipc/templates'
 import { registerSpellIpc } from './ipc/spell'
 import { registerGitIpc } from './ipc/git'
+import { registerGraphIpc } from './ipc/graph'
 import { buildMenu } from './menu'
 import { IPC } from '../shared/ipc'
 import { fileFromArgv } from '../shared/openFile'
@@ -137,6 +138,7 @@ app.whenReady().then(() => {
   registerTemplateIpc()
   registerSpellIpc()
   registerGitIpc()
+  registerGraphIpc()
 
   // "Search With…": open a query URL in the default browser (http/https only).
   ipcMain.on(IPC.openExternalUrl, (_e, url: string) => {
