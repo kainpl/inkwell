@@ -37,6 +37,25 @@ function emojiPlugin(md: MarkdownIt): void {
   })
 }
 
+/** `### Title {#id}` → set the heading's `id` attribute and strip the marker. */
+function headingIdPlugin(md: MarkdownIt): void {
+  md.core.ruler.push('ink-heading-id', (state) => {
+    const tokens = state.tokens
+    const idRe = /\s*\{#([A-Za-z0-9_-]+)\}\s*$/
+    for (let i = 0; i + 1 < tokens.length; i++) {
+      if (tokens[i].type !== 'heading_open' || tokens[i + 1].type !== 'inline') continue
+      const inline = tokens[i + 1]
+      const m = idRe.exec(inline.content)
+      if (!m) continue
+      tokens[i].attrSet('id', m[1])
+      inline.content = inline.content.slice(0, m.index)
+      const last = inline.children?.[inline.children.length - 1]
+      if (last && last.type === 'text') last.content = last.content.replace(idRe, '')
+    }
+    return true
+  })
+}
+
 // Syntax-highlight fenced code with a known language (highlight.js). Unknown
 // langs (e.g. mermaid) return '' so markdown-it keeps the default code block.
 function highlightCode(str: string, lang: string): string {
@@ -65,6 +84,7 @@ function buildMd(f: MarkdownFeatures): MarkdownIt {
   if (f.math)
     m.use(texmath, { engine: katex, delimiters: 'dollars', katexOptions: { throwOnError: false } })
   if (f.emoji) m.use(emojiPlugin)
+  if (f.headingIds) m.use(headingIdPlugin)
   return m
 }
 

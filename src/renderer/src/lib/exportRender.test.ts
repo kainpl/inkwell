@@ -28,6 +28,21 @@ describe('renderMarkdownBody', () => {
     expect(html).toContain('footnote')
   })
 
+  it('applies a custom heading id and strips the {#id} marker', () => {
+    const html = renderMarkdownBody('## My Section {#sec}')
+    expect(html).toContain('<h2 id="sec">My Section</h2>')
+    expect(html).not.toContain('{#sec}')
+  })
+
+  it('leaves {#id} as text when headingIds is off', () => {
+    const html = renderMarkdownBody('## My Section {#sec}', {
+      ...DEFAULT_MARKDOWN_FEATURES,
+      headingIds: false
+    })
+    expect(html).toContain('{#sec}')
+    expect(html).not.toContain('id="sec"')
+  })
+
   it('renders highlight, sub and sup', () => {
     const html = renderMarkdownBody('==hi== H~2~O x^2^')
     expect(html).toContain('<mark>hi</mark>')

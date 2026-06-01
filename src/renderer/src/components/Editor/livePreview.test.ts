@@ -151,6 +151,14 @@ describe('buildDecorations — horizontal rule & links', () => {
     expect(linkUrlAt(parsed('visit https://example.com today'), 12)).toBe('https://example.com')
   })
 
+  it('hides a heading {#id} marker on idle lines, keeps it when active', () => {
+    const isHidden = (i: DecoItem): boolean =>
+      i.spec.widget === undefined && i.spec.class === undefined && i.from !== i.to
+    // "### Title {#id}" → hide " {#id}" (indices 9..15) on the idle line.
+    expect(decorate('### Title {#id}').some((i) => isHidden(i) && i.from === 9 && i.to === 15)).toBe(true)
+    expect(decorate('### Title {#id}', [1]).some((i) => isHidden(i) && i.from === 9 && i.to === 15)).toBe(false)
+  })
+
   it('returns the #anchor target for an internal link', () => {
     expect(linkUrlAt(parsed('jump to [tasks](#tasks)'), 10)).toBe('#tasks')
   })

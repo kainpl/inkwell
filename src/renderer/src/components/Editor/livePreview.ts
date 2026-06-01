@@ -539,10 +539,12 @@ function slugify(text: string): string {
     .replace(/\s+/g, '-')
 }
 
-/** Document offset of the heading whose slug matches `slug`, or null. */
+/** Document offset of the heading whose explicit `{#id}` or slug matches, or null. */
 export function headingOffset(state: EditorState, slug: string): number | null {
   const target = slug.toLowerCase()
-  const h = parseOutline(state.doc.toString()).find((x) => slugify(x.text) === target)
+  const h = parseOutline(state.doc.toString()).find(
+    (x) => x.id?.toLowerCase() === target || slugify(x.text) === target
+  )
   return h ? h.from : null
 }
 
@@ -629,6 +631,20 @@ function emojiDecos(
     out.push(
       Decoration.replace({ widget: new EmojiWidget(char) }).range(start, start + m[0].length)
     )
+  }
+}
+
+// Custom heading IDs: `### Title {#id}` — hide the trailing `{#id}` on idle lines.
+const HEADING_ID_RE = /^(#{1,6}\s.*?)\s*\{#[A-Za-z0-9_-]+\}\s*$/
+
+/** Hide the `{#id}` suffix of a heading on idle lines (editable when active). */
+function headingIdDecos(doc: Text, active: Set<number>, out: Range<Decoration>[]): void {
+  for (let n = 1; n <= doc.lines; n++) {
+    if (active.has(n)) continue
+    const line = doc.line(n)
+    if (line.text.charCodeAt(0) !== 35) continue // 35 = '#', skip non-headings fast
+    const m = HEADING_ID_RE.exec(line.text)
+    if (m) out.push(Decoration.replace({}).range(line.from + m[1].length, line.to))
   }
 }
 
@@ -1183,6 +1199,7 @@ export function buildDecorations(
     if (features.math) mathDecos(slice, from, active, doc, decos)
     if (features.footnotes) footnoteDecos(slice, from, active, doc, fnDefs, decos)
     if (features.toc) tocDecos(slice, from, active, doc, tocHeadings, decos)
+    if (features.headingIds) headingIdDecos(doc, active, decos)
   }
 
   // RangeSet must be sorted by position; `true` lets CodeMirror sort for us.

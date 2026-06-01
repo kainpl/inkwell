@@ -3,6 +3,8 @@ export interface Heading {
   text: string
   /** Character offset of the line start in the document. */
   from: number
+  /** Explicit `{#id}` if present, else undefined. */
+  id?: string
 }
 
 /**
@@ -22,10 +24,12 @@ export function parseOutline(content: string): Heading[] {
     if (!inFence) {
       const m = line.match(/^(#{1,6})\s+(.*)$/)
       if (m) {
+        const idM = /\{#([\w-]+)\}\s*$/.exec(m[2])
         headings.push({
           level: m[1].length,
-          text: m[2].replace(/#+\s*$/, '').trim(),
-          from: offset
+          text: m[2].replace(/\s*\{#[\w-]+\}\s*$/, '').replace(/#+\s*$/, '').trim(),
+          from: offset,
+          id: idM ? idM[1] : undefined
         })
       }
     }

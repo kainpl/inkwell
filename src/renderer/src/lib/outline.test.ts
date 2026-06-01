@@ -18,6 +18,10 @@ describe('parseOutline', () => {
     expect(parseOutline('### Title ###')[0].text).toBe('Title')
   })
 
+  it('strips a custom heading id marker', () => {
+    expect(parseOutline('## My Section {#sec}')[0].text).toBe('My Section')
+  })
+
   it('returns nothing for body text without headings', () => {
     expect(parseOutline('just some **text** here')).toEqual([])
   })

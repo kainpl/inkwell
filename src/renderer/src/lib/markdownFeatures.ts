@@ -21,6 +21,10 @@ export interface MarkdownFeatures {
   alerts: boolean
   /** `[toc]` table of contents. */
   toc: boolean
+  /** Custom heading IDs `### H {#id}`. */
+  headingIds: boolean
+  /** Definition lists (`Term` / `: definition`). */
+  defList: boolean
 }
 
 export const DEFAULT_MARKDOWN_FEATURES: MarkdownFeatures = {
@@ -31,7 +35,9 @@ export const DEFAULT_MARKDOWN_FEATURES: MarkdownFeatures = {
   highlight: true,
   emoji: true,
   alerts: true,
-  toc: true
+  toc: true,
+  headingIds: true,
+  defList: true
 }
 
 /** Ordered list of features for the Preferences UI. */
@@ -43,7 +49,9 @@ export const MARKDOWN_FEATURE_LIST: { key: keyof MarkdownFeatures; label: string
   { key: 'highlight', label: 'Highlight (==text==)' },
   { key: 'emoji', label: 'Render :emoji: shortcodes' },
   { key: 'alerts', label: 'Alerts (> [!NOTE])' },
-  { key: 'toc', label: 'Table of contents ([toc])' }
+  { key: 'toc', label: 'Table of contents ([toc])' },
+  { key: 'headingIds', label: 'Custom heading IDs ({#id})' },
+  { key: 'defList', label: 'Definition lists' }
 ]
 
 /** Merge a (possibly partial / stale) stored value onto the defaults. */

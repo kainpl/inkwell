@@ -109,6 +109,11 @@ columns or change alignment. Click outside the table to see it rendered.
 
 [toc]
 
+## Anchors {#anchors}
+
+This heading has a custom id (`{#anchors}` — hidden on idle lines), so
+[this link](#anchors) jumps straight to it, and exports get an `id` you can deep-link.
+
 ### Next
 
 Open a folder (`Ctrl/⌘ Shift O`) to browse files, or just start writing.
