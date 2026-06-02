@@ -138,7 +138,7 @@ export function removeCrossLink(doc: Y.Doc, fromId: string, linkId: string): voi
 ## Task A6 — Phase A gate
 
 - [x] **A6.1** `npx vitest run` green (402 pass; known `Editor.tab.test.tsx` jsdom error); `typecheck`/`lint`/`build` clean.
-- [ ] **A6.2** Acceptance §7 (Phase A) on `sample.inkproj`. *(handed off for manual QA)*
+- [x] **A6.2** Acceptance §7 (Phase A) on `sample.inkproj`. **Manual QA passed.**
 
 ---
 
@@ -182,9 +182,9 @@ export function removeCrossLink(doc: Y.Doc, fromId: string, linkId: string): voi
 ## Task B5 — Phase B gate + docs
 
 - [x] **B5.1** `npx vitest run` green (403 pass; known `Editor.tab.test.tsx` jsdom error remains); `typecheck`/`lint`/`build` clean.
-- [ ] **B5.2** Acceptance §7 (Phase B) on `sample.inkproj`. *(handed off for manual QA)*
-- [x] **B5.3** Update `docs/mindmap/README.md` → M2b code-complete (pending QA).
-- [ ] **B5.4** Hand off for manual QA; commit/merge per the user's OK. *(handed off)*
+- [x] **B5.2** Acceptance §7 (Phase B) on `sample.inkproj`. **Manual QA passed.**
+- [x] **B5.3** Update `docs/mindmap/README.md` → M2b shipped.
+- [x] **B5.4** Manual QA accepted; committed + pushed to origin.
 
 ---
 
