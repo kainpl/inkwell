@@ -4,6 +4,7 @@ import DocPane from './DocPane'
 import DocBar from './DocBar'
 import EditToolbar from './EditToolbar'
 import EdgeInspector from './EdgeInspector'
+import NodeInspector from './NodeInspector'
 import { useAppStore } from '@renderer/store/useAppStore'
 import { useProjectStore } from '@renderer/store/useProjectStore'
 import {
@@ -90,6 +91,7 @@ export default function ProjectView(): JSX.Element {
         <div className="relative min-w-0 flex-1">
           <Canvas />
           <EdgeInspector />
+          <NodeInspector />
         </div>
         <div className="flex w-[420px] shrink-0 flex-col overflow-hidden border-l border-line">
           <DocBar />

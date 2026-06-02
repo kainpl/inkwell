@@ -4,6 +4,14 @@ import { useProjectStore } from '@renderer/store/useProjectStore'
 import { commitRename, cancelRename } from '@renderer/lib/mindmap/projectEditActions'
 import type { RfNodeData } from '@renderer/lib/mindmap/rfModel'
 
+/** Node outline shape → border-radius class. */
+const SHAPE_RADIUS: Record<string, string> = {
+  rectangle: 'rounded-none',
+  pill: 'rounded-full',
+  ellipse: 'rounded-[50%] px-4',
+  rounded: 'rounded-md'
+}
+
 /** Custom React Flow node for the schema canvas (inline-editable in project tabs). */
 export default function MindNode({ id, data }: NodeProps): JSX.Element {
   const toggleCollapse = useProjectStore((s) => s.toggleCollapse)
@@ -18,11 +26,14 @@ export default function MindNode({ id, data }: NodeProps): JSX.Element {
     | string
     | undefined
   const hasDoc = Array.isArray(d.docs) && d.docs.length > 0
+  const icons = Array.isArray(d.icon) ? d.icon : []
+  const tags = Array.isArray(d.tag) ? d.tag : []
+  const shapeClass = SHAPE_RADIUS[typeof d.shape === 'string' ? d.shape : 'rounded'] ?? 'rounded-md'
 
   return (
     <div
       className={
-        'group rounded-md border border-line bg-paper px-2 py-1 text-[13px] shadow-sm ' +
+        `group border border-line bg-paper px-2 py-1 text-[13px] shadow-sm ${shapeClass} ` +
         (nd.selected ? 'ring-2 ring-accent' : '')
       }
       style={{ background: fill, color: textColor, borderColor }}
@@ -46,6 +57,11 @@ export default function MindNode({ id, data }: NodeProps): JSX.Element {
           </button>
         ) : null}
         {d.task ? <span className="shrink-0">{d.taskStatus === 'done' ? '☑' : '☐'}</span> : null}
+        {icons.map((ic, i) => (
+          <span key={i} className="shrink-0">
+            {ic}
+          </span>
+        ))}
         {editing ? (
           <input
             autoFocus
@@ -77,6 +93,15 @@ export default function MindNode({ id, data }: NodeProps): JSX.Element {
           </span>
         ) : null}
       </div>
+      {tags.length ? (
+        <div className="mt-0.5 flex flex-wrap gap-0.5">
+          {tags.map((t, i) => (
+            <span key={i} className="rounded bg-line/50 px-1 text-[10px] leading-tight text-muted">
+              {t}
+            </span>
+          ))}
+        </div>
+      ) : null}
       <Handle
         type="source"
         position={Position.Right}
