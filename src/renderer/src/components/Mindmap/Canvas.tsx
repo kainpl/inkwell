@@ -17,7 +17,13 @@ import { useAppStore } from '@renderer/store/useAppStore'
 import { useProjectStore, useActiveProject } from '@renderer/store/useProjectStore'
 import { useProjectGraph } from '@renderer/lib/mindmap/useProjectGraph'
 import { computeLayout, type Pos } from '@renderer/lib/mindmap/layout'
-import { buildRfModel, type RfNode, type RfEdge, type RfNodeData } from '@renderer/lib/mindmap/rfModel'
+import {
+  buildRfModel,
+  type RfNode,
+  type RfEdge,
+  type RfNodeData,
+  type RfEdgeData
+} from '@renderer/lib/mindmap/rfModel'
 import { getProjectDoc } from '@renderer/lib/mindmap/yjsRegistry'
 import { reparent } from '@renderer/lib/mindmap/treeOps'
 import { addCrossLink } from '@renderer/lib/mindmap/crossLinkOps'
@@ -43,15 +49,16 @@ export default function Canvas(): JSX.Element {
   const collapsed = project?.collapsed
   const linkTypes = project?.linkTypes ?? EMPTY_LINK_TYPES
   const selectedId = project?.selectedId ?? null
+  const selectedLinkId = project?.selectedLink?.linkId ?? null
 
   // Positions depend only on the tree shape, not on collapse/selection.
   const layout = useMemo(() => (graph ? computeLayout(graph) : new Map<string, Pos>()), [graph])
   const model = useMemo(
     () =>
       graph
-        ? buildRfModel(graph, layout, collapsed ?? new Set<string>(), linkTypes, selectedId)
+        ? buildRfModel(graph, layout, collapsed ?? new Set<string>(), linkTypes, selectedId, selectedLinkId)
         : { nodes: [] as RfNode[], edges: [] as RfEdge[] },
-    [graph, layout, collapsed, linkTypes, selectedId]
+    [graph, layout, collapsed, linkTypes, selectedId, selectedLinkId]
   )
 
   // Local copies React Flow mutates during a drag, re-synced whenever the Yjs model
@@ -120,6 +127,10 @@ export default function Canvas(): JSX.Element {
       nodeTypes={nodeTypes}
       edgeTypes={edgeTypes}
       onNodeClick={(_e, node) => openDocFor(node.id, (node.data as RfNodeData).raw.data.docs?.[0])}
+      onEdgeClick={(_e, edge) => {
+        const d = edge.data as RfEdgeData | undefined
+        if (edge.type === 'crosslink' && d?.fromNodeId && d?.linkId) selectLink(d.fromNodeId, d.linkId)
+      }}
       nodesConnectable
       deleteKeyCode={null}
       elementsSelectable

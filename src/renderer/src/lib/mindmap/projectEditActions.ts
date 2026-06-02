@@ -4,6 +4,7 @@ import { useProjectStore } from '@renderer/store/useProjectStore'
 import { getProjectDoc } from './yjsRegistry'
 import { saveProject } from './projectActions'
 import { addChild, addSibling, remove as removeNode, rename } from './treeOps'
+import { removeCrossLink } from './crossLinkOps'
 
 /** The active project tab's id + Y.Doc, or null if the active tab isn't a project. */
 function active(): { tabId: string; doc: YDoc } | null {
@@ -51,6 +52,17 @@ export function deleteSelected(): void {
   const ps = useProjectStore.getState()
   ps.clearDoc()
   ps.select(null)
+}
+
+/** Delete the selected cross-link and clear the link selection. */
+export function deleteSelectedLink(): void {
+  const a = active()
+  if (!a) return
+  const link = useProjectStore.getState().byTab[a.tabId]?.selectedLink
+  if (!link) return
+  removeCrossLink(a.doc, link.fromNodeId, link.linkId)
+  markDirty(a.tabId)
+  useProjectStore.getState().selectLink(null)
 }
 
 /** Enter inline-rename mode for the selected node. */

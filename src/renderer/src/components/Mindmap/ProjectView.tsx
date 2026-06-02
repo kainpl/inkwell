@@ -2,6 +2,7 @@ import { useEffect } from 'react'
 import Canvas from './Canvas'
 import DocPane from './DocPane'
 import EditToolbar from './EditToolbar'
+import EdgeInspector from './EdgeInspector'
 import { useAppStore } from '@renderer/store/useAppStore'
 import { useProjectStore } from '@renderer/store/useProjectStore'
 import {
@@ -9,6 +10,7 @@ import {
   addSiblingToSelected,
   beginRenameSelected,
   deleteSelected,
+  deleteSelectedLink,
   redoActive,
   undoActive
 } from '@renderer/lib/mindmap/projectEditActions'
@@ -42,25 +44,37 @@ export default function ProjectView(): JSX.Element {
         return
       }
       const tabId = useAppStore.getState().activeId
-      const sel = useProjectStore.getState().byTab[tabId]?.selectedId
-      if (!sel) return
+      const proj = useProjectStore.getState().byTab[tabId]
+      if (!proj) return
+      const sel = proj.selectedId
       switch (e.key) {
         case 'Tab':
-          e.preventDefault()
-          addChildToSelected()
+          if (sel) {
+            e.preventDefault()
+            addChildToSelected()
+          }
           break
         case 'Enter':
-          e.preventDefault()
-          addSiblingToSelected()
+          if (sel) {
+            e.preventDefault()
+            addSiblingToSelected()
+          }
           break
         case 'F2':
-          e.preventDefault()
-          beginRenameSelected()
+          if (sel) {
+            e.preventDefault()
+            beginRenameSelected()
+          }
           break
         case 'Delete':
         case 'Backspace':
-          e.preventDefault()
-          deleteSelected()
+          if (sel) {
+            e.preventDefault()
+            deleteSelected()
+          } else if (proj.selectedLink) {
+            e.preventDefault()
+            deleteSelectedLink()
+          }
           break
       }
     }
@@ -72,8 +86,9 @@ export default function ProjectView(): JSX.Element {
     <div className="flex h-full w-full flex-col">
       <EditToolbar />
       <div className="flex min-h-0 flex-1">
-        <div className="min-w-0 flex-1">
+        <div className="relative min-w-0 flex-1">
           <Canvas />
+          <EdgeInspector />
         </div>
         <div className="w-[420px] shrink-0 overflow-hidden border-l border-line">
           <DocPane />
