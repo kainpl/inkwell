@@ -1,6 +1,7 @@
 import { useEffect } from 'react'
 import Canvas from './Canvas'
 import DocPane from './DocPane'
+import DocBar from './DocBar'
 import EditToolbar from './EditToolbar'
 import EdgeInspector from './EdgeInspector'
 import { useAppStore } from '@renderer/store/useAppStore'
@@ -90,8 +91,11 @@ export default function ProjectView(): JSX.Element {
           <Canvas />
           <EdgeInspector />
         </div>
-        <div className="w-[420px] shrink-0 overflow-hidden border-l border-line">
-          <DocPane />
+        <div className="flex w-[420px] shrink-0 flex-col overflow-hidden border-l border-line">
+          <DocBar />
+          <div className="min-h-0 flex-1">
+            <DocPane />
+          </div>
         </div>
       </div>
     </div>
