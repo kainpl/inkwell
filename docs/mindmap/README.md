@@ -15,7 +15,7 @@ Branch: `feat/mindmap`. Started 2026‑06‑02.
 | [`m2a-spec.md`](m2a-spec.md) | **Milestone 2a spec** — editing + save with a Yjs model (create/rename/delete/reparent, undo/redo, zip-back). |
 | [`m2a-plan.md`](m2a-plan.md) | **Milestone 2a implementation plan** — 10 task-groups (TDD). **Done / shipped.** |
 | [`m2b-spec.md`](m2b-spec.md) | **Milestone 2b spec** — cross-link editing (Phase A) + doc editing (Phase B): draw/retype/delete typed edges + custom types; attach/create/detach + an editable doc pane that saves into the bundle. |
-| [`m2b-plan.md`](m2b-plan.md) | **Milestone 2b implementation plan** — Phase A (A1–A6) + Phase B (B1–B5), TDD; ready to execute (Phase A first). |
+| [`m2b-plan.md`](m2b-plan.md) | **Milestone 2b implementation plan** — Phase A (A1–A6) + Phase B (B1–B5), TDD. **Code complete** (green gate passed); pending runtime QA. |
 
 ## Source repos (read‑only, gitignored, under `temp/ref/`)
 
@@ -35,4 +35,6 @@ Branch: `feat/mindmap`. Started 2026‑06‑02.
 
 Research complete; **vision locked (D1–D13)**; **M1 shipped** on `feat/mindmap` (pushed to origin) — read-only slice (open `.inkproj` → React Flow schema + typed cross-links → click node → doc pane with anchor scroll) **+ projects open as tabs** (switch/close via TabBar). Manual acceptance passed.
 
-**M2a shipped** on `feat/mindmap` — a per-tab **Yjs** model drives editing: create (Tab/Enter), inline rename (double-click/F2), delete, **drag-to-reparent**, **undo/redo** (Ctrl+Z / Shift+Z / Y), and **save back to the `.inkproj`** (Cmd+S / toolbar) with the unsaved-changes guard extended to project tabs. Green gate passed (vitest 395, typecheck, lint, build); manual QA accepted; pushed to origin. Next: **M2b — cross-link & doc editing**.
+**M2a shipped** on `feat/mindmap` — a per-tab **Yjs** model drives editing: create (Tab/Enter), inline rename (double-click/F2), delete, **drag-to-reparent**, **undo/redo** (Ctrl+Z / Shift+Z / Y), and **save back to the `.inkproj`** (Cmd+S / toolbar) with the unsaved-changes guard extended to project tabs. Green gate passed (vitest 395, typecheck, lint, build); manual QA accepted; pushed to origin.
+
+**M2b code-complete** on `feat/mindmap` — **cross-link editing** (draw via handle-drag, an Edge Inspector to retype/relabel/delete, first-class **custom link types** persisted in `manifest.json`) and **doc editing** (an **editable** doc pane buffered per-doc; **attach** copy-in via a file dialog, **create**, **detach**; one atomic Save writes schema + manifest + edited docs back into the bundle). Green gate passed (vitest 403, typecheck, lint, build). **Pending:** runtime manual QA (spec §7). Next: **M2c — anchors UI / sibling reorder / node styling** (see backlog).

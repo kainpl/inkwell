@@ -148,43 +148,43 @@ export function removeCrossLink(doc: Y.Doc, fromId: string, linkId: string): voi
 
 **Files:** modify `DocPane.tsx`, `useProjectStore.ts`.
 
-- [ ] **B1.1** `useProjectStore` entry: `dirtyDocs: Record<string, string>` (init `{}`). Actions: `setDocBuffer(path, content)` (active tab; sets `dirtyDocs[path]` + marks tab dirty), `clearDirtyDocs()`.
-- [ ] **B1.2** `DocPane`: build an **editable** CM (`history()`, `keymap.of([...defaultKeymap, ...historyKeymap])`, `markdown()`, `lineWrapping`, `lineNumbers()`) with an `EditorView.updateListener` → on `update.docChanged`, `setDocBuffer(openDoc.ref.path!, view.state.doc.toString())`. Content source = `dirtyDocs[path] ?? await readDoc(...)`. **External** ref (`ref.external`) → keep the read-only view + a small "external — read only" note (no buffering).
-- [ ] **B1.3** `typecheck`/`lint`; manual: type into a doc → tab dirty; switch node + back → edits retained. **B1.4** commit `feat(mindmap): editable doc pane (buffered)`.
+- [x] **B1.1** `useProjectStore` entry: `dirtyDocs: Record<string, string>` (init `{}`). Actions: `setDocBuffer(path, content)` (active tab; sets `dirtyDocs[path]` + marks tab dirty), `clearDirtyDocs()`.
+- [x] **B1.2** `DocPane`: build an **editable** CM (`history()`, `keymap.of([...defaultKeymap, ...historyKeymap])`, `markdown()`, `lineWrapping`, `lineNumbers()`) with an `EditorView.updateListener` → on `update.docChanged`, `setDocBuffer(openDoc.ref.path!, view.state.doc.toString())`. Content source = `dirtyDocs[path] ?? await readDoc(...)`. **External** ref (`ref.external`) → keep the read-only view + a small "external — read only" note (no buffering).
+- [x] **B1.3** `typecheck`/`lint`; manual: type into a doc → tab dirty; switch node + back → edits retained. **B1.4** commit `feat(mindmap): editable doc pane (buffered)`.
 
 ## Task B2 — doc ops (attach / create / detach)
 
 **Files:** create `docOps.ts`; modify `zip.ts`, `index.ts`, `shared/ipc.ts`, `preload/index.ts`, `projectEditActions.ts`.
 
-- [ ] **B2.1** Main **`inkproj:attachDoc`**: `attachDoc(workingDir, srcPath)` in `zip.ts` — assert `workingDir` known; `safeJoin(workingDir, 'docs/' + uniqueName(basename(srcPath)))`; copy the file in; return the bundle-relative `path`. The **dialog** lives in `index.ts`: `inkproj:attachDoc` handler opens `showOpenDialog` (md filter), then `attachDoc(workingDir, picked)`, returns `{ path, title }` or null. (D7: main reads only the user-picked path.)
-- [ ] **B2.2** `docOps.ts`:
+- [x] **B2.1** Main **`inkproj:attachDoc`**: `attachDoc(workingDir, srcPath)` in `zip.ts` — assert `workingDir` known; `safeJoin(workingDir, 'docs/' + uniqueName(basename(srcPath)))`; copy the file in; return the bundle-relative `path`. The **dialog** lives in `index.ts`: `inkproj:attachDoc` handler opens `showOpenDialog` (md filter), then `attachDoc(workingDir, picked)`, returns `{ path, title }` or null. (D7: main reads only the user-picked path.)
+- [x] **B2.2** `docOps.ts`:
   - `attachDoc(doc, nodeId)` → `const ref = await window.api.inkproj.attachDoc(workingDir); if (ref) pushDocRef(doc, nodeId, ref) + dirty`.
   - `createDoc(doc, nodeId, title)` → `path = docs/${nodeId}.md` (dedupe via `dirtyDocs`/existing), `setDocBuffer(path, '# ' + title + '\n')`, `pushDocRef(doc, nodeId, { path, title })`, open it + dirty.
   - `detachDoc(doc, nodeId, index)` → remove `data.docs[index]` (Yjs transact) + dirty.
   `pushDocRef`/remove read-modify-write `dataJson.docs` under `LOCAL_ORIGIN`.
-- [ ] **B2.3** `typecheck`/`lint`; manual: attach a file → copied to `docs/`; create → opens empty; detach → ref gone. **B2.4** commit `feat(mindmap): attach/create/detach docs`.
+- [x] **B2.3** `typecheck`/`lint`; manual: attach a file → copied to `docs/`; create → opens empty; detach → ref gone. **B2.4** commit `feat(mindmap): attach/create/detach docs`.
 
 ## Task B3 — DocBar
 
 **Files:** create `DocBar.tsx`; modify `ProjectView.tsx`.
 
-- [ ] **B3.1** `DocBar` (right-pane header, above DocPane): for the selected node — a doc selector (when >1), **New**, **Attach…**, **Detach**; a dirty dot when the open doc is in `dirtyDocs`. No selected node → New/Attach… only.
-- [ ] **B3.2** `ProjectView`: render `<DocBar/>` above `<DocPane/>` in the right column.
-- [ ] **B3.3** `typecheck`/`lint`; manual: the bar drives open/new/attach/detach. **B3.4** commit `feat(mindmap): doc bar (new/attach/detach)`.
+- [x] **B3.1** `DocBar` (right-pane header, above DocPane): for the selected node — a doc selector (when >1), **New**, **Attach…**, **Detach**; a dirty dot when the open doc is in `dirtyDocs`. No selected node → New/Attach… only.
+- [x] **B3.2** `ProjectView`: render `<DocBar/>` above `<DocPane/>` in the right column.
+- [x] **B3.3** `typecheck`/`lint`; manual: the bar drives open/new/attach/detach. **B3.4** commit `feat(mindmap): doc bar (new/attach/detach)`.
 
 ## Task B4 — save docs into the bundle
 
 **Files:** modify `projectActions.ts` (`saveProject`).
 
-- [ ] **B4.1** `saveProject`: include `docs = Object.entries(entry.dirtyDocs).map(([path, content]) => ({ path, content }))` in the save payload (alongside `schema` and the manifest from A5). On success: `clearDirtyDocs()` + `clearManifestDirty()` + `setTabDirty(false)`. (Main already writes docs from A5.1.)
-- [ ] **B4.2** `typecheck`/`lint`/`build`; manual: edit a doc + create one → `Cmd/Ctrl+S` → reopen → docs saved; schema/manifest intact. **B4.3** commit `feat(mindmap): save edited docs into the .inkproj`.
+- [x] **B4.1** `saveProject`: include `docs = Object.entries(entry.dirtyDocs).map(([path, content]) => ({ path, content }))` in the save payload (alongside `schema` and the manifest from A5). On success: `clearDirtyDocs()` + `clearManifestDirty()` + `setTabDirty(false)`. (Main already writes docs from A5.1.)
+- [x] **B4.2** `typecheck`/`lint`/`build`; manual: edit a doc + create one → `Cmd/Ctrl+S` → reopen → docs saved; schema/manifest intact. **B4.3** commit `feat(mindmap): save edited docs into the .inkproj`.
 
 ## Task B5 — Phase B gate + docs
 
-- [ ] **B5.1** `npx vitest run` green (known `Editor.tab.test.tsx` jsdom error remains); `typecheck`/`lint`/`build` clean.
-- [ ] **B5.2** Acceptance §7 (Phase B) on `sample.inkproj`.
-- [ ] **B5.3** Update `docs/mindmap/README.md` → M2b shipped.
-- [ ] **B5.4** Hand off for manual QA; commit/merge per the user's OK.
+- [x] **B5.1** `npx vitest run` green (403 pass; known `Editor.tab.test.tsx` jsdom error remains); `typecheck`/`lint`/`build` clean.
+- [ ] **B5.2** Acceptance §7 (Phase B) on `sample.inkproj`. *(handed off for manual QA)*
+- [x] **B5.3** Update `docs/mindmap/README.md` → M2b code-complete (pending QA).
+- [ ] **B5.4** Hand off for manual QA; commit/merge per the user's OK. *(handed off)*
 
 ---
 
