@@ -1,24 +1,33 @@
 import { useEffect, useRef, useState } from 'react'
 import { EditorState } from '@codemirror/state'
-import { EditorView, lineNumbers } from '@codemirror/view'
+import { EditorView, lineNumbers, keymap } from '@codemirror/view'
+import { defaultKeymap, history, historyKeymap } from '@codemirror/commands'
 import { markdown } from '@codemirror/lang-markdown'
-import { useActiveProject } from '@renderer/store/useProjectStore'
+import { useAppStore } from '@renderer/store/useAppStore'
+import { useActiveProject, useProjectStore } from '@renderer/store/useProjectStore'
 import { resolveAnchor } from '@renderer/lib/mindmap/anchors'
 
-/** Read-only CodeMirror pane that shows the clicked node's attached doc (M1). */
+/** Editable CodeMirror pane for the selected node's attached doc. Edits are
+ *  buffered in the store (`dirtyDocs`) and flushed into the bundle on project Save.
+ *  External refs stay read-only (D7 — opened only via a future file-picker grant). */
 export default function DocPane(): JSX.Element {
   const project = useActiveProject()
+  const activeId = useAppStore((s) => s.activeId)
   const openDoc = project?.openDoc ?? null
   const workingDir = project?.workingDir ?? null
+  const external = openDoc?.ref.external === true
+  const path = openDoc?.ref.path ?? null
   const hostRef = useRef<HTMLDivElement>(null)
   const viewRef = useRef<EditorView | null>(null)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    if (!openDoc || !workingDir) return
+    if (!openDoc || !workingDir || external || !path) return
     let cancelled = false
-    void window.api.inkproj
-      .readDoc(workingDir, openDoc.ref)
+    const buffered = useProjectStore.getState().byTab[activeId]?.dirtyDocs[path]
+    const load =
+      buffered != null ? Promise.resolve(buffered) : window.api.inkproj.readDoc(workingDir, openDoc.ref)
+    void load
       .then((text) => {
         if (cancelled || !hostRef.current) return
         setError(null)
@@ -29,10 +38,13 @@ export default function DocPane(): JSX.Element {
             doc: text,
             extensions: [
               lineNumbers(),
+              history(),
+              keymap.of([...defaultKeymap, ...historyKeymap]),
               markdown(),
               EditorView.lineWrapping,
-              EditorState.readOnly.of(true),
-              EditorView.editable.of(false)
+              EditorView.updateListener.of((u) => {
+                if (u.docChanged) useProjectStore.getState().setDocBuffer(path, u.state.doc.toString())
+              })
             ]
           })
         })
@@ -53,7 +65,7 @@ export default function DocPane(): JSX.Element {
     return () => {
       cancelled = true
     }
-  }, [openDoc, workingDir])
+  }, [openDoc, workingDir, external, path, activeId])
 
   useEffect(() => () => viewRef.current?.destroy(), [])
 
@@ -64,8 +76,13 @@ export default function DocPane(): JSX.Element {
       </div>
     )
   }
-  // The CM host is always mounted while a doc is selected; an error shows as an
-  // overlay banner (so a prior error never blocks the next mount).
+  if (external) {
+    return (
+      <div className="flex h-full items-center justify-center p-4 text-center text-sm text-faint">
+        External document — read-only.
+      </div>
+    )
+  }
   return (
     <div className="relative h-full">
       {error ? (

@@ -27,6 +27,8 @@ export interface ProjectEntry {
   /** Selected cross-link (mutually exclusive with `selectedId`). */
   selectedLink: { fromNodeId: string; linkId: string } | null
   openDoc: OpenDoc | null
+  /** Bundle-relative doc path → edited content not yet saved (flushed on Save). */
+  dirtyDocs: Record<string, string>
 }
 
 interface ProjectsState {
@@ -61,6 +63,10 @@ interface ProjectsState {
   addLinkType: (key: string, type: LinkType) => void
   /** Clear the manifest-dirty flag (after a successful save). */
   clearManifestDirty: () => void
+  /** Buffer an edited doc's content (marks the tab dirty). */
+  setDocBuffer: (path: string, content: string) => void
+  /** Drop all buffered doc edits (after a successful save). */
+  clearDirtyDocs: () => void
 }
 
 /** Immutably update the active tab's entry (no-op if the active tab isn't a project). */
@@ -92,7 +98,8 @@ export const useProjectStore = create<ProjectsState>((set) => ({
           selectedId: null,
           editingId: null,
           selectedLink: null,
-          openDoc: null
+          openDoc: null,
+          dirtyDocs: {}
         }
       }
     })),
@@ -169,7 +176,17 @@ export const useProjectStore = create<ProjectsState>((set) => ({
   },
 
   clearManifestDirty: () =>
-    set((s) => patchActive(s, (e) => (e.manifestDirty ? { ...e, manifestDirty: false } : e)))
+    set((s) => patchActive(s, (e) => (e.manifestDirty ? { ...e, manifestDirty: false } : e))),
+
+  setDocBuffer: (path, content) => {
+    set((s) => patchActive(s, (e) => ({ ...e, dirtyDocs: { ...e.dirtyDocs, [path]: content } })))
+    useAppStore.getState().setTabDirty(useAppStore.getState().activeId, true)
+  },
+
+  clearDirtyDocs: () =>
+    set((s) =>
+      patchActive(s, (e) => (Object.keys(e.dirtyDocs).length ? { ...e, dirtyDocs: {} } : e))
+    )
 }))
 
 /** The active tab's project entry, or null. Subscribes to both stores so it
