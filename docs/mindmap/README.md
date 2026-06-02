@@ -10,8 +10,10 @@ Branch: `feat/mindmap`. Started 2026‑06‑02.
 | --- | --- |
 | [`reference-ecosystem.md`](reference-ecosystem.md) | **How the source works now** — the thing we’re porting. Accumulated analysis of the 3 reference repos: the `.mind-map` format, the React Flow editor, the node data model, persistence, export interop, the MindDoc design docs. |
 | [`our-vision.md`](our-vision.md) | **What we build & how** — the `.inkproj` ZIP project, Inkwell integration, take/adapt/drop, locked decisions **D1–D13**, backlog. |
-| [`m1-spec.md`](m1-spec.md) | **Milestone 1 spec** — the read‑only vertical slice (open `.inkproj` → render schema → click node → open doc). |
-| [`m1-plan.md`](m1-plan.md) | **Milestone 1 implementation plan** — 14 task‑by‑task steps (TDD), exact files, ready to execute. |
+| [`m1-spec.md`](m1-spec.md) | **Milestone 1 spec** — the read‑only vertical slice (open `.inkproj` → render schema → click node → open doc). **Shipped.** |
+| [`m1-plan.md`](m1-plan.md) | **Milestone 1 implementation plan** — 14 task‑by‑task steps (TDD). **Done.** |
+| [`m2a-spec.md`](m2a-spec.md) | **Milestone 2a spec** — editing + save with a Yjs model (create/rename/delete/reparent, undo/redo, zip-back). |
+| [`m2a-plan.md`](m2a-plan.md) | **Milestone 2a implementation plan** — 10 task-groups (TDD), ready to execute. |
 
 ## Source repos (read‑only, gitignored, under `temp/ref/`)
 
