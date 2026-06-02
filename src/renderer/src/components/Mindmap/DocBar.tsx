@@ -3,10 +3,13 @@ import { useActiveProject } from '@renderer/store/useProjectStore'
 import { useProjectGraph } from '@renderer/lib/mindmap/useProjectGraph'
 import {
   attachDocToSelected,
+  attachExternalToSelected,
   createDocForSelected,
   detachDoc,
+  internalizeOpenDoc,
   linkOpenDocAnchor,
-  openDocRef
+  openDocRef,
+  openExternalDoc
 } from '@renderer/lib/mindmap/projectEditActions'
 import { getDocView, insertAnchorAtCaret } from '@renderer/lib/mindmap/docView'
 import { listAnchors } from '@renderer/lib/mindmap/anchors'
@@ -23,9 +26,14 @@ export default function DocBar(): JSX.Element {
   const docs = node?.data.docs ?? []
   const openPath = project?.openDoc?.ref.path ?? null
   const dirty = openPath != null && project?.dirtyDocs[openPath] != null
-  const openIdx =
-    sel && project?.openDoc?.nodeId === sel ? docs.findIndex((d) => d.path === openPath) : -1
-  const openInternal = project?.openDoc != null && project.openDoc.ref.external !== true
+  const openRef = sel && project?.openDoc?.nodeId === sel ? project.openDoc.ref : null
+  const openIdx = openRef
+    ? docs.findIndex((d) =>
+        openRef.external ? d.external && d.src === openRef.src : d.path === openRef.path
+      )
+    : -1
+  const openExternal = project?.openDoc?.ref.external === true
+  const openInternal = project?.openDoc != null && !openExternal
   const openAnchor = project?.openDoc?.ref.anchor ?? ''
   const anchors = openInternal ? listAnchors(getDocView()?.state.doc.toString() ?? '') : []
 
@@ -82,10 +90,32 @@ export default function DocBar(): JSX.Element {
         className={BTN}
         disabled={!sel}
         onClick={() => void attachDocToSelected()}
-        title="Attach a .md from disk"
+        title="Attach a .md from disk (copied into the bundle)"
       >
         Attach…
       </button>
+      <button
+        className={BTN}
+        disabled={!sel}
+        onClick={() => void attachExternalToSelected()}
+        title="Reference an external .md (not copied in)"
+      >
+        Ext…
+      </button>
+      {openExternal ? (
+        <>
+          <button className={BTN} onClick={() => void openExternalDoc()} title="Re-grant + load the external file">
+            Open
+          </button>
+          <button
+            className={BTN}
+            onClick={() => void internalizeOpenDoc()}
+            title="Copy the external doc into the bundle"
+          >
+            Internalize
+          </button>
+        </>
+      ) : null}
       <button
         className={BTN}
         disabled={openIdx < 0}

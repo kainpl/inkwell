@@ -5,7 +5,7 @@ import { getProjectDoc } from './yjsRegistry'
 import { saveProject } from './projectActions'
 import { addChild, addSibling, remove as removeNode, rename } from './treeOps'
 import { removeCrossLink } from './crossLinkOps'
-import { nodeDocs, pushDocRef, removeDocRef, setDocAnchor } from './docOps'
+import { nodeDocs, pushDocRef, removeDocRef, replaceDocRef, setDocAnchor } from './docOps'
 import type { DocRef } from '@shared/mindmap/types'
 
 /** The active project tab's id + Y.Doc, or null if the active tab isn't a project. */
@@ -167,6 +167,48 @@ export function linkOpenDocAnchor(anchor: string | undefined): void {
   setDocAnchor(a.doc, od.nodeId, index, anchor)
   markDirty(a.tabId)
   useProjectStore.getState().openDocFor(od.nodeId, { ...od.ref, anchor: anchor || undefined })
+}
+
+/** Attach an external `.md` (referenced, not copied) to the selected node + cache its content. */
+export async function attachExternalToSelected(): Promise<void> {
+  const a = active()
+  if (!a) return
+  const sel = selectedId(a.tabId)
+  if (!sel) return
+  const picked = await window.api.inkproj.pickExternal()
+  if (!picked) return
+  const ref: DocRef = { external: true, src: picked.src, title: picked.title }
+  pushDocRef(a.doc, sel, ref)
+  useProjectStore.getState().setExternalDoc(picked.src, picked.content)
+  markDirty(a.tabId)
+  useProjectStore.getState().openDocFor(sel, ref)
+}
+
+/** Re-grant + load the open external doc's content (user picks the file again). */
+export async function openExternalDoc(): Promise<void> {
+  const tabId = useAppStore.getState().activeId
+  const od = useProjectStore.getState().byTab[tabId]?.openDoc
+  if (!od?.ref.external || !od.ref.src) return
+  const picked = await window.api.inkproj.pickExternal()
+  if (!picked) return
+  useProjectStore.getState().setExternalDoc(od.ref.src, picked.content)
+  useProjectStore.getState().openDocFor(od.nodeId, { ...od.ref })
+}
+
+/** Internalize the open external doc: copy a user-picked file into the bundle, swap the ref. */
+export async function internalizeOpenDoc(): Promise<void> {
+  const a = active()
+  if (!a) return
+  const entry = useProjectStore.getState().byTab[a.tabId]
+  const od = entry?.openDoc
+  if (!entry || !od?.ref.external) return
+  const internal = await window.api.inkproj.internalize(entry.workingDir)
+  if (!internal) return
+  const index = nodeDocs(a.doc, od.nodeId).findIndex((r) => r.external && r.src === od.ref.src)
+  if (index < 0) return
+  replaceDocRef(a.doc, od.nodeId, index, internal)
+  markDirty(a.tabId)
+  useProjectStore.getState().openDocFor(od.nodeId, internal)
 }
 
 /** Detach the doc ref at `index` from a node (the bundled file stays). */

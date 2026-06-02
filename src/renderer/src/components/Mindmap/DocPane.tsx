@@ -8,9 +8,9 @@ import { useActiveProject, useProjectStore } from '@renderer/store/useProjectSto
 import { resolveAnchor } from '@renderer/lib/mindmap/anchors'
 import { setDocView } from '@renderer/lib/mindmap/docView'
 
-/** Editable CodeMirror pane for the selected node's attached doc. Edits are
- *  buffered in the store (`dirtyDocs`) and flushed into the bundle on project Save.
- *  External refs stay read-only (D7 — opened only via a future file-picker grant). */
+/** Doc pane for the selected node's attached doc. Internal docs are editable
+ *  (buffered → flushed on Save); external docs render the user-granted content
+ *  read-only (D7 — a stored `src` is never auto-read). */
 export default function DocPane(): JSX.Element {
   const project = useActiveProject()
   const activeId = useAppStore((s) => s.activeId)
@@ -23,47 +23,59 @@ export default function DocPane(): JSX.Element {
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    if (!openDoc || !workingDir || external || !path) return
+    if (!openDoc || !workingDir) return
+    const ref = openDoc.ref
     let cancelled = false
+
+    const mount = (text: string, readOnly: boolean): void => {
+      if (cancelled || !hostRef.current) return
+      setError(null)
+      viewRef.current?.destroy()
+      const exts = [lineNumbers(), markdown(), EditorView.lineWrapping]
+      if (readOnly) {
+        exts.push(EditorState.readOnly.of(true), EditorView.editable.of(false))
+      } else {
+        exts.push(
+          history(),
+          keymap.of([...defaultKeymap, ...historyKeymap]),
+          EditorView.updateListener.of((u) => {
+            if (u.docChanged && path) useProjectStore.getState().setDocBuffer(path, u.state.doc.toString())
+          })
+        )
+      }
+      const view = new EditorView({ parent: hostRef.current, state: EditorState.create({ doc: text, extensions: exts }) })
+      viewRef.current = view
+      setDocView(readOnly ? null : view) // only an editable internal doc takes anchor inserts
+      const anchor = ref.anchor
+      if (!anchor) return
+      const pos = resolveAnchor(text, anchor)
+      if (!pos) return
+      const line = view.state.doc.line(Math.min(pos.line + 1, view.state.doc.lines))
+      view.dispatch({
+        selection: { anchor: line.from },
+        effects: EditorView.scrollIntoView(line.from, { y: 'start' })
+      })
+    }
+
+    if (ref.external) {
+      const cached = ref.src ? useProjectStore.getState().byTab[activeId]?.externalDocs[ref.src] : undefined
+      if (cached != null) mount(cached, true)
+      else {
+        viewRef.current?.destroy()
+        viewRef.current = null
+        setDocView(null)
+      }
+      return () => {
+        cancelled = true
+      }
+    }
+    if (!path) return
     const buffered = useProjectStore.getState().byTab[activeId]?.dirtyDocs[path]
     const load =
-      buffered != null ? Promise.resolve(buffered) : window.api.inkproj.readDoc(workingDir, openDoc.ref)
-    void load
-      .then((text) => {
-        if (cancelled || !hostRef.current) return
-        setError(null)
-        viewRef.current?.destroy()
-        const view = new EditorView({
-          parent: hostRef.current,
-          state: EditorState.create({
-            doc: text,
-            extensions: [
-              lineNumbers(),
-              history(),
-              keymap.of([...defaultKeymap, ...historyKeymap]),
-              markdown(),
-              EditorView.lineWrapping,
-              EditorView.updateListener.of((u) => {
-                if (u.docChanged) useProjectStore.getState().setDocBuffer(path, u.state.doc.toString())
-              })
-            ]
-          })
-        })
-        viewRef.current = view
-        setDocView(view)
-        const anchor = openDoc.ref.anchor
-        if (!anchor) return
-        const pos = resolveAnchor(text, anchor)
-        if (!pos) return
-        const line = view.state.doc.line(Math.min(pos.line + 1, view.state.doc.lines))
-        view.dispatch({
-          selection: { anchor: line.from },
-          effects: EditorView.scrollIntoView(line.from, { y: 'start' })
-        })
-      })
-      .catch((e: unknown) => {
-        if (!cancelled) setError(e instanceof Error ? e.message : String(e))
-      })
+      buffered != null ? Promise.resolve(buffered) : window.api.inkproj.readDoc(workingDir, ref)
+    void load.then((text) => mount(text, false)).catch((e: unknown) => {
+      if (!cancelled) setError(e instanceof Error ? e.message : String(e))
+    })
     return () => {
       cancelled = true
     }
@@ -84,13 +96,8 @@ export default function DocPane(): JSX.Element {
       </div>
     )
   }
-  if (external) {
-    return (
-      <div className="flex h-full items-center justify-center p-4 text-center text-sm text-faint">
-        External document — read-only.
-      </div>
-    )
-  }
+  const extNoContent =
+    external && !(openDoc.ref.src && project?.externalDocs[openDoc.ref.src] != null)
   return (
     <div className="relative h-full">
       {error ? (
@@ -98,7 +105,13 @@ export default function DocPane(): JSX.Element {
           Couldn’t open the document: {error}
         </div>
       ) : null}
-      <div ref={hostRef} className="h-full overflow-auto text-sm" />
+      {extNoContent ? (
+        <div className="flex h-full items-center justify-center p-4 text-center text-sm text-faint">
+          External document — use <span className="mx-1 font-medium">Open</span> to load it.
+        </div>
+      ) : (
+        <div ref={hostRef} className="h-full overflow-auto text-sm" />
+      )}
     </div>
   )
 }

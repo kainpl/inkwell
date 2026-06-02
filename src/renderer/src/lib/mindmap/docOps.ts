@@ -38,6 +38,16 @@ export function setDocAnchor(doc: Y.Doc, nodeId: string, index: number, anchor?:
   }, LOCAL_ORIGIN)
 }
 
+/** Replace the doc ref at `index` (e.g. an external ref → its internalized form). */
+export function replaceDocRef(doc: Y.Doc, nodeId: string, index: number, ref: DocRef): void {
+  const m = nodesOf(doc).get(nodeId)
+  if (!m) return
+  doc.transact(() => {
+    const d = readData(m)
+    writeData(m, { ...d, docs: (d.docs ?? []).map((r, i) => (i === index ? ref : r)) })
+  }, LOCAL_ORIGIN)
+}
+
 /** Remove the doc ref at `index` from a node (the bundled file is left in place). */
 export function removeDocRef(doc: Y.Doc, nodeId: string, index: number): void {
   const m = nodesOf(doc).get(nodeId)

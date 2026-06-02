@@ -98,6 +98,14 @@ export interface InkprojSavePayload {
   docs?: { path: string; content: string }[]
 }
 
+/** A user-picked external document (read once via a main-side dialog grant — D7). */
+export interface PickedExternal {
+  /** Absolute on-disk path the user chose. */
+  src: string
+  content: string
+  title: string
+}
+
 /** Result of opening a `.inkproj`: the extracted working dir + parsed entries. */
 export interface OpenedInkproj {
   workingDir: string

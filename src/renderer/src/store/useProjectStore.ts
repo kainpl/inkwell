@@ -29,6 +29,8 @@ export interface ProjectEntry {
   openDoc: OpenDoc | null
   /** Bundle-relative doc path → edited content not yet saved (flushed on Save). */
   dirtyDocs: Record<string, string>
+  /** External doc `src` → content the user granted this session (transient, never saved). */
+  externalDocs: Record<string, string>
 }
 
 interface ProjectsState {
@@ -67,6 +69,8 @@ interface ProjectsState {
   setDocBuffer: (path: string, content: string) => void
   /** Drop all buffered doc edits (after a successful save). */
   clearDirtyDocs: () => void
+  /** Cache a user-granted external doc's content (transient; no dirty). */
+  setExternalDoc: (src: string, content: string) => void
 }
 
 /** Immutably update the active tab's entry (no-op if the active tab isn't a project). */
@@ -99,7 +103,8 @@ export const useProjectStore = create<ProjectsState>((set) => ({
           editingId: null,
           selectedLink: null,
           openDoc: null,
-          dirtyDocs: {}
+          dirtyDocs: {},
+          externalDocs: {}
         }
       }
     })),
@@ -186,7 +191,10 @@ export const useProjectStore = create<ProjectsState>((set) => ({
   clearDirtyDocs: () =>
     set((s) =>
       patchActive(s, (e) => (Object.keys(e.dirtyDocs).length ? { ...e, dirtyDocs: {} } : e))
-    )
+    ),
+
+  setExternalDoc: (src, content) =>
+    set((s) => patchActive(s, (e) => ({ ...e, externalDocs: { ...e.externalDocs, [src]: content } })))
 }))
 
 /** The active tab's project entry, or null. Subscribes to both stores so it
