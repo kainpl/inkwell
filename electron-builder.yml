@@ -25,6 +25,9 @@ fileAssociations:
   - ext: mkd
     name: Markdown Document
     role: Editor
+  - ext: inkproj
+    name: Inkwell Project
+    role: Editor
 mac:
   category: public.app-category.productivity
   target: [dmg]

@@ -24,6 +24,7 @@ import type { DocRef, OpenedInkproj } from '../shared/mindmap/types'
 const menuChannels = [
   IPC.menuNewFile,
   IPC.menuOpenFile,
+  IPC.menuOpenProject,
   IPC.menuOpenFolder,
   IPC.menuSave,
   IPC.menuSaveAs,
@@ -202,6 +203,7 @@ const api = {
   /** Mind-map / schema project files (.inkproj). Read-only in M1. */
   inkproj: {
     open: (path: string): Promise<OpenedInkproj> => ipcRenderer.invoke(IPC.inkprojOpen, path),
+    openDialog: (): Promise<OpenedInkproj | null> => ipcRenderer.invoke(IPC.inkprojOpenDialog),
     readDoc: (workingDir: string, ref: DocRef): Promise<string> =>
       ipcRenderer.invoke(IPC.inkprojReadDoc, workingDir, ref),
     close: (workingDir: string): Promise<void> => ipcRenderer.invoke(IPC.inkprojClose, workingDir)

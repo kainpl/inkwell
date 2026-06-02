@@ -10,6 +10,7 @@ export const ru: Dict = {
   'file.new': 'Создать',
   'file.newFromTemplate': 'Создать из шаблона…',
   'file.openFile': 'Открыть файл…',
+  'file.openProject': 'Открыть проект…',
   'file.openFolder': 'Открыть папку…',
   'file.openQuickly': 'Быстрое открытие…',
   'file.openRecent': 'Открыть недавнее…',

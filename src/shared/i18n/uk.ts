@@ -10,6 +10,7 @@ export const uk: Dict = {
   'file.new': 'Новий',
   'file.newFromTemplate': 'Новий із шаблону…',
   'file.openFile': 'Відкрити файл…',
+  'file.openProject': 'Відкрити проєкт…',
   'file.openFolder': 'Відкрити теку…',
   'file.openQuickly': 'Швидке відкриття…',
   'file.openRecent': 'Відкрити недавнє…',

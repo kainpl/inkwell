@@ -66,9 +66,13 @@ import EditorContextMenu from '@renderer/components/EditorContextMenu'
 import SpellDownload from '@renderer/components/SpellDownload'
 import PromptModal from '@renderer/components/PromptModal'
 import ConfirmUnsavedModal from '@renderer/components/ConfirmUnsavedModal'
+import ProjectView from '@renderer/components/Mindmap/ProjectView'
+import { useProjectStore } from '@renderer/store/useProjectStore'
+import { openProjectFromDialog, openProjectFromPath } from '@renderer/lib/mindmap/projectActions'
 
 export default function App(): JSX.Element {
   const formatBarOpen = useAppStore((s) => s.formatBarOpen)
+  const projectActive = useProjectStore((s) => s.active)
 
   // Wire main-process menu commands (file ops route through the unsaved guard).
   useEffect(() => {
@@ -76,6 +80,7 @@ export default function App(): JSX.Element {
     const unsubs = [
       window.api.onMenu(IPC.menuNewFile, () => void newDocument()),
       window.api.onMenu(IPC.menuOpenFile, () => void openFileFromDialog()),
+      window.api.onMenu(IPC.menuOpenProject, () => void openProjectFromDialog()),
       window.api.onMenu(IPC.menuOpenFolder, () => void openFolderFromDialog()),
       window.api.onMenu(IPC.menuSave, () => void saveDoc()),
       window.api.onMenu(IPC.menuSaveAs, () => void saveDocAs()),
@@ -139,7 +144,14 @@ export default function App(): JSX.Element {
   useEffect(() => window.api.onExportPandoc((format) => void exportPandocFile(format)), [])
 
   // The OS handed us a file to open (file association / double-click).
-  useEffect(() => window.api.onOpenExternalFile((path) => void openPath(path)), [])
+  useEffect(
+    () =>
+      window.api.onOpenExternalFile((path) => {
+        if (path.toLowerCase().endsWith('.inkproj')) void openProjectFromPath(path)
+        else void openPath(path)
+      }),
+    []
+  )
 
   // Keep the main process informed of unsaved state across ALL tabs (drives the
   // window-close guard), and keep the restorable session file on the active tab.
@@ -215,12 +227,18 @@ export default function App(): JSX.Element {
       <TitleBar />
       <TabBar />
       {formatBarOpen && <Toolbar />}
-      <div className="flex min-h-0 flex-1">
-        <Sidebar />
-        <main className="min-w-0 flex-1">
-          <Editor />
+      {projectActive ? (
+        <main className="min-h-0 flex-1">
+          <ProjectView />
         </main>
-      </div>
+      ) : (
+        <div className="flex min-h-0 flex-1">
+          <Sidebar />
+          <main className="min-w-0 flex-1">
+            <Editor />
+          </main>
+        </div>
+      )}
       <StatusBar />
       <FloatingToolbar />
       <ImageZoom />

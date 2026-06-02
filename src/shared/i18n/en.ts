@@ -12,6 +12,7 @@ export const en: Dict = {
   'file.new': 'New',
   'file.newFromTemplate': 'New from Template…',
   'file.openFile': 'Open File…',
+  'file.openProject': 'Open Project…',
   'file.openFolder': 'Open Folder…',
   'file.openQuickly': 'Open Quickly…',
   'file.openRecent': 'Open Recent…',

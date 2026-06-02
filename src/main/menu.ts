@@ -19,6 +19,7 @@ export function buildMenu(win: BrowserWindow, locale: Locale): void {
         { label: t('file.new'), accelerator: 'CmdOrCtrl+N', click: send(IPC.menuNewFile) },
         { label: t('file.newFromTemplate'), click: send(IPC.menuNewFromTemplate) },
         { label: t('file.openFile'), accelerator: 'CmdOrCtrl+O', click: send(IPC.menuOpenFile) },
+        { label: t('file.openProject'), click: send(IPC.menuOpenProject) },
         { label: t('file.openFolder'), accelerator: 'CmdOrCtrl+Shift+O', click: send(IPC.menuOpenFolder) },
         { label: t('file.openQuickly'), accelerator: 'CmdOrCtrl+P', click: send(IPC.menuOpenQuickly) },
         { label: t('file.openRecent'), click: send(IPC.menuOpenRecent) },

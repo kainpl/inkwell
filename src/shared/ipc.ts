@@ -212,6 +212,7 @@ export const IPC = {
   noteGraph: 'graph:notes',
   // inkproj mind-map / schema project files (extract + read; never writes in M1)
   inkprojOpen: 'inkproj:open',
+  inkprojOpenDialog: 'inkproj:openDialog',
   inkprojReadDoc: 'inkproj:readDoc',
   inkprojClose: 'inkproj:close',
   // google drive (cloud mode)
@@ -242,6 +243,7 @@ export const IPC = {
   // main -> renderer (send/on)
   menuNewFile: 'menu:newFile',
   menuOpenFile: 'menu:openFile',
+  menuOpenProject: 'menu:openProject',
   menuOpenFolder: 'menu:openFolder',
   menuSave: 'menu:save',
   menuSaveAs: 'menu:saveAs',
