@@ -54,8 +54,11 @@ export async function saveProject(tabId: string): Promise<void> {
   if (entry.manifestDirty) {
     payload.manifest = { ...entry.manifest, linkTypes: entry.manifestLinkTypes }
   }
+  const docs = Object.entries(entry.dirtyDocs).map(([path, content]) => ({ path, content }))
+  if (docs.length) payload.docs = docs
   await window.api.inkproj.save(entry.workingDir, payload, entry.srcPath)
   useProjectStore.getState().clearManifestDirty()
+  useProjectStore.getState().clearDirtyDocs()
   useAppStore.getState().setTabDirty(tabId, false)
 }
 
