@@ -8,7 +8,9 @@ import {
   addChildToSelected,
   addSiblingToSelected,
   beginRenameSelected,
-  deleteSelected
+  deleteSelected,
+  redoActive,
+  undoActive
 } from '@renderer/lib/mindmap/projectEditActions'
 
 /** True when keystrokes belong to a text field / interactive control, not the canvas. */
@@ -25,6 +27,20 @@ export default function ProjectView(): JSX.Element {
   useEffect(() => {
     const onKey = (e: KeyboardEvent): void => {
       if (isTypingTarget(e.target)) return
+      // Undo/redo work without a selection; a file tab never reaches here (ProjectView unmounts).
+      const mod = e.ctrlKey || e.metaKey
+      if (mod) {
+        const k = e.key.toLowerCase()
+        if (k === 'z') {
+          e.preventDefault()
+          if (e.shiftKey) redoActive()
+          else undoActive()
+        } else if (k === 'y') {
+          e.preventDefault()
+          redoActive()
+        }
+        return
+      }
       const tabId = useAppStore.getState().activeId
       const sel = useProjectStore.getState().byTab[tabId]?.selectedId
       if (!sel) return

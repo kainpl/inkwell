@@ -16,7 +16,7 @@ import { isGdrive } from '@shared/drive'
 import { readRef, writeRef } from './fileSource'
 import { getDriveBase, setDriveBase } from './drive'
 import { t } from './i18n'
-import { cleanupProjectTab } from './mindmap/projectActions'
+import { cleanupProjectTab, saveProject } from './mindmap/projectActions'
 
 /** Content shaped for disk per the user's line-ending / final-newline settings. */
 function contentForDisk(): string {
@@ -94,15 +94,26 @@ export async function saveDocAs(): Promise<boolean> {
   return true
 }
 
+/** Save the active tab: a project tab → its `.inkproj`; a file tab → `saveDoc`. */
+export async function saveCurrent(): Promise<boolean> {
+  const s = useAppStore.getState()
+  const tab = s.tabs.find((t) => t.id === s.activeId)
+  if (tab?.kind === 'project') {
+    await saveProject(s.activeId)
+    return true
+  }
+  return saveDoc()
+}
+
 /**
- * If the document has unsaved changes, ask the user. Returns true when it is
+ * If the active tab has unsaved changes, ask the user. Returns true when it is
  * safe to proceed (changes saved or discarded), false to abort the operation.
  */
 export async function guardUnsaved(): Promise<boolean> {
   if (!useAppStore.getState().doc.dirty) return true
   const choice = await useConfirm.getState().ask()
   if (choice === 'cancel') return false
-  if (choice === 'save') return saveDoc() // false if Save As is canceled → abort
+  if (choice === 'save') return saveCurrent() // false if Save As is canceled → abort
   return true // discard
 }
 

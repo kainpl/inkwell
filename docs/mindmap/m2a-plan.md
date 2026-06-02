@@ -281,8 +281,8 @@ export function reparent(doc: Y.Doc, nodeId: string, newParentId: string): boole
 
 **Files:** modify `Canvas.tsx`.
 
-- [ ] **7.1** Project tabs: `nodesDraggable` on. `onNodeDragStop(_, node)`: find the nearest *other* node within a radius of the drop point (use React Flow node positions); if found, `reparent(doc, node.id, target.id)` + dirty; else the layout snaps it back on next render (positions are derived, so a no-op reparent simply re-lays-out). Optional: a drop-target highlight via `onNodeDrag`.
-- [ ] **7.2** manual: drag a node onto another → becomes its child; drag onto empty → snaps back. **7.3** commit `feat(mindmap): reparent by drag`.
+- [x] **7.1** Canvas keeps a local node copy (controlled-flow pattern) so a drag is visible; `onNodeDragStop` finds the nearest *other* node within `REPARENT_RADIUS` (140px); if found, `reparent(doc, node.id, target.id)` + dirty (model change re-lays-out); else `setNodes(model.nodes)` snaps back. `nodesDraggable` defaults on (Canvas only mounts for project tabs).
+- [x] **7.2** runtime drag verified in Task 10 QA. **7.3** commit `feat(mindmap): reparent by drag`.
 
 ---
 
@@ -290,8 +290,8 @@ export function reparent(doc: Y.Doc, nodeId: string, newParentId: string): boole
 
 **Files:** modify `App.tsx` (or a project-scoped key handler).
 
-- [ ] **8.1** When a project tab is active: `Cmd/Ctrl+Z` → `getProjectDoc(tabId)?.undo.undo()`; `Cmd/Ctrl+Shift+Z` / `Cmd/Ctrl+Y` → `.redo()`. Mark dirty after (or recompute dirty from undo stack). Don't intercept these when a file tab is active (CodeMirror owns them).
-- [ ] **8.2** manual: edit, undo, redo; rename coalesces into one step. **8.3** commit `feat(mindmap): project undo/redo`.
+- [x] **8.1** `ProjectView`'s project-scoped key handler: `Ctrl/Cmd+Z` → `undoActive` (`getProjectDoc(tabId).undo.undo()` guarded by `canUndo`), `Shift` / `Ctrl/Cmd+Y` → `redoActive`; marks dirty. Ignores typing/interactive targets; a file tab never reaches here (ProjectView unmounts → CodeMirror owns Ctrl+Z).
+- [x] **8.2** runtime undo/redo + rename coalescing verified in Task 10 QA. **8.3** commit `feat(mindmap): project undo/redo`.
 
 ---
 
@@ -299,10 +299,10 @@ export function reparent(doc: Y.Doc, nodeId: string, newParentId: string): boole
 
 **Files:** modify `projectActions.ts`, `App.tsx`.
 
-- [ ] **9.1** `saveProject(tabId)`: `outlineToMarkdown(yjsToOutline(doc), title)` → `window.api.inkproj.save(workingDir, schema, srcPath)` → on success `setTabDirty(tabId, false)`.
-- [ ] **9.2** App `menuSave` handler: if the active tab is a project → `saveProject`, else the existing `saveDoc`. (Same branch for the Save toolbar button.)
-- [ ] **9.3** Verify the unsaved guard: a dirty project tab `×` and window-close prompt (already keyed off `tab.dirty`). After save, no prompt.
-- [ ] **9.4** manual: edit → dirty dot → `Cmd+S` → unzip shows new `schema.mind-map`; reopen reflects edits. **9.5** commit `feat(mindmap): save project (Cmd+S, zip-back) + guard`.
+- [x] **9.1** `saveProject(tabId)`: `outlineToMarkdown(yjsToOutline(doc), title)` → `window.api.inkproj.save(workingDir, schema, srcPath)` → on success `setTabDirty(tabId, false)`. (Task 4.)
+- [x] **9.2** `docActions.saveCurrent()` branches on tab kind (project → `saveProject`, else `saveDoc`); App `menuSave`/`menuSaveAs` and the toolbar Save button all route through it; `guardUnsaved`'s "save" choice uses it too.
+- [x] **9.3** Unsaved guard reuses `closeTabById`/`guardAllTabs`, which activate the tab then run `guardUnsaved` (now `doc.dirty` mirrors the project tab via `setTabDirty`). Also guarded `draftAutoSave` from generating drafts for path-less project tabs.
+- [x] **9.4** runtime Cmd+S round-trip verified in Task 10 QA. **9.5** commit `feat(mindmap): save project (Cmd+S, zip-back) + guard`.
 
 ---
 

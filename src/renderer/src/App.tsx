@@ -13,7 +13,7 @@ import {
   reopenClosedFile,
   restoreSession,
   recoverDrafts,
-  saveDoc,
+  saveCurrent,
   saveDocAs
 } from '@renderer/lib/docActions'
 import { setSessionFile } from '@renderer/lib/persistence'
@@ -81,8 +81,12 @@ export default function App(): JSX.Element {
       window.api.onMenu(IPC.menuOpenFile, () => void openFileFromDialog()),
       window.api.onMenu(IPC.menuOpenProject, () => void openProjectFromDialog()),
       window.api.onMenu(IPC.menuOpenFolder, () => void openFolderFromDialog()),
-      window.api.onMenu(IPC.menuSave, () => void saveDoc()),
-      window.api.onMenu(IPC.menuSaveAs, () => void saveDocAs()),
+      window.api.onMenu(IPC.menuSave, () => void saveCurrent()),
+      window.api.onMenu(IPC.menuSaveAs, () => {
+        const s = useAppStore.getState()
+        const isProject = s.tabs.find((t) => t.id === s.activeId)?.kind === 'project'
+        void (isProject ? saveCurrent() : saveDocAs())
+      }),
       window.api.onMenu(IPC.menuToggleSidebar, () => store.toggleSidebar()),
       window.api.onMenu(IPC.menuToggleOutline, () => store.toggleOutline()),
       window.api.onMenu(IPC.menuToggleFocusMode, () => store.toggleFocusMode()),

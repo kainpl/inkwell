@@ -21,6 +21,9 @@ export function startDraftAutoSave(delay: number = DRAFT_DELAY): () => void {
   const unsub = useAppStore.subscribe((s) => {
     cancel()
     const { doc } = s
+    // Project tabs are path-less and content-less; they own their own (.inkproj) save
+    // path and must not generate crash-recovery drafts.
+    if (s.tabs.find((t) => t.id === s.activeId)?.kind === 'project') return
     if (doc.dirty) {
       timer = setTimeout(() => {
         void window.api.saveDraft({
