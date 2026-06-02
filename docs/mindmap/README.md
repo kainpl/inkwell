@@ -13,7 +13,7 @@ Branch: `feat/mindmap`. Started 2026‑06‑02.
 | [`m1-spec.md`](m1-spec.md) | **Milestone 1 spec** — the read‑only vertical slice (open `.inkproj` → render schema → click node → open doc). **Shipped.** |
 | [`m1-plan.md`](m1-plan.md) | **Milestone 1 implementation plan** — 14 task‑by‑task steps (TDD). **Done.** |
 | [`m2a-spec.md`](m2a-spec.md) | **Milestone 2a spec** — editing + save with a Yjs model (create/rename/delete/reparent, undo/redo, zip-back). |
-| [`m2a-plan.md`](m2a-plan.md) | **Milestone 2a implementation plan** — 10 task-groups (TDD), ready to execute. |
+| [`m2a-plan.md`](m2a-plan.md) | **Milestone 2a implementation plan** — 10 task-groups (TDD). **Code complete** (green gate passed); pending runtime QA. |
 
 ## Source repos (read‑only, gitignored, under `temp/ref/`)
 
@@ -31,4 +31,6 @@ Branch: `feat/mindmap`. Started 2026‑06‑02.
 
 ## Status
 
-Research complete; **vision locked (D1–D13)**; **M1 shipped** on `feat/mindmap` (pushed to origin) — read-only slice (open `.inkproj` → React Flow schema + typed cross-links → click node → doc pane with anchor scroll) **+ projects open as tabs** (switch/close via TabBar). Manual acceptance passed. Next: **M2 — editing + save**.
+Research complete; **vision locked (D1–D13)**; **M1 shipped** on `feat/mindmap` (pushed to origin) — read-only slice (open `.inkproj` → React Flow schema + typed cross-links → click node → doc pane with anchor scroll) **+ projects open as tabs** (switch/close via TabBar). Manual acceptance passed.
+
+**M2a code-complete** on `feat/mindmap` — a per-tab **Yjs** model drives editing: create (Tab/Enter), inline rename (double-click/F2), delete, **drag-to-reparent**, **undo/redo** (Ctrl+Z / Shift+Z / Y), and **save back to the `.inkproj`** (Cmd+S / toolbar) with the unsaved-changes guard extended to project tabs. Green gate passed (vitest 395, typecheck, lint, build). **Pending:** runtime manual QA on `sample.inkproj` (spec §9), then commit/merge per OK. Next: **M2b — cross-link & doc editing**.

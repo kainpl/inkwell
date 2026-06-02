@@ -308,10 +308,10 @@ export function reparent(doc: Y.Doc, nodeId: string, newParentId: string): boole
 
 ## Task 10 — acceptance + green gate
 
-- [ ] **10.1** Run M2a acceptance (spec §9) on `sample.inkproj`: add/rename/delete/reparent, undo/redo, save round-trip, dirty + guard, file editing untouched.
-- [ ] **10.2** `npx vitest run` (green; known `Editor.tab.test.tsx` jsdom error remains), `typecheck`/`lint`/`build` clean.
-- [ ] **10.3** Update `docs/mindmap/README.md` status → M2a shipped.
-- [ ] **10.4** Hand off for manual QA; commit/merge per the user's OK.
+- [ ] **10.1** Run M2a acceptance (spec §9) on `sample.inkproj`: add/rename/delete/reparent, undo/redo, save round-trip, dirty + guard, file editing untouched. *(manual QA — pending)*
+- [x] **10.2** `npx vitest run` green (395 pass; known `Editor.tab.test.tsx` jsdom teardown error remains), `typecheck`/`lint`/`build` clean.
+- [x] **10.3** Update `docs/mindmap/README.md` status → M2a code-complete.
+- [ ] **10.4** Hand off for manual QA; commit/merge per the user's OK. *(in progress — handed off)*
 
 ---
 
