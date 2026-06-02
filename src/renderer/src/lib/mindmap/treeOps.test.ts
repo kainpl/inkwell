@@ -1,0 +1,64 @@
+import { describe, it, expect } from 'vitest'
+import * as Y from 'yjs'
+import { outlineToYjs, yjsToOutline } from './yjsModel'
+import { addChild, addSibling, rename, remove, reparent } from './treeOps'
+import { markdownToOutline } from '@shared/mindmap/mindMapMarkdown'
+import type { MarkdownNode } from '@shared/mindmap/types'
+
+function seed(md: string): Y.Doc {
+  const doc = new Y.Doc()
+  const { outline, title } = markdownToOutline(md)
+  outlineToYjs(doc, outline, title)
+  return doc
+}
+// helper: names of the children of the node with a given data.id
+const childNames = (doc: Y.Doc, id: string): string[] => {
+  const find = (nodes: MarkdownNode[] = []): MarkdownNode | undefined => {
+    for (const n of nodes) {
+      if (n.data?.id === id) return n
+      const f = find(n.children)
+      if (f) return f
+    }
+    return undefined
+  }
+  return find(yjsToOutline(doc))?.children?.map((c) => c.name) ?? []
+}
+
+describe('tree edit ops', () => {
+  it('addChild appends a child under a node', () => {
+    const doc = seed('# R\n\n- A <!-- mindmap {"id":"a"} -->\n')
+    const id = addChild(doc, 'a')
+    rename(doc, id, 'child')
+    expect(childNames(doc, 'a')).toEqual(['child'])
+  })
+
+  it('addSibling inserts under the same parent', () => {
+    const doc = seed('# R\n\n- A <!-- mindmap {"id":"a"} -->\n- B <!-- mindmap {"id":"b"} -->\n')
+    rename(doc, addSibling(doc, 'a'), 'sib')
+    const roots = yjsToOutline(doc)[0].children?.map((c) => c.name)
+    expect(roots).toContain('sib')
+    expect(roots?.length).toBe(3)
+  })
+
+  it('remove deletes the subtree and strips cross-links pointing at it', () => {
+    const doc = seed(
+      '# R\n\n- A <!-- mindmap {"id":"a"} -->\n  - A1 <!-- mindmap {"id":"a1"} -->\n' +
+        '- B <!-- mindmap {"id":"b","links":[{"id":"e","to":"a1","type":"depends-on"}]} -->\n'
+    )
+    remove(doc, 'a')
+    const outline = yjsToOutline(doc)
+    const names = outline[0].children?.map((c) => c.name)
+    expect(names).toEqual(['B'])
+    const b = outline[0].children?.find((c) => c.data?.id === 'b')
+    expect(b?.data?.links ?? []).toEqual([]) // dangling link stripped
+  })
+
+  it('reparent moves a node, and rejects a cycle', () => {
+    const doc = seed(
+      '# R\n\n- A <!-- mindmap {"id":"a"} -->\n  - A1 <!-- mindmap {"id":"a1"} -->\n- B <!-- mindmap {"id":"b"} -->\n'
+    )
+    expect(reparent(doc, 'b', 'a')).toBe(true)
+    expect(childNames(doc, 'a')).toContain('B')
+    expect(reparent(doc, 'a', 'a1')).toBe(false) // a1 is a descendant of a -> cycle
+  })
+})
