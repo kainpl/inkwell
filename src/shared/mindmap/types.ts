@@ -94,6 +94,8 @@ export interface OpenedInkproj {
   workingDir: string
   manifest: InkprojManifest
   schema: string
+  /** The source `.inkproj` path — where Save writes back to. */
+  srcPath: string
 }
 
 /** Renderer graph model (engine-agnostic — D8; React Flow consumes it). */

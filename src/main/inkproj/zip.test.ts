@@ -4,7 +4,7 @@ import JSZip from 'jszip'
 import { mkdtemp, writeFile, rm } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { openInkproj, readDocFile, cleanupInkproj } from './zip'
+import { openInkproj, readDocFile, saveInkproj, cleanupInkproj } from './zip'
 
 async function makeFixture(): Promise<string> {
   const zip = new JSZip()
@@ -54,5 +54,23 @@ describe('inkproj zip', () => {
     await expect(
       readDocFile(workingDir, { external: true, src: join(tmpdir(), 'whatever') })
     ).rejects.toThrow(/file picker/)
+  })
+
+  it('saves a new schema back and re-opens it', async () => {
+    const opened = await openInkproj(await makeFixture())
+    dirs.push(opened.workingDir)
+    await saveInkproj(opened.workingDir, '# T2\n\n- Zed <!-- mindmap {"id":"z"} -->\n', opened.srcPath)
+    const reopened = await openInkproj(opened.srcPath)
+    dirs.push(reopened.workingDir)
+    expect(reopened.schema).toContain('# T2')
+    expect(reopened.schema).toContain('Zed')
+  })
+
+  it('rejects save with a mismatched srcPath', async () => {
+    const opened = await openInkproj(await makeFixture())
+    dirs.push(opened.workingDir)
+    await expect(
+      saveInkproj(opened.workingDir, '# x\n', join(tmpdir(), 'other.inkproj'))
+    ).rejects.toThrow(/path mismatch|unknown project/)
   })
 })

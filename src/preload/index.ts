@@ -206,6 +206,8 @@ const api = {
     openDialog: (): Promise<OpenedInkproj | null> => ipcRenderer.invoke(IPC.inkprojOpenDialog),
     readDoc: (workingDir: string, ref: DocRef): Promise<string> =>
       ipcRenderer.invoke(IPC.inkprojReadDoc, workingDir, ref),
+    save: (workingDir: string, schema: string, srcPath: string): Promise<void> =>
+      ipcRenderer.invoke(IPC.inkprojSave, workingDir, schema, srcPath),
     close: (workingDir: string): Promise<void> => ipcRenderer.invoke(IPC.inkprojClose, workingDir)
   },
 

@@ -1,17 +1,18 @@
-import { mkdtemp, mkdir, writeFile, readFile, rm, realpath } from 'node:fs/promises'
+import { mkdtemp, mkdir, writeFile, readFile, rm, realpath, rename, readdir } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
-import { join, dirname, resolve, sep } from 'node:path'
+import { join, dirname, resolve, relative, sep } from 'node:path'
 import JSZip from 'jszip'
 import type { DocRef, InkprojManifest, OpenedInkproj } from '../../shared/mindmap/types'
 
 const DEFAULT_BASE = join(tmpdir(), 'inkwell-inkproj')
 
 /**
- * Working dirs we created via `extractInkproj`. Reads only ever resolve against
- * one of these — a `workingDir` argument that didn't come from us is rejected,
- * so a compromised renderer can't aim the reader at an arbitrary directory.
+ * Open projects: working dir → its source `.inkproj` path. Reads/writes only
+ * ever resolve against a known working dir, and saving requires the `srcPath`
+ * to match the one we opened — so a compromised renderer can't aim the
+ * reader/writer at an arbitrary directory or file.
  */
-const KNOWN_WORKING_DIRS = new Set<string>()
+const PROJECTS = new Map<string, string>()
 
 /** True iff `dest` stays inside `root` (path-traversal guard). */
 function within(root: string, dest: string): boolean {
@@ -23,6 +24,13 @@ async function safeResolve(root: string, rel: string): Promise<string | null> {
   const realRoot = await realpath(root)
   const dest = await realpath(resolve(realRoot, rel)).catch(() => null)
   return dest && within(realRoot, dest) ? dest : null
+}
+
+/** Resolve a *write* target under `root` (file may not exist yet); null if it escapes. */
+async function safeJoin(root: string, rel: string): Promise<string | null> {
+  const realRoot = await realpath(root)
+  const dest = resolve(realRoot, rel)
+  return within(realRoot, dest) ? dest : null
 }
 
 /** Extract a `.inkproj` (ZIP) into a fresh working directory; returns its path. */
@@ -40,7 +48,7 @@ export async function extractInkproj(srcPath: string, baseDir: string = DEFAULT_
       await writeFile(dest, await entry.async('nodebuffer'))
     }
   }
-  KNOWN_WORKING_DIRS.add(workingDir)
+  PROJECTS.set(workingDir, srcPath)
   return workingDir
 }
 
@@ -62,7 +70,7 @@ export async function readManifestAndSchema(
 export async function openInkproj(srcPath: string, baseDir?: string): Promise<OpenedInkproj> {
   const workingDir = await extractInkproj(srcPath, baseDir)
   const { manifest, schema } = await readManifestAndSchema(workingDir)
-  return { workingDir, manifest, schema }
+  return { workingDir, manifest, schema, srcPath }
 }
 
 /**
@@ -72,7 +80,7 @@ export async function openInkproj(srcPath: string, baseDir?: string): Promise<Op
  * picker (a manifest-supplied absolute `src` would be arbitrary file read; D7).
  */
 export async function readDocFile(workingDir: string, ref: DocRef): Promise<string> {
-  if (!KNOWN_WORKING_DIRS.has(workingDir)) throw new Error('unknown workingDir')
+  if (!PROJECTS.has(workingDir)) throw new Error('unknown workingDir')
   if (ref.external) throw new Error('external doc refs must be opened via a user file picker')
   if (!ref.path) throw new Error('doc ref has no path')
   const dest = await safeResolve(workingDir, ref.path)
@@ -80,8 +88,38 @@ export async function readDocFile(workingDir: string, ref: DocRef): Promise<stri
   return readFile(dest, 'utf8')
 }
 
+async function* walkFiles(dir: string, base = dir): AsyncGenerator<{ abs: string; rel: string }> {
+  for (const ent of await readdir(dir, { withFileTypes: true })) {
+    const abs = join(dir, ent.name)
+    if (ent.isDirectory()) yield* walkFiles(abs, base)
+    else yield { abs, rel: relative(base, abs).split(sep).join('/') }
+  }
+}
+
+/**
+ * Write the new schema into the working dir, re-zip it, and atomically replace
+ * the source `.inkproj`. `workingDir` must be known and `srcPath` must match the
+ * one this project was opened from.
+ */
+export async function saveInkproj(workingDir: string, schemaText: string, srcPath: string): Promise<void> {
+  if (PROJECTS.get(workingDir) !== srcPath) throw new Error('unknown project or path mismatch')
+  const manifest = JSON.parse(
+    await readFile(join(workingDir, 'manifest.json'), 'utf8')
+  ) as InkprojManifest
+  const schemaDest = await safeJoin(workingDir, manifest.schema || 'schema.mind-map')
+  if (!schemaDest) throw new Error('unsafe schema path')
+  await writeFile(schemaDest, schemaText, 'utf8')
+
+  const zip = new JSZip()
+  for await (const f of walkFiles(workingDir)) zip.file(f.rel, await readFile(f.abs))
+  const buf = await zip.generateAsync({ type: 'nodebuffer' })
+  const tmp = `${srcPath}.tmp-${Date.now().toString(36)}`
+  await writeFile(tmp, buf)
+  await rename(tmp, srcPath)
+}
+
 /** Remove a working directory (best-effort). */
 export async function cleanupInkproj(workingDir: string): Promise<void> {
-  KNOWN_WORKING_DIRS.delete(workingDir)
+  PROJECTS.delete(workingDir)
   await rm(workingDir, { recursive: true, force: true })
 }
