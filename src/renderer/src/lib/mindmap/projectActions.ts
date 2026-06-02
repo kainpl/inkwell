@@ -1,21 +1,35 @@
+import type { Doc as YDoc } from 'yjs'
 import { useAppStore } from '@renderer/store/useAppStore'
 import { useProjectStore } from '@renderer/store/useProjectStore'
-import { markdownToOutline } from '@shared/mindmap/mindMapMarkdown'
+import { markdownToOutline, outlineToMarkdown } from '@shared/mindmap/mindMapMarkdown'
 import type { OpenedInkproj } from '@shared/mindmap/types'
-import { buildGraph } from './buildGraph'
+import { createProjectDoc, destroyProjectDoc, getProjectDoc } from './yjsRegistry'
+import { nodesOf, yjsToOutline } from './yjsModel'
 import { mergeLinkTypes } from './linkTypes'
 
-/** Parse an opened bundle and open it as a new project tab. */
+/** Ids whose subtree should start collapsed (`data.expand === false`). */
+function initialCollapsed(doc: YDoc): Set<string> {
+  const out = new Set<string>()
+  nodesOf(doc).forEach((m, id) => {
+    const data = JSON.parse((m.get('dataJson') as string) || '{}') as { expand?: unknown }
+    if (data.expand === false) out.add(id)
+  })
+  return out
+}
+
+/** Parse an opened bundle, seed a Yjs doc, and open it as a new project tab. */
 function enterProject(opened: OpenedInkproj): void {
-  const graph = buildGraph(markdownToOutline(opened.schema).outline)
-  const linkTypes = mergeLinkTypes(opened.manifest.linkTypes)
-  const name = opened.manifest.title?.trim() || 'Project'
+  const { outline, title } = markdownToOutline(opened.schema)
+  const docTitle = (opened.manifest.title ?? title ?? '').toString()
+  const name = docTitle.trim() || 'Project'
   const tabId = useAppStore.getState().openProjectTab(name)
+  const { doc } = createProjectDoc(tabId, outline, docTitle, opened.srcPath)
   useProjectStore.getState().setProjectForTab(tabId, {
     workingDir: opened.workingDir,
     manifest: opened.manifest,
-    graph,
-    linkTypes
+    linkTypes: mergeLinkTypes(opened.manifest.linkTypes),
+    srcPath: opened.srcPath,
+    collapsed: initialCollapsed(doc)
   })
 }
 
@@ -30,9 +44,21 @@ export async function openProjectFromPath(path: string): Promise<void> {
   enterProject(await window.api.inkproj.open(path))
 }
 
-/** Tear down a project tab's runtime state + extracted working dir (on tab close). */
+/** Serialize the project's Yjs doc back to `.inkproj` and clear its dirty flag. */
+export async function saveProject(tabId: string): Promise<void> {
+  const entry = useProjectStore.getState().byTab[tabId]
+  const pd = getProjectDoc(tabId)
+  if (!entry || !pd) return
+  const title = (pd.doc.getMap('meta').get('title') as string) ?? ''
+  const schema = outlineToMarkdown(yjsToOutline(pd.doc), title)
+  await window.api.inkproj.save(entry.workingDir, schema, entry.srcPath)
+  useAppStore.getState().setTabDirty(tabId, false)
+}
+
+/** Tear down a project tab's runtime state, Yjs doc, and extracted working dir. */
 export async function cleanupProjectTab(tabId: string): Promise<void> {
   const wd = useProjectStore.getState().byTab[tabId]?.workingDir
   useProjectStore.getState().removeProjectForTab(tabId)
+  destroyProjectDoc(tabId)
   if (wd) await window.api.inkproj.close(wd)
 }

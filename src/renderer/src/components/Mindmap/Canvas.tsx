@@ -1,9 +1,11 @@
 import { useMemo } from 'react'
 import { ReactFlow, Background, Controls, MiniMap, type EdgeTypes, type NodeTypes } from '@xyflow/react'
 import '@xyflow/react/dist/style.css'
+import { useAppStore } from '@renderer/store/useAppStore'
 import { useProjectStore, useActiveProject } from '@renderer/store/useProjectStore'
+import { useProjectGraph } from '@renderer/lib/mindmap/useProjectGraph'
 import { computeLayout, type Pos } from '@renderer/lib/mindmap/layout'
-import { buildRfModel } from '@renderer/lib/mindmap/rfModel'
+import { buildRfModel, type RfNodeData } from '@renderer/lib/mindmap/rfModel'
 import type { LinkType } from '@shared/mindmap/types'
 import MindNode from './MindNode'
 import { TreeEdge, CrosslinkEdge } from './edges'
@@ -15,8 +17,9 @@ const EMPTY_LINK_TYPES: Record<string, LinkType> = {}
 /** React Flow canvas: renders the schema tree + typed cross-links (read-only). */
 export default function Canvas(): JSX.Element {
   const project = useActiveProject()
+  const activeId = useAppStore((s) => s.activeId)
   const openDocFor = useProjectStore((s) => s.openDocFor)
-  const graph = project?.graph ?? null
+  const graph = useProjectGraph(activeId)
   const collapsed = project?.collapsed
   const linkTypes = project?.linkTypes ?? EMPTY_LINK_TYPES
   const selectedId = project?.selectedId ?? null
@@ -37,7 +40,7 @@ export default function Canvas(): JSX.Element {
       edges={model.edges}
       nodeTypes={nodeTypes}
       edgeTypes={edgeTypes}
-      onNodeClick={(_e, node) => openDocFor(node.id)}
+      onNodeClick={(_e, node) => openDocFor(node.id, (node.data as RfNodeData).raw.data.docs?.[0])}
       nodesDraggable={false}
       nodesConnectable={false}
       elementsSelectable

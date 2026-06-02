@@ -31,6 +31,8 @@ interface AppState {
   newTab: () => void
   /** Append a path-less project tab (renders a `.inkproj` view); returns its id. */
   openProjectTab: (name: string) => string
+  /** Set a tab's dirty flag (used by project tabs; mirrors `doc.dirty` when active). */
+  setTabDirty: (id: string, dirty: boolean) => void
   activateTab: (id: string) => void
   /** Remove a tab; never leaves zero tabs (spawns a fresh untitled if needed). */
   removeTab: (id: string) => void
@@ -230,6 +232,12 @@ export const useAppStore = create<AppState>((set) => ({
     })
     return id
   },
+
+  setTabDirty: (id, dirty) =>
+    set((s) => ({
+      tabs: s.tabs.map((t) => (t.id === id ? { ...t, dirty } : t)),
+      doc: s.activeId === id ? { ...s.doc, dirty } : s.doc
+    })),
 
   activateTab: (id) =>
     set((s) => {
