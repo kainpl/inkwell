@@ -2,6 +2,7 @@ import { useEffect, useState, type ReactNode } from 'react'
 import { IPC } from '@shared/ipc'
 import { useAppStore } from '@renderer/store/useAppStore'
 import type { Paper } from '@renderer/lib/pageSetup'
+import { useT } from '@renderer/lib/i18n'
 
 const FIELD = 'rounded border border-line bg-paper px-2 py-1 text-sm text-ink'
 
@@ -19,6 +20,7 @@ export default function PageSetupModal(): JSX.Element | null {
   const [open, setOpen] = useState(false)
   const setup = useAppStore((s) => s.pageSetup)
   const setPageSetup = useAppStore((s) => s.setPageSetup)
+  const t = useT()
 
   useEffect(() => window.api.onMenu(IPC.menuPageSetup, () => setOpen(true)), [])
   useEffect(() => {
@@ -48,9 +50,9 @@ export default function PageSetupModal(): JSX.Element | null {
         className="w-[24rem] max-w-[92vw] rounded-lg border border-line bg-paper p-5 shadow-xl"
         onMouseDown={(e) => e.stopPropagation()}
       >
-        <h2 className="mb-3 text-base font-semibold text-ink">Page Setup</h2>
+        <h2 className="mb-3 text-base font-semibold text-ink">{t('page.title')}</h2>
 
-        <Row label="Paper">
+        <Row label={t('page.paper')}>
           <select
             className={FIELD}
             value={setup.paper}
@@ -59,12 +61,12 @@ export default function PageSetupModal(): JSX.Element | null {
             <option value="A4">A4</option>
             <option value="Letter">Letter</option>
             <option value="A5">A5</option>
-            <option value="Custom">Custom</option>
+            <option value="Custom">{t('page.custom')}</option>
           </select>
         </Row>
 
         {setup.paper === 'Custom' && (
-          <Row label="Size (mm)">
+          <Row label={t('page.sizeMm')}>
             <input
               type="number"
               className={`${FIELD} w-20`}
@@ -81,7 +83,7 @@ export default function PageSetupModal(): JSX.Element | null {
           </Row>
         )}
 
-        <Row label="Margin (mm)">
+        <Row label={t('page.marginMm')}>
           <input
             type="number"
             className={`${FIELD} w-20`}
@@ -90,7 +92,7 @@ export default function PageSetupModal(): JSX.Element | null {
           />
         </Row>
 
-        <Row label="Orientation">
+        <Row label={t('page.orientation')}>
           <select
             className={FIELD}
             value={setup.orientation}
@@ -98,12 +100,12 @@ export default function PageSetupModal(): JSX.Element | null {
               setPageSetup({ orientation: e.target.value as 'portrait' | 'landscape' })
             }
           >
-            <option value="portrait">Portrait</option>
-            <option value="landscape">Landscape</option>
+            <option value="portrait">{t('page.portrait')}</option>
+            <option value="landscape">{t('page.landscape')}</option>
           </select>
         </Row>
 
-        <Row label="Page break before each H1">
+        <Row label={t('page.breakH1')}>
           <input
             type="checkbox"
             className="h-4 w-4 accent-accent"
@@ -118,7 +120,7 @@ export default function PageSetupModal(): JSX.Element | null {
             autoFocus
             className="rounded bg-accent px-3 py-1.5 text-sm font-medium text-paper hover:opacity-90"
           >
-            Done
+            {t('modal.done')}
           </button>
         </div>
       </div>

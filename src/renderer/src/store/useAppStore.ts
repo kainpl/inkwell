@@ -5,6 +5,7 @@ import { type PageSetup, loadPageSetup, savePageSetup } from '@renderer/lib/page
 import { type EditorFont, loadSettings, PANEL_MIN, PANEL_MAX } from '@renderer/lib/settings'
 import { type Mode, hasBothEditions } from '@renderer/lib/themes'
 import type { MarkdownFeatures } from '@renderer/lib/markdownFeatures'
+import type { Locale } from '@shared/i18n'
 
 export interface DocState {
   path: string | null
@@ -50,6 +51,9 @@ interface AppState {
   setDriveAccounts: (a: DriveAccount[]) => void
 
   // --- ui ---
+  /** UI language (chrome + native menu); persisted via settingsSync. */
+  locale: Locale
+  setLocale: (locale: Locale) => void
   /** Active theme id (see lib/themes.ts). */
   theme: string
   /** Active edition of the theme. */
@@ -256,6 +260,8 @@ export const useAppStore = create<AppState>((set) => ({
   driveAccounts: [],
   setDriveAccounts: (driveAccounts) => set({ driveAccounts }),
 
+  locale: s0.locale,
+  setLocale: (locale) => set({ locale }),
   theme: s0.theme,
   mode: s0.mode,
   setMode: (mode) => set({ mode }),

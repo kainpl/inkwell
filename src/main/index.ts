@@ -12,6 +12,7 @@ import { registerDriveIpc } from './ipc/drive'
 import { buildMenu } from './menu'
 import { IPC } from '../shared/ipc'
 import { fileFromArgv } from '../shared/openFile'
+import { DEFAULT_LOCALE, isLocale } from '../shared/i18n'
 
 // Local images are referenced via a custom `inkfile://` scheme instead of raw
 // `file://`: Chromium blocks `file://` subresources when the page is served
@@ -165,8 +166,15 @@ app.whenReady().then(() => {
     }
   })
 
+  // Rebuild the native menu in the language the renderer asks for (persisted in
+  // settings; pushed on startup and whenever the user changes it).
+  ipcMain.on(IPC.setLocale, (e, locale: unknown) => {
+    const w = BrowserWindow.fromWebContents(e.sender)
+    if (w && isLocale(locale)) buildMenu(w, locale)
+  })
+
   const win = createWindow()
-  buildMenu(win)
+  buildMenu(win, DEFAULT_LOCALE)
 
   // Open the file we were launched with (argv on Windows/Linux, or a macOS
   // open-file queued before the window existed) once the renderer is ready.

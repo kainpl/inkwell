@@ -3,6 +3,7 @@ import { IPC } from '@shared/ipc'
 import type { NoteGraph as NoteGraphData } from '@shared/noteGraph'
 import { useAppStore } from '@renderer/store/useAppStore'
 import { openWikiNote } from '@renderer/lib/wikiNote'
+import { useT } from '@renderer/lib/i18n'
 
 interface Pt {
   x: number
@@ -82,6 +83,7 @@ function layout(data: NoteGraphData): { pos: Map<string, Pt>; box: string } {
 export default function NoteGraph(): JSX.Element | null {
   const [open, setOpen] = useState(false)
   const [data, setData] = useState<NoteGraphData | null>(null)
+  const t = useT()
 
   useEffect(
     () =>
@@ -129,7 +131,7 @@ export default function NoteGraph(): JSX.Element | null {
       >
         <div className="flex items-center justify-between border-b border-line px-4 py-2">
           <span className="text-sm font-semibold text-ink">
-            Note Graph <span className="text-faint">({data.nodes.length} notes)</span>
+            {t('graph.title')} <span className="text-faint">({t('graph.notes', { n: data.nodes.length })})</span>
           </span>
           <button onClick={() => setOpen(false)} className="text-faint hover:text-ink">
             ✕
@@ -137,7 +139,7 @@ export default function NoteGraph(): JSX.Element | null {
         </div>
         {data.nodes.length === 0 ? (
           <div className="flex flex-1 items-center justify-center text-sm text-faint">
-            No notes — open a folder with markdown files.
+            {t('graph.empty')}
           </div>
         ) : (
           <svg viewBox={view.box} className="min-h-0 flex-1" preserveAspectRatio="xMidYMid meet">

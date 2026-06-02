@@ -2,47 +2,36 @@ import { useState } from 'react'
 import { useEditor } from '@renderer/store/useEditor'
 import { type FormatAction } from '@renderer/lib/formatCommands'
 import { runFormatAction } from '@renderer/lib/runFormatAction'
+import { useT } from '@renderer/lib/i18n'
 import EmojiPicker from './EmojiPicker'
 
 interface Btn {
   action: FormatAction
-  label: string
+  /** i18n key for the tooltip; defaults to `format.<action>`. */
+  labelKey: string
   glyph: string
 }
 
+const b = (action: FormatAction, glyph: string, labelKey = `format.${action}`): Btn => ({
+  action,
+  glyph,
+  labelKey
+})
+
 const GROUPS: Btn[][] = [
   [
-    { action: 'bold', label: 'Bold (Ctrl+B)', glyph: 'B' },
-    { action: 'italic', label: 'Italic (Ctrl+I)', glyph: 'I' },
-    { action: 'strike', label: 'Strikethrough', glyph: 'S' },
-    { action: 'code', label: 'Inline code', glyph: '<>' },
-    { action: 'highlight', label: 'Highlight', glyph: '▖' },
-    { action: 'sub', label: 'Subscript', glyph: 'x₂' },
-    { action: 'sup', label: 'Superscript', glyph: 'x²' }
+    b('bold', 'B'),
+    b('italic', 'I'),
+    b('strike', 'S'),
+    b('code', '<>'),
+    b('highlight', '▖'),
+    b('sub', 'x₂'),
+    b('sup', 'x²')
   ],
-  [
-    { action: 'h1', label: 'Heading 1', glyph: 'H1' },
-    { action: 'h2', label: 'Heading 2', glyph: 'H2' },
-    { action: 'h3', label: 'Heading 3', glyph: 'H3' }
-  ],
-  [
-    { action: 'ul', label: 'Bullet list', glyph: '•' },
-    { action: 'ol', label: 'Numbered list', glyph: '1.' },
-    { action: 'task', label: 'Task list', glyph: '☑' },
-    { action: 'quote', label: 'Quote', glyph: '❝' }
-  ],
-  [
-    { action: 'link', label: 'Link (Ctrl+K)', glyph: '🔗' },
-    { action: 'image', label: 'Image', glyph: '🖼' },
-    { action: 'table', label: 'Table', glyph: '▦' },
-    { action: 'codeblock', label: 'Code block', glyph: '{ }' },
-    { action: 'hr', label: 'Horizontal rule', glyph: '―' }
-  ],
-  [
-    { action: 'footnote', label: 'Footnote', glyph: '†' },
-    { action: 'mathBlock', label: 'Math block', glyph: 'Σ' },
-    { action: 'mermaid', label: 'Mermaid diagram', glyph: '◈' }
-  ]
+  [b('h1', 'H1'), b('h2', 'H2'), b('h3', 'H3')],
+  [b('ul', '•'), b('ol', '1.'), b('task', '☑'), b('quote', '❝')],
+  [b('link', '🔗'), b('image', '🖼'), b('table', '▦'), b('codeblock', '{ }'), b('hr', '―')],
+  [b('footnote', '†'), b('mathBlock', 'Σ'), b('mermaid', '◈')]
 ]
 
 function run(action: FormatAction): void {
@@ -67,19 +56,20 @@ function ToolButton({ label, glyph, onClick }: { label: string; glyph: string; o
 /** Fixed formatting toolbar shown under the title bar (full action set). */
 export default function Toolbar(): JSX.Element {
   const [emojiOpen, setEmojiOpen] = useState(false)
+  const t = useT()
 
   return (
     <div className="relative flex h-9 shrink-0 items-center gap-1 border-b border-line bg-chrome px-2">
       {GROUPS.map((group, gi) => (
         <div key={gi} className="flex items-center gap-0.5">
           {gi > 0 && <span className="mx-1 h-4 w-px bg-line" />}
-          {group.map((b) => (
-            <ToolButton key={b.action} label={b.label} glyph={b.glyph} onClick={() => run(b.action)} />
+          {group.map((btn) => (
+            <ToolButton key={btn.action} label={t(btn.labelKey)} glyph={btn.glyph} onClick={() => run(btn.action)} />
           ))}
         </div>
       ))}
       <span className="mx-1 h-4 w-px bg-line" />
-      <ToolButton label="Emoji" glyph="😀" onClick={() => setEmojiOpen((v) => !v)} />
+      <ToolButton label={t('toolbar.emoji')} glyph="😀" onClick={() => setEmojiOpen((v) => !v)} />
       {emojiOpen && (
         <div className="absolute left-2 top-9 z-40">
           <EmojiPicker onClose={() => setEmojiOpen(false)} />

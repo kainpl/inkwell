@@ -4,6 +4,7 @@ import { IPC } from '@shared/ipc'
 import { useAppStore } from '@renderer/store/useAppStore'
 import { openPath } from '@renderer/lib/docActions'
 import { fuzzyFilter } from '@renderer/lib/fuzzy'
+import { useT } from '@renderer/lib/i18n'
 
 /**
  * Quick-open file switcher (Ctrl/Cmd+P). Opens on the menu event, loads the
@@ -16,6 +17,7 @@ export default function QuickOpen(): JSX.Element | null {
   const [query, setQuery] = useState('')
   const [index, setIndex] = useState(0)
   const inputRef = useRef<HTMLInputElement>(null)
+  const t = useT()
 
   // Open on the menu command; load the file list fresh each time.
   useEffect(() => {
@@ -78,12 +80,12 @@ export default function QuickOpen(): JSX.Element | null {
             setIndex(0)
           }}
           onKeyDown={onKey}
-          placeholder="Open file by name…"
+          placeholder={t('qopen.placeholder')}
           className="w-full border-b border-line bg-paper px-3 py-2 text-sm text-ink outline-none"
         />
         <div className="max-h-72 overflow-y-auto">
           {results.length === 0 ? (
-            <div className="px-3 py-3 text-sm text-faint">No matching files</div>
+            <div className="px-3 py-3 text-sm text-faint">{t('qopen.noMatch')}</div>
           ) : (
             results.map((a, i) => (
               <button

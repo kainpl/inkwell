@@ -5,6 +5,7 @@ import { FONT_STACKS, saveSettings, type Settings } from './settings'
 function currentSettings(): Settings {
   const s = useAppStore.getState()
   return {
+    locale: s.locale,
     theme: s.theme,
     mode: s.mode,
     autoSave: s.autoSave,
@@ -46,6 +47,11 @@ function applyWindow(s: Settings): void {
   window.api.setMenuBarAutoHide(s.autoHideMenuBar)
 }
 
+/** Push the UI language to the main process so it rebuilds the native menu. */
+function applyLocale(s: Settings): void {
+  window.api.setLocale(s.locale)
+}
+
 /** Push the BYO Drive OAuth credentials to the main process (empty ⇒ built-in). */
 function applyDrive(s: Settings): void {
   void window.api.drive.setCredentials(s.driveClientId || null, s.driveClientSecret || null)
@@ -64,13 +70,16 @@ export function startSettingsSync(): () => void {
   let last = currentSettings()
   applyTypography(last)
   applyWindow(last)
+  applyLocale(last)
   applyDrive(last)
   return useAppStore.subscribe(() => {
     const cur = currentSettings()
     if (equal(cur, last)) return
+    const localeChanged = cur.locale !== last.locale
     last = cur
     applyTypography(cur)
     applyWindow(cur)
+    if (localeChanged) applyLocale(cur)
     applyDrive(cur)
     saveSettings(cur)
   })

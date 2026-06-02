@@ -1,4 +1,5 @@
 import { create } from 'zustand'
+import { t } from '@renderer/lib/i18n'
 
 export type ConfirmChoice = 'save' | 'discard' | 'cancel'
 
@@ -12,12 +13,23 @@ export interface ConfirmText {
   discardLabel: string
 }
 
+/** English fallback used if i18n isn't available; live defaults come from `t()`. */
 export const DEFAULT_CONFIRM_TEXT: ConfirmText = {
   title: 'Unsaved changes',
   message:
     'Do you want to save the changes you made? Your changes will be lost if you don’t save them.',
   confirmLabel: 'Save',
   discardLabel: 'Don’t Save'
+}
+
+/** The unsaved-changes wording, translated into the active locale (computed at ask time). */
+function localizedDefaults(): ConfirmText {
+  return {
+    title: t('confirm.unsavedTitle'),
+    message: t('confirm.unsavedMessage'),
+    confirmLabel: t('confirm.save'),
+    discardLabel: t('confirm.dontSave')
+  }
 }
 
 interface ConfirmState {
@@ -35,7 +47,7 @@ export const useConfirm = create<ConfirmState>((set, get) => ({
   _resolve: null,
   ask: (text) =>
     new Promise<ConfirmChoice>((resolve) => {
-      set({ open: true, text: { ...DEFAULT_CONFIRM_TEXT, ...text }, _resolve: resolve })
+      set({ open: true, text: { ...localizedDefaults(), ...text }, _resolve: resolve })
     }),
   answer: (choice) => {
     const resolve = get()._resolve

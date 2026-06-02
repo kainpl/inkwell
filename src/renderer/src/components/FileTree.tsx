@@ -12,6 +12,7 @@ import {
   deleteEntry,
   revealEntry
 } from '@renderer/lib/fileOps'
+import { useT } from '@renderer/lib/i18n'
 import StartScreen from './StartScreen'
 
 /** Colours for git status badges (fixed semantic colours, theme-independent). */
@@ -49,6 +50,7 @@ interface MenuState {
 /** Right-click context menu for a tree node. */
 function ContextMenu({ menu, onClose }: { menu: MenuState; onClose: () => void }): JSX.Element {
   const { node } = menu
+  const t = useT()
   const isDir = node.type === 'directory'
   // For a directory, "new" targets it; for a file, its parent directory.
   const dir = isDir
@@ -74,15 +76,15 @@ function ContextMenu({ menu, onClose }: { menu: MenuState; onClose: () => void }
         className="fixed z-50 min-w-44 rounded-md border border-line bg-paper py-1 shadow-xl"
         style={{ top: menu.y, left: menu.x }}
       >
-        {item('New File', () => void newFile(dir))}
-        {item('New Folder', () => void newFolder(dir))}
+        {item(t('ctx.newFile'), () => void newFile(dir))}
+        {item(t('ctx.newFolder'), () => void newFolder(dir))}
         <div className="my-1 border-t border-line" />
-        {item('Rename', () => void renameEntry(node))}
-        {item('Move To…', () => void moveEntry(node))}
-        {!isDir && item('Duplicate', () => void duplicateEntry(node))}
-        {item('Delete', () => void deleteEntry(node))}
+        {item(t('ctx.rename'), () => void renameEntry(node))}
+        {item(t('ctx.moveTo'), () => void moveEntry(node))}
+        {!isDir && item(t('ctx.duplicate'), () => void duplicateEntry(node))}
+        {item(t('ctx.delete'), () => void deleteEntry(node))}
         <div className="my-1 border-t border-line" />
-        {item('Reveal in File Manager', () => void revealEntry(node))}
+        {item(t('ctx.reveal'), () => void revealEntry(node))}
       </div>
     </>
   )

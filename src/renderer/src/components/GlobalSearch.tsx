@@ -3,6 +3,7 @@ import type { SearchFileResult } from '@shared/ipc'
 import { IPC } from '@shared/ipc'
 import { useAppStore } from '@renderer/store/useAppStore'
 import { openPath } from '@renderer/lib/docActions'
+import { useT } from '@renderer/lib/i18n'
 import { GOTO_EVENT } from './Editor/Editor'
 
 /**
@@ -16,6 +17,7 @@ export default function GlobalSearch(): JSX.Element | null {
   const [results, setResults] = useState<SearchFileResult[]>([])
   const [searching, setSearching] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
+  const t = useT()
 
   useEffect(() => {
     return window.api.onMenu(IPC.menuGlobalSearch, () => {
@@ -76,15 +78,15 @@ export default function GlobalSearch(): JSX.Element | null {
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           onKeyDown={(e) => e.key === 'Escape' && setOpen(false)}
-          placeholder="Search in folder…"
+          placeholder={t('search.placeholder')}
           className="w-full border-b border-line bg-paper px-3 py-2 text-sm text-ink outline-none"
         />
         <div className="border-b border-line px-3 py-1 text-[11px] text-faint">
           {searching
-            ? 'Searching…'
+            ? t('search.searching')
             : query.trim() === ''
-              ? 'Type to search all markdown files'
-              : `${totalMatches} matches in ${results.length} files`}
+              ? t('search.hint')
+              : t('search.summary', { m: totalMatches, f: results.length })}
         </div>
         <div className="min-h-0 flex-1 overflow-y-auto">
           {results.map((file) => (

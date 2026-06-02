@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useAppStore } from '@renderer/store/useAppStore'
 import { useEditor } from '@renderer/store/useEditor'
 import { spellSuggest, learnWord, ignoreWord } from '@renderer/lib/spell'
+import { useT } from '@renderer/lib/i18n'
 
 interface Detail {
   x: number
@@ -24,6 +25,7 @@ type MenuState = Detail & { suggestions: string[] }
 export default function EditorContextMenu(): JSX.Element | null {
   const [menu, setMenu] = useState<MenuState | null>(null)
   const services = useAppStore((s) => s.searchServices)
+  const t = useT()
 
   useEffect(() => {
     const onOpen = (e: Event): void => {
@@ -79,7 +81,7 @@ export default function EditorContextMenu(): JSX.Element | null {
                 </button>
               ))
             ) : (
-              <div className="px-3 py-1 text-faint">No suggestions</div>
+              <div className="px-3 py-1 text-faint">{t('ectx.noSuggestions')}</div>
             )}
             {sep}
             <button
@@ -89,7 +91,7 @@ export default function EditorContextMenu(): JSX.Element | null {
               }}
               className={item}
             >
-              Add to Dictionary
+              {t('ectx.addToDict')}
             </button>
             <button
               onClick={() => {
@@ -98,7 +100,7 @@ export default function EditorContextMenu(): JSX.Element | null {
               }}
               className={item}
             >
-              Ignore
+              {t('ectx.ignore')}
             </button>
             {sep}
           </>
@@ -106,21 +108,21 @@ export default function EditorContextMenu(): JSX.Element | null {
         {menu.hasSelection && (
           <>
             <button onClick={() => exec('cut')} className={item}>
-              Cut
+              {t('ectx.cut')}
             </button>
             <button onClick={() => exec('copy')} className={item}>
-              Copy
+              {t('ectx.copy')}
             </button>
           </>
         )}
         <button onClick={() => exec('paste')} className={item}>
-          Paste
+          {t('ectx.paste')}
         </button>
         {menu.query && services.length > 0 && (
           <>
             {sep}
             <div className="truncate px-3 py-0.5 text-[11px] text-faint">
-              Search “{menu.query.slice(0, 24)}” with
+              {t('ectx.searchWith', { q: menu.query.slice(0, 24) })}
             </div>
             {services.map((sv) => (
               <button key={sv.name} onClick={() => search(sv.url)} className={item}>

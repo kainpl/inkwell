@@ -15,6 +15,7 @@ import { refreshGitStatus } from './git'
 import { isGdrive } from '@shared/drive'
 import { readRef, writeRef } from './fileSource'
 import { getDriveBase, setDriveBase } from './drive'
+import { t } from './i18n'
 
 /** Content shaped for disk per the user's line-ending / final-newline settings. */
 function contentForDisk(): string {
@@ -62,11 +63,10 @@ async function saveDriveDoc(path: string, content: string): Promise<boolean> {
   const res = await writeRef(path, content, getDriveBase(path))
   if (!res.ok) {
     const choice = await useConfirm.getState().ask({
-      title: 'File changed on Drive',
-      message:
-        'This file was modified on Google Drive since you opened it. Overwrite it with your version?',
-      confirmLabel: 'Overwrite',
-      discardLabel: 'Cancel'
+      title: t('confirm.driveChangedTitle'),
+      message: t('confirm.driveChangedMessage'),
+      confirmLabel: t('confirm.overwrite'),
+      discardLabel: t('confirm.cancel')
     })
     if (choice !== 'save') return false
     const forced = await writeRef(path, content, '') // empty base skips the conflict check
@@ -192,10 +192,10 @@ export async function recoverDrafts(): Promise<void> {
   if (!best) return
 
   const choice = await useConfirm.getState().ask({
-    title: 'Recover unsaved draft?',
-    message: `Inkwell found unsaved changes for “${best.name}” from a previous session. Recover them?`,
-    confirmLabel: 'Recover',
-    discardLabel: 'Discard'
+    title: t('confirm.recoverTitle'),
+    message: t('confirm.recoverMessage', { name: best.name }),
+    confirmLabel: t('confirm.recover'),
+    discardLabel: t('confirm.discard')
   })
   if (choice === 'cancel') return // keep the draft, leave current doc as-is
   if (choice === 'discard') {

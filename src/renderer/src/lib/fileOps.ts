@@ -3,6 +3,7 @@ import { usePrompt } from '@renderer/store/usePrompt'
 import { useAppStore } from '@renderer/store/useAppStore'
 import { openPath } from './docActions'
 import { baseName } from './recentFiles'
+import { t } from './i18n'
 
 /** Dispatched after a tree mutation; detail is the affected directory path. */
 export const TREE_CHANGED = 'ink:tree-changed'
@@ -18,7 +19,7 @@ function notifyChanged(dir: string): void {
 
 /** Create a new markdown file in `dir`, then open it. */
 export async function newFile(dir: string): Promise<void> {
-  const name = await usePrompt.getState().ask('New file name', 'untitled.md')
+  const name = await usePrompt.getState().ask(t('prompt.newFileName'), 'untitled.md')
   if (!name) return
   const path = await window.api.createFile(dir, name)
   notifyChanged(dir)
@@ -27,7 +28,7 @@ export async function newFile(dir: string): Promise<void> {
 
 /** Create a new folder in `dir`. */
 export async function newFolder(dir: string): Promise<void> {
-  const name = await usePrompt.getState().ask('New folder name', 'folder')
+  const name = await usePrompt.getState().ask(t('prompt.newFolderName'), 'folder')
   if (!name) return
   await window.api.createFolder(dir, name)
   notifyChanged(dir)
@@ -35,7 +36,7 @@ export async function newFolder(dir: string): Promise<void> {
 
 /** Rename a file/folder; updates any open tab pointing at it (keeps unsaved edits). */
 export async function renameEntry(node: FileNode): Promise<void> {
-  const name = await usePrompt.getState().ask('Rename', node.name)
+  const name = await usePrompt.getState().ask(t('prompt.rename'), node.name)
   if (!name || name === node.name) return
   const newPath = await window.api.renamePath(node.path, name)
   notifyChanged(dirOf(node.path))

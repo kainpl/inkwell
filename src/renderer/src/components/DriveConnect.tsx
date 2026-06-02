@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { IPC } from '@shared/ipc'
 import { connectAccount, DRIVE_CONNECT_EVENT } from '@renderer/lib/drive'
+import { useT, t as translateNow } from '@renderer/lib/i18n'
 
 /**
  * Drive sign-in modal. Triggered by File ▸ Connect Google Drive… (menu) or the
@@ -11,6 +12,7 @@ import { connectAccount, DRIVE_CONNECT_EVENT } from '@renderer/lib/drive'
 export default function DriveConnect(): JSX.Element | null {
   const [state, setState] = useState<'idle' | 'waiting' | 'error'>('idle')
   const [error, setError] = useState('')
+  const t = useT()
 
   useEffect(() => {
     const start = (): void => {
@@ -19,7 +21,7 @@ export default function DriveConnect(): JSX.Element | null {
       void connectAccount().then((r) => {
         if (r.ok) setState('idle')
         else {
-          setError(r.error || 'Sign-in failed.')
+          setError(r.error || translateNow('drive.signinFailed'))
           setState('error')
         }
       })
@@ -40,20 +42,18 @@ export default function DriveConnect(): JSX.Element | null {
         {state === 'waiting' ? (
           <>
             <div className="mb-3 text-2xl">☁️</div>
-            <p className="text-sm font-medium text-ink">Waiting for Google sign-in…</p>
-            <p className="mt-1 text-[12px] text-faint">
-              Complete the consent in your browser. This window closes automatically.
-            </p>
+            <p className="text-sm font-medium text-ink">{t('drive.waiting')}</p>
+            <p className="mt-1 text-[12px] text-faint">{t('drive.waitingHint')}</p>
           </>
         ) : (
           <>
-            <p className="text-sm font-medium text-ink">Couldn’t connect</p>
+            <p className="text-sm font-medium text-ink">{t('drive.failed')}</p>
             <p className="mt-2 whitespace-pre-wrap text-[12px] text-[#d35454]">{error}</p>
             <button
               onClick={() => setState('idle')}
               className="mt-4 rounded border border-line px-4 py-1 text-sm text-ink hover:border-accent hover:text-accent"
             >
-              Close
+              {t('modal.close')}
             </button>
           </>
         )}

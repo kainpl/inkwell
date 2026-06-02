@@ -10,6 +10,7 @@ import {
   DEFAULT_MARKDOWN_FEATURES,
   normalizeFeatures
 } from './markdownFeatures'
+import { type Locale, DEFAULT_LOCALE, isLocale } from '@shared/i18n'
 
 export type EditorFont = 'serif' | 'sans' | 'mono' | 'jetbrains'
 
@@ -18,6 +19,8 @@ export const PANEL_MIN = 160
 export const PANEL_MAX = 520
 
 export interface Settings {
+  /** UI language for chrome + native menu (see shared/i18n). */
+  locale: Locale
   /** Built-in theme id (see lib/themes.ts). */
   theme: string
   /** Active edition of the theme. */
@@ -68,6 +71,7 @@ export const FONT_STACKS: Record<EditorFont, string> = {
 }
 
 export const DEFAULT_SETTINGS: Settings = {
+  locale: DEFAULT_LOCALE,
   theme: 'inkwell',
   mode: 'light',
   autoSave: false,
@@ -115,6 +119,7 @@ function sanitize(s: Settings): Settings {
   const migrated = migrateTheme(s.theme, s.mode)
   return {
     ...s,
+    locale: isLocale(s.locale) ? s.locale : DEFAULT_LOCALE,
     theme: migrated.theme,
     mode: migrated.mode,
     exportStyle: s.exportStyle === 'theme' ? 'theme' : 'default',

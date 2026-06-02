@@ -1,13 +1,14 @@
 import { useEditor } from '@renderer/store/useEditor'
 import { applyFormat, type FormatAction } from '@renderer/lib/formatCommands'
+import { useT } from '@renderer/lib/i18n'
 
-const BTNS: { action: FormatAction; glyph: string; label: string }[] = [
-  { action: 'bold', glyph: 'B', label: 'Bold' },
-  { action: 'italic', glyph: 'I', label: 'Italic' },
-  { action: 'strike', glyph: 'S', label: 'Strikethrough' },
-  { action: 'code', glyph: '<>', label: 'Code' },
-  { action: 'highlight', glyph: '▖', label: 'Highlight' },
-  { action: 'link', glyph: '🔗', label: 'Link' }
+const BTNS: { action: FormatAction; glyph: string }[] = [
+  { action: 'bold', glyph: 'B' },
+  { action: 'italic', glyph: 'I' },
+  { action: 'strike', glyph: 'S' },
+  { action: 'code', glyph: '<>' },
+  { action: 'highlight', glyph: '▖' },
+  { action: 'link', glyph: '🔗' }
 ]
 
 /**
@@ -18,6 +19,7 @@ export default function FloatingToolbar(): JSX.Element | null {
   const view = useEditor((s) => s.view)
   // Subscribe to selection changes so position/visibility recompute.
   useEditor((s) => s.selVersion)
+  const t = useT()
 
   if (!view) return null
   const sel = view.state.selection.main
@@ -43,8 +45,8 @@ export default function FloatingToolbar(): JSX.Element | null {
       {BTNS.map((b) => (
         <button
           key={b.action}
-          title={b.label}
-          aria-label={b.label}
+          title={t(`format.${b.action}`)}
+          aria-label={t(`format.${b.action}`)}
           onClick={() => run(b.action)}
           className="flex h-7 min-w-7 items-center justify-center rounded px-1.5 text-[13px] font-semibold text-muted hover:bg-ink/5 hover:text-ink"
         >

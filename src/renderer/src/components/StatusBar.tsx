@@ -2,6 +2,7 @@ import { useMemo } from 'react'
 import { IPC } from '@shared/ipc'
 import { useAppStore } from '@renderer/store/useAppStore'
 import { computeStats, readingTimeLabel } from '@renderer/lib/textStats'
+import { useT } from '@renderer/lib/i18n'
 
 export default function StatusBar(): JSX.Element {
   const content = useAppStore((s) => s.doc.content)
@@ -16,6 +17,7 @@ export default function StatusBar(): JSX.Element {
   const toggleAutoSave = useAppStore((s) => s.toggleAutoSave)
 
   const gitBranch = useAppStore((s) => s.gitBranch)
+  const t = useT()
 
   const stats = useMemo(() => computeStats(content), [content])
 
@@ -25,7 +27,7 @@ export default function StatusBar(): JSX.Element {
         {gitBranch && (
           <button
             onClick={() => window.api.triggerMenu(IPC.menuSourceControl)}
-            title="Source Control (Ctrl+Shift+G)"
+            title={t('status.sourceControlTitle')}
             className="flex items-center gap-1 hover:text-ink"
           >
             <span>⎇ {gitBranch.branch}</span>
@@ -33,39 +35,39 @@ export default function StatusBar(): JSX.Element {
             {gitBranch.behind > 0 && <span>↓{gitBranch.behind}</span>}
           </button>
         )}
-        <span title="Words">{stats.words} words</span>
-        <span title="Characters">{stats.chars} chars</span>
+        <span>{t('status.words', { n: stats.words })}</span>
+        <span>{t('status.chars', { n: stats.chars })}</span>
         {stats.readingMinutes > 0 && <span>{readingTimeLabel(stats.readingMinutes)}</span>}
-        <span>{dirty ? 'Unsaved' : 'Saved'}</span>
+        <span>{dirty ? t('status.unsaved') : t('status.saved')}</span>
       </div>
       <div className="flex items-center gap-3">
         <button
           onClick={toggleAutoSave}
-          title="Auto-save after edits (saved files only)"
+          title={t('status.autoSaveTitle')}
           className={'hover:text-ink ' + (autoSave ? 'text-accent' : '')}
         >
-          Auto-save
+          {t('status.autoSave')}
         </button>
         <button
           onClick={toggleSourceMode}
-          title="Show raw Markdown (Ctrl+Shift+E)"
+          title={t('status.sourceTitle')}
           className={'hover:text-ink ' + (sourceMode ? 'text-accent' : '')}
         >
-          Source
+          {t('status.source')}
         </button>
         <button
           onClick={toggleFocusMode}
-          title="Dim all but the active line (F8)"
+          title={t('status.focusTitle')}
           className={'hover:text-ink ' + (focusMode ? 'text-accent' : '')}
         >
-          Focus
+          {t('status.focus')}
         </button>
         <button
           onClick={toggleTypewriter}
-          title="Keep the active line centered (F9)"
+          title={t('status.typewriterTitle')}
           className={'hover:text-ink ' + (typewriter ? 'text-accent' : '')}
         >
-          Typewriter
+          {t('status.typewriter')}
         </button>
       </div>
     </footer>

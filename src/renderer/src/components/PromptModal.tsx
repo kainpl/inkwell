@@ -1,10 +1,12 @@
 import { useEffect, useRef } from 'react'
 import { usePrompt } from '@renderer/store/usePrompt'
+import { useT } from '@renderer/lib/i18n'
 
 /** Renders the imperative text prompt from `usePrompt`. Enter submits, Esc cancels. */
 export default function PromptModal(): JSX.Element | null {
   const open = usePrompt((s) => s.open)
   const title = usePrompt((s) => s.title)
+  const t = useT()
   const value = usePrompt((s) => s.value)
   const setValue = usePrompt((s) => s.setValue)
   const submit = usePrompt((s) => s.submit)
@@ -39,13 +41,13 @@ export default function PromptModal(): JSX.Element | null {
         />
         <div className="mt-4 flex justify-end gap-2">
           <button onClick={cancel} className="rounded px-3 py-1.5 text-sm text-ink hover:bg-ink/5">
-            Cancel
+            {t('modal.cancel')}
           </button>
           <button
             onClick={submit}
             className="rounded bg-accent px-3 py-1.5 text-sm font-medium text-paper hover:opacity-90"
           >
-            OK
+            {t('modal.ok')}
           </button>
         </div>
       </div>

@@ -1,5 +1,6 @@
 import { useEffect } from 'react'
 import { useConfirm } from '@renderer/store/useConfirm'
+import { useT } from '@renderer/lib/i18n'
 
 /**
  * In-app modal for the unsaved-changes guard. Driven by the `useConfirm`
@@ -10,6 +11,7 @@ export default function ConfirmUnsavedModal(): JSX.Element | null {
   const open = useConfirm((s) => s.open)
   const answer = useConfirm((s) => s.answer)
   const text = useConfirm((s) => s.text)
+  const t = useT()
 
   useEffect(() => {
     if (!open) return
@@ -41,7 +43,7 @@ export default function ConfirmUnsavedModal(): JSX.Element | null {
             onClick={() => answer('cancel')}
             className="rounded px-3 py-1.5 text-sm text-ink hover:bg-ink/5"
           >
-            Cancel
+            {t('modal.cancel')}
           </button>
           <button
             onClick={() => answer('discard')}

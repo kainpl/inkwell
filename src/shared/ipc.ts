@@ -287,6 +287,8 @@ export const IPC = {
   fileRemovedExternally: 'watch:removed',
   // renderer -> main: apply the auto-hide-menu-bar preference to the window
   setMenuBarAutoHide: 'app:setMenuBarAutoHide',
+  // renderer -> main: set the UI language; main rebuilds the native menu
+  setLocale: 'app:setLocale',
   // main -> renderer: open a file the OS launched/handed us (file association)
   openExternalFile: 'app:openExternalFile',
   // renderer -> main: open a URL in the default browser ("Search With…")

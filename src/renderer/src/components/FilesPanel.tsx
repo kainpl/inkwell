@@ -5,6 +5,7 @@ import { openPath } from '@renderer/lib/docActions'
 import { prepareArticles, relativeTime, type ArticleSort } from '@renderer/lib/articles'
 import FileTree from './FileTree'
 import DriveAccountTree from './DriveTree'
+import { useT } from '@renderer/lib/i18n'
 
 /**
  * The "Files" tab. A source dropdown at the top selects what the panel shows:
@@ -21,6 +22,7 @@ export default function FilesPanel(): JSX.Element {
   const [query, setQuery] = useState('')
   const [sort, setSort] = useState<ArticleSort>('name')
   const [now, setNow] = useState(0)
+  const t = useT()
 
   // Fall back to local if the selected account is gone (disconnected).
   const activeSource =
@@ -53,11 +55,11 @@ export default function FilesPanel(): JSX.Element {
           <select
             value={activeSource}
             onChange={(e) => setSource(e.target.value)}
-            title="File source"
+            title={t('files.sourceTitle')}
             className="w-full rounded border border-line bg-paper px-2 py-1 text-[12px] text-ink outline-none focus:border-accent"
           >
-            <option value="local">📁 Local</option>
-            <optgroup label="Google Drive">
+            <option value="local">{t('files.local')}</option>
+            <optgroup label={t('files.cloudGroup')}>
               {accounts.map((a) => (
                 <option key={a.accountId} value={a.accountId}>
                   ☁ {a.email}
@@ -73,15 +75,15 @@ export default function FilesPanel(): JSX.Element {
           <input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Filter…"
+            placeholder={t('files.filter')}
             className="min-w-0 flex-1 rounded border border-line bg-paper px-2 py-1 text-[12px] text-ink outline-none focus:border-accent"
           />
           <button
             onClick={() => setSort((s) => (s === 'modified' ? 'name' : 'modified'))}
-            title="Toggle sort (tree ⇄ flat list by recency)"
+            title={t('files.sortTitle')}
             className="shrink-0 rounded border border-line px-1.5 py-1 text-[11px] text-muted hover:text-ink"
           >
-            {sort === 'modified' ? 'Recent' : 'A–Z'}
+            {sort === 'modified' ? t('files.sortRecent') : t('files.sortAZ')}
           </button>
         </div>
       )}
@@ -92,7 +94,7 @@ export default function FilesPanel(): JSX.Element {
         ) : !finding ? (
           <FileTree />
         ) : shown.length === 0 ? (
-          <div className="px-3 py-2 text-[13px] text-faint">No markdown files</div>
+          <div className="px-3 py-2 text-[13px] text-faint">{t('files.noMarkdown')}</div>
         ) : (
           <div className="px-1 pb-1">
             {shown.map((a) => (

@@ -1,7 +1,10 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { IPC } from '@shared/ipc'
 import { fuzzyFilter } from '@renderer/lib/fuzzy'
-import { COMMANDS, commandSearchText, type Command } from '@renderer/lib/commands'
+import { COMMANDS, categoryKey, type Command } from '@renderer/lib/commands'
+import { useT } from '@renderer/lib/i18n'
+import { translate } from '@shared/i18n'
+import { useAppStore } from '@renderer/store/useAppStore'
 
 /**
  * Command palette (Ctrl/Cmd+Shift+P). Fuzzy-search every app command and run it
@@ -13,6 +16,8 @@ export default function CommandPalette(): JSX.Element | null {
   const [query, setQuery] = useState('')
   const [index, setIndex] = useState(0)
   const inputRef = useRef<HTMLInputElement>(null)
+  const t = useT()
+  const locale = useAppStore((s) => s.locale)
 
   useEffect(() => {
     return window.api.onMenu(IPC.menuCommandPalette, () => {
@@ -26,10 +31,13 @@ export default function CommandPalette(): JSX.Element | null {
     if (open) inputRef.current?.focus()
   }, [open])
 
-  const results = useMemo(
-    () => fuzzyFilter(COMMANDS, query, commandSearchText).slice(0, 50),
-    [query]
-  )
+  // Search the localized title + category (plus the English source) so the
+  // palette is findable in any active language and still matches English terms.
+  const results = useMemo(() => {
+    const search = (c: Command): string =>
+      `${translate(locale, categoryKey(c))} ${translate(locale, c.titleKey)} ${c.category} ${c.title}`
+    return fuzzyFilter(COMMANDS, query, search).slice(0, 50)
+  }, [query, locale])
 
   if (!open) return null
 
@@ -69,12 +77,12 @@ export default function CommandPalette(): JSX.Element | null {
             setIndex(0)
           }}
           onKeyDown={onKey}
-          placeholder="Run a command…"
+          placeholder={t('cmd.placeholder')}
           className="w-full border-b border-line bg-paper px-3 py-2 text-sm text-ink outline-none"
         />
         <div className="max-h-80 overflow-y-auto">
           {results.length === 0 ? (
-            <div className="px-3 py-3 text-sm text-faint">No matching commands</div>
+            <div className="px-3 py-3 text-sm text-faint">{t('cmd.noMatch')}</div>
           ) : (
             results.map((c, i) => (
               <button
@@ -86,8 +94,8 @@ export default function CommandPalette(): JSX.Element | null {
                   (i === index ? 'bg-accent/10 text-accent' : 'text-ink/80')
                 }
               >
-                <span className="w-16 shrink-0 truncate text-[11px] text-faint">{c.category}</span>
-                <span className="truncate">{c.title}</span>
+                <span className="w-16 shrink-0 truncate text-[11px] text-faint">{t(categoryKey(c))}</span>
+                <span className="truncate">{t(c.titleKey)}</span>
               </button>
             ))
           )}

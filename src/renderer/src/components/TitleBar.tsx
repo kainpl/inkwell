@@ -1,6 +1,7 @@
 import { IPC } from '@shared/ipc'
 import { useAppStore } from '@renderer/store/useAppStore'
 import { clampMode, hasBothEditions } from '@renderer/lib/themes'
+import { useT } from '@renderer/lib/i18n'
 
 const fire = (channel: string) => (): void => window.api.triggerMenu(channel)
 
@@ -46,6 +47,7 @@ export default function TitleBar(): JSX.Element {
   const toggleFormatBar = useAppStore((s) => s.toggleFormatBar)
   const isDark = clampMode(theme, mode, externalThemes) === 'dark'
   const canToggle = hasBothEditions(theme, externalThemes)
+  const t = useT()
 
   return (
     <header
@@ -53,13 +55,13 @@ export default function TitleBar(): JSX.Element {
       style={{ WebkitAppRegion: 'drag' } as React.CSSProperties}
     >
       <div className="flex items-center gap-1" style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}>
-        <IconButton label="Toggle sidebar (⌘\\)" active={sidebarOpen} onClick={toggleSidebar}>
+        <IconButton label={t('title.toggleSidebar')} active={sidebarOpen} onClick={toggleSidebar}>
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <rect x="3" y="4" width="18" height="16" rx="2" />
             <line x1="9" y1="4" x2="9" y2="20" />
           </svg>
         </IconButton>
-        <IconButton label="Toggle outline (⌘/)" active={outlineOpen} onClick={toggleOutline}>
+        <IconButton label={t('title.toggleOutline')} active={outlineOpen} onClick={toggleOutline}>
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <line x1="8" y1="6" x2="21" y2="6" />
             <line x1="8" y1="12" x2="21" y2="12" />
@@ -69,7 +71,7 @@ export default function TitleBar(): JSX.Element {
             <line x1="3" y1="18" x2="3.01" y2="18" />
           </svg>
         </IconButton>
-        <IconButton label="Toggle formatting bar (⌘⇧B)" active={formatBarOpen} onClick={toggleFormatBar}>
+        <IconButton label={t('title.toggleFormatBar')} active={formatBarOpen} onClick={toggleFormatBar}>
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <path d="M6 4h8a4 4 0 010 8H6zM6 12h9a4 4 0 010 8H6z" />
           </svg>
@@ -79,7 +81,7 @@ export default function TitleBar(): JSX.Element {
       <div className="mx-1.5 h-5 w-px bg-line" />
 
       <div className="flex items-center gap-1" style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}>
-        <IconButton label="New file (⌘N)" onClick={fire(IPC.menuNewFile)}>
+        <IconButton label={t('title.newFile')} onClick={fire(IPC.menuNewFile)}>
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <path d="M14 3H7a2 2 0 00-2 2v14a2 2 0 002 2h10a2 2 0 002-2V8z" />
             <path d="M14 3v5h5" />
@@ -87,18 +89,18 @@ export default function TitleBar(): JSX.Element {
             <line x1="9.5" y1="14.5" x2="14.5" y2="14.5" />
           </svg>
         </IconButton>
-        <IconButton label="Open file (⌘O)" onClick={fire(IPC.menuOpenFile)}>
+        <IconButton label={t('title.openFile')} onClick={fire(IPC.menuOpenFile)}>
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <path d="M3 7a2 2 0 012-2h4l2 2h8a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
           </svg>
         </IconButton>
-        <IconButton label="Save (⌘S)" active={doc.dirty} onClick={fire(IPC.menuSave)}>
+        <IconButton label={t('title.save')} active={doc.dirty} onClick={fire(IPC.menuSave)}>
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z" />
             <path d="M17 21v-8H7v8M7 3v5h8" />
           </svg>
         </IconButton>
-        <IconButton label="Print…" onClick={fire(IPC.menuPrint)}>
+        <IconButton label={t('title.print')} onClick={fire(IPC.menuPrint)}>
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <path d="M6 9V2h12v7" />
             <path d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2" />
@@ -109,7 +111,7 @@ export default function TitleBar(): JSX.Element {
 
       <div className="ml-auto flex items-center gap-1" style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}>
         <IconButton
-          label={canToggle ? 'Toggle light/dark' : 'This theme has one edition'}
+          label={canToggle ? t('title.toggleTheme') : t('title.themeOneEdition')}
           disabled={!canToggle}
           onClick={toggleMode}
         >

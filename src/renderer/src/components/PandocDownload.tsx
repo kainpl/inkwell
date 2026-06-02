@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react'
+import { useT } from '@renderer/lib/i18n'
 
 /** Modal progress overlay shown while pandoc is downloaded on demand. */
 export default function PandocDownload(): JSX.Element | null {
   const [pct, setPct] = useState(-1)
+  const t = useT()
   useEffect(() => window.api.onPandocProgress(setPct), [])
 
   if (pct < 0 || pct >= 100) return null
@@ -10,7 +12,7 @@ export default function PandocDownload(): JSX.Element | null {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
       <div className="w-[22rem] max-w-[90vw] rounded-lg border border-line bg-paper p-5 shadow-xl">
-        <div className="mb-2 text-sm font-medium text-ink">Downloading pandoc…</div>
+        <div className="mb-2 text-sm font-medium text-ink">{t('modal.downloadingPandoc')}</div>
         <div className="h-2 w-full overflow-hidden rounded bg-ink/10">
           <div
             className="h-full bg-accent transition-[width] duration-150"

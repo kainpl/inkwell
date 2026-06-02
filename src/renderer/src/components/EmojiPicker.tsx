@@ -2,12 +2,14 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { useEditor } from '@renderer/store/useEditor'
 import { insertEmoji } from '@renderer/lib/formatCommands'
 import { BY_CATEGORY, CATEGORIES, filterEmoji, type EmojiEntry } from '@renderer/lib/emojiData'
+import { useT } from '@renderer/lib/i18n'
 
 /** Searchable emoji dropdown with category tabs and scroll. */
 export default function EmojiPicker({ onClose }: { onClose: () => void }): JSX.Element {
   const [query, setQuery] = useState('')
   const [cat, setCat] = useState(CATEGORIES[0].id)
   const inputRef = useRef<HTMLInputElement>(null)
+  const t = useT()
 
   useEffect(() => {
     inputRef.current?.focus()
@@ -39,7 +41,7 @@ export default function EmojiPicker({ onClose }: { onClose: () => void }): JSX.E
           if (e.key === 'Escape') onClose()
           if (e.key === 'Enter' && items[0]) pick(items[0].emoji)
         }}
-        placeholder="Search emoji…"
+        placeholder={t('emoji.search')}
         className="mb-2 w-full rounded border border-line bg-chrome px-2 py-1 text-sm text-ink outline-none focus:border-accent"
       />
 
@@ -49,7 +51,7 @@ export default function EmojiPicker({ onClose }: { onClose: () => void }): JSX.E
           {CATEGORIES.map((c) => (
             <button
               key={c.id}
-              title={c.label}
+              title={t(`emojicat.${c.id}`)}
               onClick={() => setCat(c.id)}
               className={
                 'flex h-7 w-7 items-center justify-center rounded text-base hover:bg-ink/5 ' +
@@ -73,13 +75,11 @@ export default function EmojiPicker({ onClose }: { onClose: () => void }): JSX.E
             {it.emoji}
           </button>
         ))}
-        {items.length === 0 && <span className="col-span-9 p-2 text-sm text-faint">No matches</span>}
+        {items.length === 0 && <span className="col-span-9 p-2 text-sm text-faint">{t('emoji.noMatches')}</span>}
       </div>
 
       <div className="mt-1 px-1 text-[11px] text-faint">
-        {searching
-          ? `${items.length} result${items.length === 1 ? '' : 's'}`
-          : CATEGORIES.find((c) => c.id === cat)?.label}
+        {searching ? t('emoji.results', { n: items.length }) : t(`emojicat.${cat}`)}
       </div>
     </div>
   )

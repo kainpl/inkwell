@@ -3,6 +3,7 @@ import type { TemplateEntry } from '@shared/ipc'
 import { IPC } from '@shared/ipc'
 import { fuzzyFilter } from '@renderer/lib/fuzzy'
 import { newDocumentFromTemplate } from '@renderer/lib/docActions'
+import { useT } from '@renderer/lib/i18n'
 
 /**
  * "New from Template…" picker (File menu / command palette). Lists the .md files
@@ -15,6 +16,7 @@ export default function TemplatePicker(): JSX.Element | null {
   const [query, setQuery] = useState('')
   const [index, setIndex] = useState(0)
   const inputRef = useRef<HTMLInputElement>(null)
+  const tr = useT()
 
   useEffect(() => {
     return window.api.onMenu(IPC.menuNewFromTemplate, () => {
@@ -76,7 +78,7 @@ export default function TemplatePicker(): JSX.Element | null {
             setIndex(0)
           }}
           onKeyDown={onKey}
-          placeholder="New document from template…"
+          placeholder={tr('tmpl.placeholder')}
           className="w-full border-b border-line bg-paper px-3 py-2 text-sm text-ink outline-none"
         />
         <div className="max-h-72 overflow-y-auto">
@@ -88,7 +90,7 @@ export default function TemplatePicker(): JSX.Element | null {
               }}
               className="block w-full px-3 py-3 text-left text-sm text-faint hover:bg-ink/5"
             >
-              No templates — click to open the templates folder
+              {tr('tmpl.empty')}
             </button>
           ) : (
             results.map((t, i) => (

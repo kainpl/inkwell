@@ -3,6 +3,7 @@ import { IPC } from '@shared/ipc'
 import { openPath, openFolderByPath } from '@renderer/lib/docActions'
 import { getRecentFiles, getRecentFolders } from '@renderer/lib/persistence'
 import { baseName } from '@renderer/lib/recentFiles'
+import { useT } from '@renderer/lib/i18n'
 
 /**
  * Recent history picker (File → Open Recent). Two sections — recently opened
@@ -12,6 +13,7 @@ export default function RecentPicker(): JSX.Element | null {
   const [open, setOpen] = useState(false)
   const [folders, setFolders] = useState<string[]>([])
   const [files, setFiles] = useState<string[]>([])
+  const t = useT()
 
   useEffect(() => {
     return window.api.onMenu(IPC.menuOpenRecent, () => {
@@ -50,20 +52,20 @@ export default function RecentPicker(): JSX.Element | null {
         className="w-[32rem] max-w-[90vw] overflow-hidden rounded-lg border border-line bg-paper shadow-xl"
         onMouseDown={(e) => e.stopPropagation()}
       >
-        <div className="border-b border-line px-3 py-2 text-[12px] font-medium text-muted">Recent</div>
+        <div className="border-b border-line px-3 py-2 text-[12px] font-medium text-muted">{t('recent.title')}</div>
         <div className="max-h-[60vh] overflow-y-auto py-1">
           {folders.length === 0 && files.length === 0 && (
-            <div className="px-3 py-3 text-sm text-faint">No recent items</div>
+            <div className="px-3 py-3 text-sm text-faint">{t('recent.none')}</div>
           )}
           {folders.length > 0 && (
-            <Section title="Folders">
+            <Section title={t('recent.folders')}>
               {folders.map((path) => (
                 <Row key={path} path={path} glyph="📁" onClick={() => pickFolder(path)} />
               ))}
             </Section>
           )}
           {files.length > 0 && (
-            <Section title="Files">
+            <Section title={t('recent.files')}>
               {files.map((path) => (
                 <Row key={path} path={path} glyph="📄" onClick={() => pickFile(path)} />
               ))}

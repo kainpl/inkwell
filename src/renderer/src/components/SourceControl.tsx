@@ -8,6 +8,7 @@ import {
   pushBranch,
   pullBranch
 } from '@renderer/lib/gitActions'
+import { useT, t as translateNow } from '@renderer/lib/i18n'
 
 const EMPTY: GitChanges = { branch: null, ahead: 0, behind: 0, staged: [], unstaged: [] }
 
@@ -29,6 +30,7 @@ export default function SourceControl(): JSX.Element | null {
   const [message, setMessage] = useState('')
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const t = useT()
 
   useEffect(
     () =>
@@ -59,7 +61,7 @@ export default function SourceControl(): JSX.Element | null {
     setBusy(true)
     setError(null)
     const res = await fn()
-    if (!res.ok) setError(res.error || 'git failed')
+    if (!res.ok) setError(res.error || translateNow('git.failed'))
     else onOk?.()
     await reload()
     setBusy(false)
@@ -81,7 +83,7 @@ export default function SourceControl(): JSX.Element | null {
         onClick={action}
         disabled={busy}
         className="rounded px-1.5 font-mono text-faint opacity-0 hover:text-ink group-hover:opacity-100 disabled:opacity-0"
-        title={sign === '+' ? 'Stage' : 'Unstage'}
+        title={sign === '+' ? t('git.stage') : t('git.unstage')}
       >
         {sign}
       </button>
@@ -99,7 +101,7 @@ export default function SourceControl(): JSX.Element | null {
       >
         <div className="flex items-center justify-between border-b border-line px-4 py-2">
           <span className="text-sm font-semibold text-ink">
-            Source Control{' '}
+            {t('git.title')}{' '}
             {isRepo && (
               <span className="font-normal text-faint">
                 ⎇ {changes.branch}
@@ -115,7 +117,7 @@ export default function SourceControl(): JSX.Element | null {
 
         {!isRepo ? (
           <div className="flex flex-1 items-center justify-center px-6 py-10 text-center text-sm text-faint">
-            The open folder is not a git repository.
+            {t('git.notRepo')}
           </div>
         ) : (
           <div className="flex min-h-0 flex-1 flex-col">
@@ -123,7 +125,7 @@ export default function SourceControl(): JSX.Element | null {
               <textarea
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
-                placeholder="Commit message"
+                placeholder={t('git.commitPlaceholder')}
                 rows={2}
                 className="w-full resize-none rounded border border-line bg-paper px-2 py-1 text-sm text-ink placeholder:text-faint focus:border-accent focus:outline-none"
               />
@@ -132,24 +134,24 @@ export default function SourceControl(): JSX.Element | null {
                 disabled={!canCommit}
                 className="mt-2 w-full rounded bg-accent px-3 py-1.5 text-sm font-medium text-paper disabled:opacity-40"
               >
-                Commit {changes.staged.length > 0 ? `(${changes.staged.length})` : ''}
+                {t('git.commit')} {changes.staged.length > 0 ? `(${changes.staged.length})` : ''}
               </button>
               <div className="mt-2 flex gap-2">
                 <button
                   onClick={() => void run(() => pullBranch())}
                   disabled={busy}
-                  title="git pull"
+                  title={t('git.pullTitle')}
                   className="flex-1 rounded border border-line px-3 py-1 text-sm text-ink hover:border-accent hover:text-accent disabled:opacity-40"
                 >
-                  Pull{changes.behind > 0 ? ` ↓${changes.behind}` : ''}
+                  {t('git.pull')}{changes.behind > 0 ? ` ↓${changes.behind}` : ''}
                 </button>
                 <button
                   onClick={() => void run(() => pushBranch())}
                   disabled={busy}
-                  title="git push"
+                  title={t('git.pushTitle')}
                   className="flex-1 rounded border border-line px-3 py-1 text-sm text-ink hover:border-accent hover:text-accent disabled:opacity-40"
                 >
-                  Push{changes.ahead > 0 ? ` ↑${changes.ahead}` : ''}
+                  {t('git.push')}{changes.ahead > 0 ? ` ↑${changes.ahead}` : ''}
                 </button>
               </div>
               {error && <p className="mt-2 whitespace-pre-wrap text-xs text-[#d35454]">{error}</p>}
@@ -158,9 +160,9 @@ export default function SourceControl(): JSX.Element | null {
             <div className="min-h-0 flex-1 overflow-y-auto p-2">
               {changes.staged.length > 0 && (
                 <Section
-                  title="Staged Changes"
+                  title={t('git.staged')}
                   count={changes.staged.length}
-                  actionLabel="Unstage All"
+                  actionLabel={t('git.unstageAll')}
                   onAction={() => void run(() => unstagePaths(paths(changes.staged)))}
                   busy={busy}
                 >
@@ -178,9 +180,9 @@ export default function SourceControl(): JSX.Element | null {
 
               {changes.unstaged.length > 0 && (
                 <Section
-                  title="Changes"
+                  title={t('git.changes')}
                   count={changes.unstaged.length}
-                  actionLabel="Stage All"
+                  actionLabel={t('git.stageAll')}
                   onAction={() => void run(() => stagePaths(paths(changes.unstaged)))}
                   busy={busy}
                 >
@@ -197,7 +199,7 @@ export default function SourceControl(): JSX.Element | null {
               )}
 
               {changes.staged.length === 0 && changes.unstaged.length === 0 && (
-                <p className="py-8 text-center text-sm text-faint">No changes.</p>
+                <p className="py-8 text-center text-sm text-faint">{t('git.noChanges')}</p>
               )}
             </div>
           </div>

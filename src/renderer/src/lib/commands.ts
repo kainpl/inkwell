@@ -6,46 +6,57 @@ import { IPC } from '@shared/ipc'
  * native menus and no action logic is duplicated here. Format commands target
  * `menuFormat` with the action id as `arg`; pandoc exports target
  * `menuExportPandoc` with the format as `arg`.
+ *
+ * `title`/`category` are the English source text (kept for the fuzzy index and
+ * as a fallback); `titleKey` points at a `shared/i18n` key so the palette and
+ * the Preferences ▸ Keyboard list can render the command in the active locale.
  */
 export interface Command {
   id: string
   title: string
+  /** i18n key for the localized title (falls back to `title`). */
+  titleKey: string
   category: 'File' | 'Edit' | 'Format' | 'View' | 'Export' | 'Go'
   channel: string
   arg?: string
 }
 
 /** Convenience: a Format command (fires menuFormat with the action id). */
-function fmt(id: string, title: string): Command {
-  return { id: `format.${id}`, title, category: 'Format', channel: IPC.menuFormat, arg: id }
+function fmt(id: string, title: string, titleKey = `format.${id}`): Command {
+  return { id: `format.${id}`, title, titleKey, category: 'Format', channel: IPC.menuFormat, arg: id }
+}
+
+/** i18n key for a command's category chip. */
+export function categoryKey(c: Command): string {
+  return `cat.${c.category.toLowerCase()}`
 }
 
 export const COMMANDS: Command[] = [
   // File
-  { id: 'file.new', title: 'New File', category: 'File', channel: IPC.menuNewFile },
-  { id: 'file.newTemplate', title: 'New from Template…', category: 'File', channel: IPC.menuNewFromTemplate },
-  { id: 'file.open', title: 'Open File…', category: 'File', channel: IPC.menuOpenFile },
-  { id: 'file.openFolder', title: 'Open Folder…', category: 'File', channel: IPC.menuOpenFolder },
-  { id: 'file.connectDrive', title: 'Connect Google Drive…', category: 'File', channel: IPC.menuConnectDrive },
-  { id: 'file.save', title: 'Save', category: 'File', channel: IPC.menuSave },
-  { id: 'file.saveAs', title: 'Save As…', category: 'File', channel: IPC.menuSaveAs },
-  { id: 'file.reopen', title: 'Reopen Closed File', category: 'File', channel: IPC.menuReopenClosed },
-  { id: 'file.close', title: 'Close', category: 'File', channel: IPC.menuClose },
-  { id: 'file.closeFolder', title: 'Close Folder', category: 'File', channel: IPC.menuCloseFolder },
-  { id: 'file.autoSave', title: 'Toggle Auto Save', category: 'File', channel: IPC.menuToggleAutoSave },
-  { id: 'file.lf', title: 'Line Endings: LF (Unix)', category: 'File', channel: IPC.menuSetLineEndingLf },
-  { id: 'file.crlf', title: 'Line Endings: CRLF (Windows)', category: 'File', channel: IPC.menuSetLineEndingCrlf },
-  { id: 'file.finalNewline', title: 'Toggle Insert Final Newline', category: 'File', channel: IPC.menuToggleFinalNewline },
+  { id: 'file.new', title: 'New File', titleKey: 'cmd.fileNew', category: 'File', channel: IPC.menuNewFile },
+  { id: 'file.newTemplate', title: 'New from Template…', titleKey: 'file.newFromTemplate', category: 'File', channel: IPC.menuNewFromTemplate },
+  { id: 'file.open', title: 'Open File…', titleKey: 'file.openFile', category: 'File', channel: IPC.menuOpenFile },
+  { id: 'file.openFolder', title: 'Open Folder…', titleKey: 'file.openFolder', category: 'File', channel: IPC.menuOpenFolder },
+  { id: 'file.connectDrive', title: 'Connect Google Drive…', titleKey: 'file.connectDrive', category: 'File', channel: IPC.menuConnectDrive },
+  { id: 'file.save', title: 'Save', titleKey: 'file.save', category: 'File', channel: IPC.menuSave },
+  { id: 'file.saveAs', title: 'Save As…', titleKey: 'file.saveAs', category: 'File', channel: IPC.menuSaveAs },
+  { id: 'file.reopen', title: 'Reopen Closed File', titleKey: 'file.reopenClosed', category: 'File', channel: IPC.menuReopenClosed },
+  { id: 'file.close', title: 'Close', titleKey: 'file.close', category: 'File', channel: IPC.menuClose },
+  { id: 'file.closeFolder', title: 'Close Folder', titleKey: 'file.closeFolder', category: 'File', channel: IPC.menuCloseFolder },
+  { id: 'file.autoSave', title: 'Toggle Auto Save', titleKey: 'cmd.toggleAutoSave', category: 'File', channel: IPC.menuToggleAutoSave },
+  { id: 'file.lf', title: 'Line Endings: LF (Unix)', titleKey: 'cmd.lineEndingsLf', category: 'File', channel: IPC.menuSetLineEndingLf },
+  { id: 'file.crlf', title: 'Line Endings: CRLF (Windows)', titleKey: 'cmd.lineEndingsCrlf', category: 'File', channel: IPC.menuSetLineEndingCrlf },
+  { id: 'file.finalNewline', title: 'Toggle Insert Final Newline', titleKey: 'cmd.toggleFinalNewline', category: 'File', channel: IPC.menuToggleFinalNewline },
 
   // Edit
-  { id: 'edit.preferences', title: 'Preferences…', category: 'Edit', channel: IPC.menuPreferences },
-  { id: 'edit.copyMarkdown', title: 'Copy as Markdown', category: 'Edit', channel: IPC.menuCopyMarkdown },
-  { id: 'edit.copyHtml', title: 'Copy as HTML', category: 'Edit', channel: IPC.menuCopyHtml },
-  { id: 'edit.copyPlain', title: 'Copy as Plain Text', category: 'Edit', channel: IPC.menuCopyPlain },
-  { id: 'edit.copyImage', title: 'Copy as Image', category: 'Edit', channel: IPC.menuCopyImage },
-  { id: 'edit.selectNext', title: 'Select Next Occurrence (Ctrl/⌘ D)', category: 'Edit', channel: IPC.menuFormat, arg: 'selectNextOccurrence' },
-  { id: 'edit.cursorAbove', title: 'Add Cursor Above (Ctrl/⌘ Alt ↑)', category: 'Edit', channel: IPC.menuFormat, arg: 'cursorAbove' },
-  { id: 'edit.cursorBelow', title: 'Add Cursor Below (Ctrl/⌘ Alt ↓)', category: 'Edit', channel: IPC.menuFormat, arg: 'cursorBelow' },
+  { id: 'edit.preferences', title: 'Preferences…', titleKey: 'edit.preferences', category: 'Edit', channel: IPC.menuPreferences },
+  { id: 'edit.copyMarkdown', title: 'Copy as Markdown', titleKey: 'cmd.copyMarkdown', category: 'Edit', channel: IPC.menuCopyMarkdown },
+  { id: 'edit.copyHtml', title: 'Copy as HTML', titleKey: 'cmd.copyHtml', category: 'Edit', channel: IPC.menuCopyHtml },
+  { id: 'edit.copyPlain', title: 'Copy as Plain Text', titleKey: 'cmd.copyPlain', category: 'Edit', channel: IPC.menuCopyPlain },
+  { id: 'edit.copyImage', title: 'Copy as Image', titleKey: 'cmd.copyImage', category: 'Edit', channel: IPC.menuCopyImage },
+  { id: 'edit.selectNext', title: 'Select Next Occurrence (Ctrl/⌘ D)', titleKey: 'cmd.selectNext', category: 'Edit', channel: IPC.menuFormat, arg: 'selectNextOccurrence' },
+  { id: 'edit.cursorAbove', title: 'Add Cursor Above (Ctrl/⌘ Alt ↑)', titleKey: 'cmd.cursorAbove', category: 'Edit', channel: IPC.menuFormat, arg: 'cursorAbove' },
+  { id: 'edit.cursorBelow', title: 'Add Cursor Below (Ctrl/⌘ Alt ↓)', titleKey: 'cmd.cursorBelow', category: 'Edit', channel: IPC.menuFormat, arg: 'cursorBelow' },
 
   // Format
   fmt('bold', 'Bold'),
@@ -75,60 +86,60 @@ export const COMMANDS: Command[] = [
   fmt('mathBlock', 'Math Block'),
   fmt('mermaid', 'Mermaid Diagram'),
   fmt('toc', 'Table of Contents'),
-  fmt('alert:note', 'Alert: Note'),
-  fmt('alert:tip', 'Alert: Tip'),
-  fmt('alert:important', 'Alert: Important'),
-  fmt('alert:warning', 'Alert: Warning'),
-  fmt('alert:caution', 'Alert: Caution'),
-  fmt('table:rowAbove', 'Table: Insert Row Above'),
-  fmt('table:rowBelow', 'Table: Insert Row Below'),
-  fmt('table:deleteRow', 'Table: Delete Row'),
-  fmt('table:colBefore', 'Table: Insert Column Before'),
-  fmt('table:colAfter', 'Table: Insert Column After'),
-  fmt('table:deleteCol', 'Table: Delete Column'),
-  fmt('table:alignLeft', 'Table: Align Left'),
-  fmt('table:alignCenter', 'Table: Align Center'),
-  fmt('table:alignRight', 'Table: Align Right'),
+  fmt('alert:note', 'Alert: Note', 'cmd.alertNote'),
+  fmt('alert:tip', 'Alert: Tip', 'cmd.alertTip'),
+  fmt('alert:important', 'Alert: Important', 'cmd.alertImportant'),
+  fmt('alert:warning', 'Alert: Warning', 'cmd.alertWarning'),
+  fmt('alert:caution', 'Alert: Caution', 'cmd.alertCaution'),
+  fmt('table:rowAbove', 'Table: Insert Row Above', 'cmd.tableRowAbove'),
+  fmt('table:rowBelow', 'Table: Insert Row Below', 'cmd.tableRowBelow'),
+  fmt('table:deleteRow', 'Table: Delete Row', 'cmd.tableDeleteRow'),
+  fmt('table:colBefore', 'Table: Insert Column Before', 'cmd.tableColBefore'),
+  fmt('table:colAfter', 'Table: Insert Column After', 'cmd.tableColAfter'),
+  fmt('table:deleteCol', 'Table: Delete Column', 'cmd.tableDeleteCol'),
+  fmt('table:alignLeft', 'Table: Align Left', 'cmd.tableAlignLeft'),
+  fmt('table:alignCenter', 'Table: Align Center', 'cmd.tableAlignCenter'),
+  fmt('table:alignRight', 'Table: Align Right', 'cmd.tableAlignRight'),
   fmt('toggleImageSyntax', 'Toggle Image Markdown/HTML'),
   fmt('uploadImage', 'Upload Image'),
   fmt('clearFormat', 'Clear Format'),
   fmt('prettify', 'Prettify Source'),
 
   // View
-  { id: 'view.formatBar', title: 'Toggle Formatting Bar', category: 'View', channel: IPC.menuToggleFormatBar },
-  { id: 'view.sidebar', title: 'Toggle Sidebar', category: 'View', channel: IPC.menuToggleSidebar },
-  { id: 'view.outline', title: 'Toggle Outline', category: 'View', channel: IPC.menuToggleOutline },
-  { id: 'view.focus', title: 'Toggle Focus Mode', category: 'View', channel: IPC.menuToggleFocusMode },
-  { id: 'view.typewriter', title: 'Toggle Typewriter Mode', category: 'View', channel: IPC.menuToggleTypewriter },
-  { id: 'view.source', title: 'Toggle Source Code Mode', category: 'View', channel: IPC.menuToggleSourceMode },
-  { id: 'view.speak', title: 'Start Speaking', category: 'View', channel: IPC.menuStartSpeaking },
-  { id: 'view.stopSpeak', title: 'Stop Speaking', category: 'View', channel: IPC.menuStopSpeaking },
+  { id: 'view.formatBar', title: 'Toggle Formatting Bar', titleKey: 'view.toggleFormatBar', category: 'View', channel: IPC.menuToggleFormatBar },
+  { id: 'view.sidebar', title: 'Toggle Sidebar', titleKey: 'view.toggleSidebar', category: 'View', channel: IPC.menuToggleSidebar },
+  { id: 'view.outline', title: 'Toggle Outline', titleKey: 'view.toggleOutline', category: 'View', channel: IPC.menuToggleOutline },
+  { id: 'view.focus', title: 'Toggle Focus Mode', titleKey: 'view.toggleFocus', category: 'View', channel: IPC.menuToggleFocusMode },
+  { id: 'view.typewriter', title: 'Toggle Typewriter Mode', titleKey: 'view.toggleTypewriter', category: 'View', channel: IPC.menuToggleTypewriter },
+  { id: 'view.source', title: 'Toggle Source Code Mode', titleKey: 'view.toggleSource', category: 'View', channel: IPC.menuToggleSourceMode },
+  { id: 'view.speak', title: 'Start Speaking', titleKey: 'view.startSpeaking', category: 'View', channel: IPC.menuStartSpeaking },
+  { id: 'view.stopSpeak', title: 'Stop Speaking', titleKey: 'view.stopSpeaking', category: 'View', channel: IPC.menuStopSpeaking },
 
   // Go
-  { id: 'go.file', title: 'Go to File…', category: 'Go', channel: IPC.menuOpenQuickly },
-  { id: 'go.search', title: 'Search in Folder…', category: 'Go', channel: IPC.menuGlobalSearch },
-  { id: 'go.recent', title: 'Open Recent…', category: 'Go', channel: IPC.menuOpenRecent },
-  { id: 'go.versions', title: 'Browse All Versions…', category: 'Go', channel: IPC.menuBrowseVersions },
-  { id: 'go.graph', title: 'Note Graph…', category: 'Go', channel: IPC.menuNoteGraph },
-  { id: 'go.git', title: 'Source Control…', category: 'Go', channel: IPC.menuSourceControl },
-  { id: 'go.top', title: 'Jump to Top', category: 'Go', channel: IPC.menuJumpTop },
-  { id: 'go.bottom', title: 'Jump to Bottom', category: 'Go', channel: IPC.menuJumpBottom },
+  { id: 'go.file', title: 'Go to File…', titleKey: 'cmd.goToFile', category: 'Go', channel: IPC.menuOpenQuickly },
+  { id: 'go.search', title: 'Search in Folder…', titleKey: 'view.globalSearch', category: 'Go', channel: IPC.menuGlobalSearch },
+  { id: 'go.recent', title: 'Open Recent…', titleKey: 'file.openRecent', category: 'Go', channel: IPC.menuOpenRecent },
+  { id: 'go.versions', title: 'Browse All Versions…', titleKey: 'file.browseVersions', category: 'Go', channel: IPC.menuBrowseVersions },
+  { id: 'go.graph', title: 'Note Graph…', titleKey: 'view.noteGraph', category: 'Go', channel: IPC.menuNoteGraph },
+  { id: 'go.git', title: 'Source Control…', titleKey: 'view.sourceControl', category: 'Go', channel: IPC.menuSourceControl },
+  { id: 'go.top', title: 'Jump to Top', titleKey: 'view.jumpTop', category: 'Go', channel: IPC.menuJumpTop },
+  { id: 'go.bottom', title: 'Jump to Bottom', titleKey: 'view.jumpBottom', category: 'Go', channel: IPC.menuJumpBottom },
 
   // Export
-  { id: 'export.html', title: 'Export HTML (with styles)…', category: 'Export', channel: IPC.menuExportHtml },
-  { id: 'export.htmlPlain', title: 'Export HTML (without styles)…', category: 'Export', channel: IPC.menuExportHtmlPlain },
-  { id: 'export.pdf', title: 'Export PDF…', category: 'Export', channel: IPC.menuExportPdf },
-  { id: 'export.image', title: 'Export Image (PNG)…', category: 'Export', channel: IPC.menuExportImage },
-  { id: 'export.docx', title: 'Export Word (.docx)…', category: 'Export', channel: IPC.menuExportPandoc, arg: 'docx' },
-  { id: 'export.odt', title: 'Export OpenDocument (.odt)…', category: 'Export', channel: IPC.menuExportPandoc, arg: 'odt' },
-  { id: 'export.rtf', title: 'Export Rich Text (.rtf)…', category: 'Export', channel: IPC.menuExportPandoc, arg: 'rtf' },
-  { id: 'export.epub', title: 'Export EPUB (.epub)…', category: 'Export', channel: IPC.menuExportPandoc, arg: 'epub' },
-  { id: 'export.latex', title: 'Export LaTeX (.tex)…', category: 'Export', channel: IPC.menuExportPandoc, arg: 'latex' },
-  { id: 'export.pageSetup', title: 'Page Setup…', category: 'Export', channel: IPC.menuPageSetup },
-  { id: 'export.print', title: 'Print…', category: 'Export', channel: IPC.menuPrint }
+  { id: 'export.html', title: 'Export HTML (with styles)…', titleKey: 'cmd.exportHtml', category: 'Export', channel: IPC.menuExportHtml },
+  { id: 'export.htmlPlain', title: 'Export HTML (without styles)…', titleKey: 'cmd.exportHtmlPlain', category: 'Export', channel: IPC.menuExportHtmlPlain },
+  { id: 'export.pdf', title: 'Export PDF…', titleKey: 'cmd.exportPdf', category: 'Export', channel: IPC.menuExportPdf },
+  { id: 'export.image', title: 'Export Image (PNG)…', titleKey: 'cmd.exportImage', category: 'Export', channel: IPC.menuExportImage },
+  { id: 'export.docx', title: 'Export Word (.docx)…', titleKey: 'cmd.exportDocx', category: 'Export', channel: IPC.menuExportPandoc, arg: 'docx' },
+  { id: 'export.odt', title: 'Export OpenDocument (.odt)…', titleKey: 'cmd.exportOdt', category: 'Export', channel: IPC.menuExportPandoc, arg: 'odt' },
+  { id: 'export.rtf', title: 'Export Rich Text (.rtf)…', titleKey: 'cmd.exportRtf', category: 'Export', channel: IPC.menuExportPandoc, arg: 'rtf' },
+  { id: 'export.epub', title: 'Export EPUB (.epub)…', titleKey: 'cmd.exportEpub', category: 'Export', channel: IPC.menuExportPandoc, arg: 'epub' },
+  { id: 'export.latex', title: 'Export LaTeX (.tex)…', titleKey: 'cmd.exportLatex', category: 'Export', channel: IPC.menuExportPandoc, arg: 'latex' },
+  { id: 'export.pageSetup', title: 'Page Setup…', titleKey: 'file.pageSetup', category: 'Export', channel: IPC.menuPageSetup },
+  { id: 'export.print', title: 'Print…', titleKey: 'file.print', category: 'Export', channel: IPC.menuPrint }
 ]
 
-/** The string a command is fuzzy-matched against. */
+/** The string a command is fuzzy-matched against (English source index). */
 export function commandSearchText(c: Command): string {
   return `${c.category} ${c.title}`
 }

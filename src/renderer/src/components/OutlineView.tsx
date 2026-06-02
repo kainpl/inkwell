@@ -4,6 +4,7 @@ import { useAppStore } from '@renderer/store/useAppStore'
 import { useEditor } from '@renderer/store/useEditor'
 import { parseOutline } from '@renderer/lib/outline'
 import { openPath } from '@renderer/lib/docActions'
+import { useT } from '@renderer/lib/i18n'
 import { GOTO_EVENT } from './Editor/Editor'
 
 const escapeRe = (s: string): string => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
@@ -20,6 +21,7 @@ export default function OutlineView(): JSX.Element {
   const view = useEditor((s) => s.view)
 
   const headings = useMemo(() => parseOutline(content), [content])
+  const t = useT()
   // Collapsed headings keyed by their character offset (stable across edits).
   const [collapsed, setCollapsed] = useState<Set<number>>(new Set())
 
@@ -90,13 +92,13 @@ export default function OutlineView(): JSX.Element {
   return (
     <div className="flex h-full flex-col">
       <div className="flex items-center justify-between px-3 py-1">
-        <span className="text-[11px] font-semibold uppercase tracking-wider text-faint">Outline</span>
+        <span className="text-[11px] font-semibold uppercase tracking-wider text-faint">{t('outline.title')}</span>
         {headings.length > 0 && (
           <div className="flex gap-1 text-[11px] text-faint">
-            <button onClick={collapseAll} title="Collapse all" className="hover:text-ink">
+            <button onClick={collapseAll} title={t('outline.collapseAll')} className="hover:text-ink">
               −
             </button>
-            <button onClick={expandAll} title="Expand all" className="hover:text-ink">
+            <button onClick={expandAll} title={t('outline.expandAll')} className="hover:text-ink">
               +
             </button>
           </div>
@@ -104,7 +106,7 @@ export default function OutlineView(): JSX.Element {
       </div>
       <div className="min-h-0 flex-1 overflow-y-auto p-1">
         {headings.length === 0 ? (
-          <div className="px-2 py-2 text-[13px] text-faint">No headings</div>
+          <div className="px-2 py-2 text-[13px] text-faint">{t('outline.noHeadings')}</div>
         ) : (
           headings.map((h, i) =>
             hidden.has(h.from) ? null : (
@@ -134,7 +136,7 @@ export default function OutlineView(): JSX.Element {
       {backlinks.length > 0 && (
         <div className="max-h-48 shrink-0 overflow-y-auto border-t border-line p-1">
           <div className="px-2 py-1 text-[11px] font-semibold uppercase tracking-wider text-faint">
-            Backlinks ({backlinks.length})
+            {t('outline.backlinks', { n: backlinks.length })}
           </div>
           {backlinks.map((b) => (
             <button

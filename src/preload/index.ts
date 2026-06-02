@@ -18,6 +18,7 @@ import {
 } from '../shared/ipc'
 import type { NoteGraph } from '../shared/noteGraph'
 import type { DriveAccount, DriveNode } from '../shared/drive'
+import type { Locale } from '../shared/i18n'
 
 const menuChannels = [
   IPC.menuNewFile,
@@ -262,6 +263,9 @@ const api = {
 
   /** Apply the auto-hide-menu-bar preference to this window (Windows/Linux). */
   setMenuBarAutoHide: (hide: boolean): void => ipcRenderer.send(IPC.setMenuBarAutoHide, hide),
+
+  /** Set the UI language; the main process rebuilds the native menu. */
+  setLocale: (locale: Locale): void => ipcRenderer.send(IPC.setLocale, locale),
 
   /** Re-fire a menu channel (command palette) — round-trips through the main process. */
   triggerMenu: (channel: string, arg?: string): void =>
