@@ -29,4 +29,4 @@ Branch: `feat/mindmap`. Started 2026‑06‑02.
 
 ## Status
 
-Research complete; **vision locked (D1–D13)**; **M1 spec + implementation plan written** (`m1-spec.md`, `m1-plan.md`). Next: execute the M1 plan on `feat/mindmap`.
+Research complete; **vision locked (D1–D13)**; **M1 shipped** on `feat/mindmap` (pushed to origin) — read-only slice (open `.inkproj` → React Flow schema + typed cross-links → click node → doc pane with anchor scroll) **+ projects open as tabs** (switch/close via TabBar). Manual acceptance passed. Next: **M2 — editing + save**.
