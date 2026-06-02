@@ -4,6 +4,32 @@ export interface AnchorPos {
   ch: number
 }
 
+export interface AnchorInfo {
+  id: string
+  /** 0-based line index. */
+  line: number
+  kind: 'heading' | 'block'
+}
+
+/** All explicit anchors in a doc: `{#id}` on headings and trailing `^id` on lines. */
+export function listAnchors(text: string): AnchorInfo[] {
+  const out: AnchorInfo[] = []
+  const headingId = /\{#([A-Za-z0-9_-]+)\}/
+  const blockId = /\^([A-Za-z0-9_-]+)\s*$/
+  const lines = text.split('\n')
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i]
+    const h = headingId.exec(line)
+    if (/^#{1,6}\s/.test(line) && h) {
+      out.push({ id: h[1], line: i, kind: 'heading' })
+      continue
+    }
+    const b = blockId.exec(line)
+    if (b) out.push({ id: b[1], line: i, kind: 'block' })
+  }
+  return out
+}
+
 function escapeRe(s: string): string {
   return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 }

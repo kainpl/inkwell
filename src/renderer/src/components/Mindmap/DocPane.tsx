@@ -6,6 +6,7 @@ import { markdown } from '@codemirror/lang-markdown'
 import { useAppStore } from '@renderer/store/useAppStore'
 import { useActiveProject, useProjectStore } from '@renderer/store/useProjectStore'
 import { resolveAnchor } from '@renderer/lib/mindmap/anchors'
+import { setDocView } from '@renderer/lib/mindmap/docView'
 
 /** Editable CodeMirror pane for the selected node's attached doc. Edits are
  *  buffered in the store (`dirtyDocs`) and flushed into the bundle on project Save.
@@ -49,6 +50,7 @@ export default function DocPane(): JSX.Element {
           })
         })
         viewRef.current = view
+        setDocView(view)
         const anchor = openDoc.ref.anchor
         if (!anchor) return
         const pos = resolveAnchor(text, anchor)
@@ -67,7 +69,13 @@ export default function DocPane(): JSX.Element {
     }
   }, [openDoc, workingDir, external, path, activeId])
 
-  useEffect(() => () => viewRef.current?.destroy(), [])
+  useEffect(
+    () => () => {
+      setDocView(null)
+      viewRef.current?.destroy()
+    },
+    []
+  )
 
   if (!openDoc) {
     return (

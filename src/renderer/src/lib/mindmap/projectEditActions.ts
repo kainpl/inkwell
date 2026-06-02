@@ -5,7 +5,7 @@ import { getProjectDoc } from './yjsRegistry'
 import { saveProject } from './projectActions'
 import { addChild, addSibling, remove as removeNode, rename } from './treeOps'
 import { removeCrossLink } from './crossLinkOps'
-import { nodeDocs, pushDocRef, removeDocRef } from './docOps'
+import { nodeDocs, pushDocRef, removeDocRef, setDocAnchor } from './docOps'
 import type { DocRef } from '@shared/mindmap/types'
 
 /** The active project tab's id + Y.Doc, or null if the active tab isn't a project. */
@@ -154,6 +154,19 @@ export function createDocForSelected(): void {
   pushDocRef(a.doc, sel, ref)
   markDirty(a.tabId)
   useProjectStore.getState().openDocFor(sel, ref)
+}
+
+/** Point the currently-open doc ref at an anchor (or clear it) and re-open to scroll. */
+export function linkOpenDocAnchor(anchor: string | undefined): void {
+  const a = active()
+  if (!a) return
+  const od = useProjectStore.getState().byTab[a.tabId]?.openDoc
+  if (!od || !od.ref.path) return
+  const index = nodeDocs(a.doc, od.nodeId).findIndex((r) => r.path === od.ref.path)
+  if (index < 0) return
+  setDocAnchor(a.doc, od.nodeId, index, anchor)
+  markDirty(a.tabId)
+  useProjectStore.getState().openDocFor(od.nodeId, { ...od.ref, anchor: anchor || undefined })
 }
 
 /** Detach the doc ref at `index` from a node (the bundled file stays). */

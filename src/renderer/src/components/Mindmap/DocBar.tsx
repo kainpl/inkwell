@@ -5,8 +5,11 @@ import {
   attachDocToSelected,
   createDocForSelected,
   detachDoc,
+  linkOpenDocAnchor,
   openDocRef
 } from '@renderer/lib/mindmap/projectEditActions'
+import { getDocView, insertAnchorAtCaret } from '@renderer/lib/mindmap/docView'
+import { listAnchors } from '@renderer/lib/mindmap/anchors'
 
 const BTN = 'rounded px-2 py-1 text-[12px] text-ink enabled:hover:bg-line/40 disabled:opacity-40'
 
@@ -22,6 +25,9 @@ export default function DocBar(): JSX.Element {
   const dirty = openPath != null && project?.dirtyDocs[openPath] != null
   const openIdx =
     sel && project?.openDoc?.nodeId === sel ? docs.findIndex((d) => d.path === openPath) : -1
+  const openInternal = project?.openDoc != null && project.openDoc.ref.external !== true
+  const openAnchor = project?.openDoc?.ref.anchor ?? ''
+  const anchors = openInternal ? listAnchors(getDocView()?.state.doc.toString() ?? '') : []
 
   return (
     <div className="flex items-center gap-2 border-b border-line bg-chrome px-2 py-1 text-[12px]">
@@ -47,6 +53,26 @@ export default function DocBar(): JSX.Element {
       )}
       {dirty ? (
         <span title="Unsaved edits" className="h-1.5 w-1.5 shrink-0 rounded-full bg-accent" />
+      ) : null}
+      {openInternal ? (
+        <>
+          <button className={BTN} onClick={() => insertAnchorAtCaret()} title="Insert an anchor at the caret">
+            ⚓
+          </button>
+          <select
+            value={openAnchor}
+            onChange={(e) => linkOpenDocAnchor(e.target.value || undefined)}
+            title="Link this node to an anchor in the doc"
+            className="max-w-[30%] rounded border border-line bg-paper px-1 py-0.5 text-[12px] text-ink"
+          >
+            <option value="">no anchor</option>
+            {anchors.map((a) => (
+              <option key={a.id} value={`#${a.id}`}>
+                #{a.id}
+              </option>
+            ))}
+          </select>
+        </>
       ) : null}
       <span className="flex-1" />
       <button className={BTN} disabled={!sel} onClick={() => createDocForSelected()} title="New document">

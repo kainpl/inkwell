@@ -1,7 +1,19 @@
 import { describe, it, expect } from 'vitest'
-import { resolveAnchor } from './anchors'
+import { resolveAnchor, listAnchors } from './anchors'
 
 const doc = '# Intro\n\n## Estimate {#estimate}\n\ntext\n\nA line ^blk1\n'
+
+describe('listAnchors', () => {
+  it('lists heading and block anchors with line + kind', () => {
+    expect(listAnchors('## H {#sec}\n\ntext ^b1\n')).toEqual([
+      { id: 'sec', line: 0, kind: 'heading' },
+      { id: 'b1', line: 2, kind: 'block' }
+    ])
+  })
+  it('ignores {#id} on non-heading lines', () => {
+    expect(listAnchors('a {#x} b\n')).toEqual([])
+  })
+})
 
 describe('resolveAnchor', () => {
   it('resolves a {#id} heading anchor', () => {

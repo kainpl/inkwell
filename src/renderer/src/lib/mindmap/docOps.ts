@@ -27,6 +27,17 @@ export function pushDocRef(doc: Y.Doc, nodeId: string, ref: DocRef): void {
   }, LOCAL_ORIGIN)
 }
 
+/** Point a node's doc ref at an anchor (`#id`); empty/undefined clears it. */
+export function setDocAnchor(doc: Y.Doc, nodeId: string, index: number, anchor?: string): void {
+  const m = nodesOf(doc).get(nodeId)
+  if (!m) return
+  doc.transact(() => {
+    const d = readData(m)
+    const docs = (d.docs ?? []).map((r, i) => (i === index ? { ...r, anchor: anchor || undefined } : r))
+    writeData(m, { ...d, docs })
+  }, LOCAL_ORIGIN)
+}
+
 /** Remove the doc ref at `index` from a node (the bundled file is left in place). */
 export function removeDocRef(doc: Y.Doc, nodeId: string, index: number): void {
   const m = nodesOf(doc).get(nodeId)
