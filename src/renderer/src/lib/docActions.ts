@@ -16,6 +16,7 @@ import { isGdrive } from '@shared/drive'
 import { readRef, writeRef } from './fileSource'
 import { getDriveBase, setDriveBase } from './drive'
 import { t } from './i18n'
+import { cleanupProjectTab } from './mindmap/projectActions'
 
 /** Content shaped for disk per the user's line-ending / final-newline settings. */
 function contentForDisk(): string {
@@ -285,8 +286,10 @@ export async function closeTabById(id: string): Promise<void> {
     useAppStore.getState().activateTab(id)
     if (!(await guardUnsaved())) return
   }
+  const isProject = tab.kind === 'project'
   const wasLast = useAppStore.getState().tabs.length === 1
   useAppStore.getState().removeTab(id)
+  if (isProject) await cleanupProjectTab(id)
   if (wasLast) await loadWelcome()
 }
 

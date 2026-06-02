@@ -67,12 +67,11 @@ import SpellDownload from '@renderer/components/SpellDownload'
 import PromptModal from '@renderer/components/PromptModal'
 import ConfirmUnsavedModal from '@renderer/components/ConfirmUnsavedModal'
 import ProjectView from '@renderer/components/Mindmap/ProjectView'
-import { useProjectStore } from '@renderer/store/useProjectStore'
 import { openProjectFromDialog, openProjectFromPath } from '@renderer/lib/mindmap/projectActions'
 
 export default function App(): JSX.Element {
   const formatBarOpen = useAppStore((s) => s.formatBarOpen)
-  const projectActive = useProjectStore((s) => s.active)
+  const projectActive = useAppStore((s) => s.tabs.find((tb) => tb.id === s.activeId)?.kind === 'project')
 
   // Wire main-process menu commands (file ops route through the unsaved guard).
   useEffect(() => {

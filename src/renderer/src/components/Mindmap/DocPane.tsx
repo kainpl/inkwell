@@ -2,13 +2,14 @@ import { useEffect, useRef, useState } from 'react'
 import { EditorState } from '@codemirror/state'
 import { EditorView, lineNumbers } from '@codemirror/view'
 import { markdown } from '@codemirror/lang-markdown'
-import { useProjectStore } from '@renderer/store/useProjectStore'
+import { useActiveProject } from '@renderer/store/useProjectStore'
 import { resolveAnchor } from '@renderer/lib/mindmap/anchors'
 
 /** Read-only CodeMirror pane that shows the clicked node's attached doc (M1). */
 export default function DocPane(): JSX.Element {
-  const openDoc = useProjectStore((s) => s.openDoc)
-  const workingDir = useProjectStore((s) => s.workingDir)
+  const project = useActiveProject()
+  const openDoc = project?.openDoc ?? null
+  const workingDir = project?.workingDir ?? null
   const hostRef = useRef<HTMLDivElement>(null)
   const viewRef = useRef<EditorView | null>(null)
   const [error, setError] = useState<string | null>(null)

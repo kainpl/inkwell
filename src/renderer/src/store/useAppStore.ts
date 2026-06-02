@@ -29,6 +29,8 @@ interface AppState {
    *  untitled tab, or append a new one. */
   openInTab: (file: { path: string | null; name: string; content: string }) => void
   newTab: () => void
+  /** Append a path-less project tab (renders a `.inkproj` view); returns its id. */
+  openProjectTab: (name: string) => string
   activateTab: (id: string) => void
   /** Remove a tab; never leaves zero tabs (spawns a fresh untitled if needed). */
   removeTab: (id: string) => void
@@ -219,6 +221,15 @@ export const useAppStore = create<AppState>((set) => ({
       const t = untitled()
       return { tabs: [...s.tabs, t], activeId: t.id, doc: docOf(t) }
     }),
+
+  openProjectTab: (name) => {
+    const id = genId()
+    set((s) => {
+      const t: Tab = { id, path: null, name, content: '', dirty: false, kind: 'project' }
+      return { tabs: [...s.tabs, t], activeId: id, doc: docOf(t) }
+    })
+    return id
+  },
 
   activateTab: (id) =>
     set((s) => {

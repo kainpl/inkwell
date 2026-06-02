@@ -10,6 +10,9 @@ export interface Tab {
   name: string
   content: string
   dirty: boolean
+  /** 'project' tabs render a `.inkproj` schema view instead of the editor;
+   *  their runtime state lives in `useProjectStore`, keyed by this tab id. */
+  kind?: 'file' | 'project'
 }
 
 /** The already-open tab for a document path (untitled/null paths never match). */
