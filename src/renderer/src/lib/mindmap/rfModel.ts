@@ -15,6 +15,11 @@ export type RfNode = Node<RfNodeData, 'mind'>
 
 export interface RfEdgeData {
   linkType?: LinkType
+  /** Owning node + link id (cross edges only) — for the Edge Inspector to edit. */
+  fromNodeId?: string
+  linkId?: string
+  /** True when this cross edge is the selected link. */
+  selected?: boolean
   [k: string]: unknown
 }
 export type RfEdge = Edge<RfEdgeData>
@@ -42,7 +47,8 @@ export function buildRfModel(
   layout: Map<string, Pos>,
   collapsed: Set<string>,
   linkTypes: Record<string, LinkType>,
-  selectedId: string | null = null
+  selectedId: string | null = null,
+  selectedLinkId: string | null = null
 ): { nodes: RfNode[]; edges: RfEdge[] } {
   const hidden = hiddenSet(graph, collapsed)
   const visible = (id: string): boolean => !hidden.has(id)
@@ -73,7 +79,12 @@ export function buildRfModel(
             target: e.target,
             type: 'crosslink',
             label: e.label,
-            data: { linkType: resolveLinkType(linkTypes, e.type ?? 'relates-to') }
+            data: {
+              linkType: resolveLinkType(linkTypes, e.type ?? 'relates-to'),
+              fromNodeId: e.source,
+              linkId: e.linkId,
+              selected: e.linkId != null && e.linkId === selectedLinkId
+            }
           } satisfies RfEdge)
     )
 

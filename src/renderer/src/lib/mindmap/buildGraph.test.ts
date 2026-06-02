@@ -14,7 +14,7 @@ describe('buildGraph', () => {
     expect(g.nodes.map((n) => n.id)).toEqual(expect.arrayContaining(['a', 'b']))
     const cross = g.edges.filter((e) => e.kind === 'cross')
     expect(cross).toEqual([
-      expect.objectContaining({ id: 'e1', source: 'a', target: 'b', type: 'depends-on' })
+      expect.objectContaining({ id: 'e1', linkId: 'e1', source: 'a', target: 'b', type: 'depends-on' })
     ])
     expect(g.incomingCross.get('b')?.[0]?.source).toBe('a')
 

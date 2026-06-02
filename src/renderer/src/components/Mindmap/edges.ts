@@ -29,16 +29,19 @@ export function CrosslinkEdge(props: EdgeProps): JSX.Element {
     sourcePosition: props.sourcePosition,
     targetPosition: props.targetPosition
   })
-  const linkType = (props.data as RfEdgeData | undefined)?.linkType
+  const data = props.data as RfEdgeData | undefined
+  const linkType = data?.linkType
   const color = linkType?.color ?? '#7a8aa0'
+  const selected = data?.selected === true
   return createElement(BaseEdge, {
     id: props.id,
     path,
     markerEnd: props.markerEnd,
     style: {
       stroke: color,
-      strokeWidth: 1.5,
-      strokeDasharray: linkType?.directed ? undefined : '5 3'
+      strokeWidth: selected ? 3 : 1.5,
+      strokeDasharray: linkType?.directed ? undefined : '5 3',
+      filter: selected ? `drop-shadow(0 0 3px ${color})` : undefined
     }
   })
 }

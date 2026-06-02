@@ -27,6 +27,14 @@ describe('buildRfModel', () => {
     expect(m.edges.some((e) => e.type === 'tree')).toBe(true)
     const cross = m.edges.find((e) => e.type === 'crosslink')
     expect(cross?.data?.linkType?.color).toBe(reg['depends-on'].color)
+    expect(cross?.data).toMatchObject({ fromNodeId: 'a', linkId: 'e1', selected: false })
+  })
+
+  it('flags the selected link', () => {
+    const { graph, layout, reg } = fixture()
+    const m = buildRfModel(graph, layout, new Set(), reg, null, 'e1')
+    const cross = m.edges.find((e) => e.type === 'crosslink')
+    expect(cross?.data?.selected).toBe(true)
   })
 
   it('hides descendants of a collapsed node (and their edges)', () => {

@@ -50,7 +50,8 @@ export function buildGraph(outline: MarkdownNode[], opts: BuildGraphOptions = {}
         target: link.to,
         kind: 'cross',
         type: link.type,
-        label: link.label
+        label: link.label,
+        linkId: link.id
       }
       crossEdges.push(edge)
       const incoming = incomingCross.get(link.to) ?? []

@@ -115,6 +115,9 @@ export interface GraphEdge {
   /** Cross-link type (only for `kind === 'cross'`). */
   type?: string
   label?: string
+  /** The owning `CrossLink.id` (only for `kind === 'cross'`) — lets an edge resolve
+   *  back to `{ source node, link }` for editing. */
+  linkId?: string
 }
 
 export interface GraphModel {
