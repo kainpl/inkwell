@@ -14,6 +14,8 @@ Branch: `feat/mindmap`. Started 2026‑06‑02.
 | [`m1-plan.md`](m1-plan.md) | **Milestone 1 implementation plan** — 14 task‑by‑task steps (TDD). **Done.** |
 | [`m2a-spec.md`](m2a-spec.md) | **Milestone 2a spec** — editing + save with a Yjs model (create/rename/delete/reparent, undo/redo, zip-back). |
 | [`m2a-plan.md`](m2a-plan.md) | **Milestone 2a implementation plan** — 10 task-groups (TDD). **Done / shipped.** |
+| [`m2b-spec.md`](m2b-spec.md) | **Milestone 2b spec** — cross-link editing (Phase A) + doc editing (Phase B): draw/retype/delete typed edges + custom types; attach/create/detach + an editable doc pane that saves into the bundle. |
+| [`m2b-plan.md`](m2b-plan.md) | **Milestone 2b implementation plan** — Phase A (A1–A6) + Phase B (B1–B5), TDD; ready to execute (Phase A first). |
 
 ## Source repos (read‑only, gitignored, under `temp/ref/`)
 
