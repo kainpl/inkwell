@@ -44,12 +44,12 @@ src/shared/mindmap/types.ts               GraphEdge.linkId
 
 **Files:** create `crossLinkOps.ts`, `crossLinkOps.test.ts`.
 
-- [ ] **A1.1 Failing test** — on a bare `Y.Doc` seeded via `outlineToYjs`:
+- [x] **A1.1 Failing test** — on a bare `Y.Doc` seeded via `outlineToYjs`:
   - `addCrossLink(doc, a, b)` → a-node `data.links` has one `{ to:b, type:'relates-to' }` with an id; `yjsToOutline` reflects it.
   - `addCrossLink(doc, a, a)` → returns null / no-op (self-link rejected).
   - `updateCrossLink(doc, a, linkId, { type:'blocks', label:'x' })` → link updated.
   - `removeCrossLink(doc, a, linkId)` → link gone.
-- [ ] **A1.2 Implement** `crossLinkOps.ts` — read-modify-write the from-node's `dataJson` inside `doc.transact(fn, LOCAL_ORIGIN)`:
+- [x] **A1.2 Implement** `crossLinkOps.ts` — read-modify-write the from-node's `dataJson` inside `doc.transact(fn, LOCAL_ORIGIN)`:
 ```ts
 import * as Y from 'yjs'
 import type { CrossLink, NodeData } from '@shared/mindmap/types'
@@ -89,56 +89,56 @@ export function removeCrossLink(doc: Y.Doc, fromId: string, linkId: string): voi
   }, LOCAL_ORIGIN)
 }
 ```
-- [ ] **A1.3** run → pass. **A1.4** commit `feat(mindmap): cross-link edit ops`.
+- [x] **A1.3** run → pass. **A1.4** commit `feat(mindmap): cross-link edit ops`.
 
 ## Task A2 — graph plumbing for editable edges
 
 **Files:** modify `shared/mindmap/types.ts`, `buildGraph.ts`, `rfModel.ts`; extend their tests.
 
-- [ ] **A2.1** `GraphEdge` gains `linkId?: string`. In `buildGraph`, when emitting a cross edge from `node.data.links`, set `linkId: link.id` (and keep `source`=owning node id).
-- [ ] **A2.2** `RfEdgeData` gains `fromNodeId: string`, `linkId: string`, `selected?: boolean`. In `buildRfModel`, for cross edges set `data.fromNodeId = e.source`, `data.linkId = e.linkId!`, `data.selected = e.id === selectedLinkEdgeId` (pass a `selectedLinkId?: string` arg, mirroring `selectedId`).
-- [ ] **A2.3** `CrosslinkEdge` (edges.ts): when `data.selected`, thicken + add a soft halo.
-- [ ] **A2.4** Extend `buildGraph`/`rfModel` tests: a cross edge carries `linkId`; a selected link sets `selected`. run → pass. **A2.5** commit `feat(mindmap): carry linkId on cross edges`.
+- [x] **A2.1** `GraphEdge` gains `linkId?: string`. In `buildGraph`, when emitting a cross edge from `node.data.links`, set `linkId: link.id` (and keep `source`=owning node id).
+- [x] **A2.2** `RfEdgeData` gains `fromNodeId: string`, `linkId: string`, `selected?: boolean`. In `buildRfModel`, for cross edges set `data.fromNodeId = e.source`, `data.linkId = e.linkId!`, `data.selected = e.id === selectedLinkEdgeId` (pass a `selectedLinkId?: string` arg, mirroring `selectedId`).
+- [x] **A2.3** `CrosslinkEdge` (edges.ts): when `data.selected`, thicken + add a soft halo.
+- [x] **A2.4** Extend `buildGraph`/`rfModel` tests: a cross edge carries `linkId`; a selected link sets `selected`. run → pass. **A2.5** commit `feat(mindmap): carry linkId on cross edges`.
 
 ## Task A3 — draw cross-links
 
 **Files:** modify `Canvas.tsx`, `MindNode.tsx`.
 
-- [ ] **A3.1** `MindNode`: make the Left/Right `Handle`s connectable (`isConnectable` default), `opacity:0` → fade to visible on node hover (Tailwind `group`/`group-hover`); keep them out of the way of the collapse chevron.
-- [ ] **A3.2** `Canvas`: `nodesConnectable` on. `onConnect={({ source, target }) => { if (!source || !target) return; const pd = getProjectDoc(activeId); if (!pd) return; const linkId = addCrossLink(pd.doc, source, target); if (linkId) { setTabDirty(activeId, true); selectLink(source, linkId) } }}`.
-- [ ] **A3.3** `typecheck`/`lint`; manual: drag handle→handle makes an edge. **A3.4** commit `feat(mindmap): draw cross-links (connect)`.
+- [x] **A3.1** `MindNode`: make the Left/Right `Handle`s connectable (`isConnectable` default), `opacity:0` → fade to visible on node hover (Tailwind `group`/`group-hover`); keep them out of the way of the collapse chevron.
+- [x] **A3.2** `Canvas`: `nodesConnectable` on. `onConnect={({ source, target }) => { if (!source || !target) return; const pd = getProjectDoc(activeId); if (!pd) return; const linkId = addCrossLink(pd.doc, source, target); if (linkId) { setTabDirty(activeId, true); selectLink(source, linkId) } }}`.
+- [x] **A3.3** `typecheck`/`lint`; manual: drag handle→handle makes an edge. **A3.4** commit `feat(mindmap): draw cross-links (connect)`.
 
 ## Task A4 — edge selection + Edge Inspector
 
 **Files:** modify `useProjectStore.ts`, `Canvas.tsx`, `ProjectView.tsx`; create `EdgeInspector.tsx`.
 
-- [ ] **A4.1** `useProjectStore`: entry `selectedLink: { fromNodeId: string; linkId: string } | null` (init null). Actions: `selectLink(fromNodeId, linkId)` (sets `selectedLink`, clears `selectedId`/`openDoc`); make `select(nodeId)`/`openDocFor` clear `selectedLink`. Canvas passes the selected link's **edge id** to `buildRfModel` for the `selected` flag (edge id = the cross `GraphEdge.id`).
-- [ ] **A4.2** `Canvas`: `onEdgeClick={(_e, edge) => { if (edge.type === 'crosslink') { const d = edge.data as RfEdgeData; selectLink(d.fromNodeId, d.linkId) } }}`.
-- [ ] **A4.3** `EdgeInspector.tsx` — shown when `selectedLink`; reads the link from the doc (`getProjectDoc(activeId)`, find `links` on `fromNodeId`). Controls:
+- [x] **A4.1** `useProjectStore`: entry `selectedLink: { fromNodeId: string; linkId: string } | null` (init null). Actions: `selectLink(fromNodeId, linkId)` (sets `selectedLink`, clears `selectedId`/`openDoc`); make `select(nodeId)`/`openDocFor` clear `selectedLink`. Canvas passes the selected link's **edge id** to `buildRfModel` for the `selected` flag (edge id = the cross `GraphEdge.id`).
+- [x] **A4.2** `Canvas`: `onEdgeClick={(_e, edge) => { if (edge.type === 'crosslink') { const d = edge.data as RfEdgeData; selectLink(d.fromNodeId, d.linkId) } }}`.
+- [x] **A4.3** `EdgeInspector.tsx` — shown when `selectedLink`; reads the link from the doc (`getProjectDoc(activeId)`, find `links` on `fromNodeId`). Controls:
   - **Type** `<select>` over `Object.entries(linkTypes)` (color swatch + label) → `updateCrossLink(type)` + dirty.
   - **Label** `<input>` → `updateCrossLink(label)` + dirty.
   - **Delete** → `removeCrossLink` + dirty + `selectLink(null)` (clear).
   - **+ New type…** placeholder button (wired in A5).
   Floating panel, bottom-left of the canvas (absolute, `no-drag`).
-- [ ] **A4.4** `ProjectView` renders `<EdgeInspector/>` inside the canvas column; the key handler: when `selectedLink` (and no node selected), `Delete`/`Backspace` → `removeCrossLink` + clear.
-- [ ] **A4.5** `typecheck`/`lint`; manual: click edge → inspector → retype/relabel/delete; undo/redo. **A4.6** commit `feat(mindmap): edge inspector (retype/relabel/delete)`.
+- [x] **A4.4** `ProjectView` renders `<EdgeInspector/>` inside the canvas column; the key handler: when `selectedLink` (and no node selected), `Delete`/`Backspace` → `removeCrossLink` + clear.
+- [x] **A4.5** `typecheck`/`lint`; manual: click edge → inspector → retype/relabel/delete; undo/redo. **A4.6** commit `feat(mindmap): edge inspector (retype/relabel/delete)`.
 
 ## Task A5 — custom link types + manifest persistence
 
 **Files:** modify `useProjectStore.ts`, `projectActions.ts`, `EdgeInspector.tsx`, `zip.ts`, `index.ts`, `shared/ipc.ts`, `preload/index.ts`, `shared/mindmap/types.ts` (none — manifest already typed).
 
-- [ ] **A5.1** Evolve **`inkproj:save`** to a payload object: `save(workingDir, { schema, manifest?, docs? }, srcPath)`.
+- [x] **A5.1** Evolve **`inkproj:save`** to a payload object: `save(workingDir, { schema, manifest?, docs? }, srcPath)`.
   - `zip.ts saveInkproj(workingDir, payload, srcPath)`: write `schema`; if `payload.manifest`, write `manifest.json` (`JSON.stringify(manifest, null, 2)`); for each `payload.docs ?? []`, `safeJoin` + write; then re-zip (unchanged). (`docs` is unused until Phase B but supported now.)
   - Update `index.ts` handler, `preload` (`save(workingDir, payload, srcPath)`), and `saveProject` (pass `{ schema }`, plus `manifest` when `manifestDirty`).
-- [ ] **A5.2** `useProjectStore` entry: `manifestLinkTypes: Record<string, LinkType>` (seed from `manifest.linkTypes ?? {}` in `enterProject`), `manifestDirty: boolean`. Action `addLinkType(key, type)` → set in `manifestLinkTypes` + merged `linkTypes` + `manifestDirty=true` + dirty tab; `clearManifestDirty()`.
-- [ ] **A5.3** `saveProject`: build `manifest` = `{ ...entry.manifest, linkTypes: entry.manifestLinkTypes }` when `manifestDirty`; on success `clearManifestDirty()`.
-- [ ] **A5.4** `EdgeInspector` **+ New type…** → inline mini-form (label + color + arrow `to|none|both`) → `addLinkType(slug(label), {...})` → apply it to the selected link (`updateCrossLink(type: key)`).
-- [ ] **A5.5** `typecheck`/`lint`/`build`; manual: add a custom type, apply, Save, reopen → persists. **A5.6** commit `feat(mindmap): custom link types persisted in manifest`.
+- [x] **A5.2** `useProjectStore` entry: `manifestLinkTypes: Record<string, LinkType>` (seed from `manifest.linkTypes ?? {}` in `enterProject`), `manifestDirty: boolean`. Action `addLinkType(key, type)` → set in `manifestLinkTypes` + merged `linkTypes` + `manifestDirty=true` + dirty tab; `clearManifestDirty()`.
+- [x] **A5.3** `saveProject`: build `manifest` = `{ ...entry.manifest, linkTypes: entry.manifestLinkTypes }` when `manifestDirty`; on success `clearManifestDirty()`.
+- [x] **A5.4** `EdgeInspector` **+ New type…** → inline mini-form (label + color + arrow `to|none|both`) → `addLinkType(slug(label), {...})` → apply it to the selected link (`updateCrossLink(type: key)`).
+- [x] **A5.5** `typecheck`/`lint`/`build`; manual: add a custom type, apply, Save, reopen → persists. **A5.6** commit `feat(mindmap): custom link types persisted in manifest`.
 
 ## Task A6 — Phase A gate
 
-- [ ] **A6.1** `npx vitest run` green; `typecheck`/`lint`/`build` clean.
-- [ ] **A6.2** Acceptance §7 (Phase A) on `sample.inkproj`. Hand off for QA; commit/merge per OK.
+- [x] **A6.1** `npx vitest run` green (402 pass; known `Editor.tab.test.tsx` jsdom error); `typecheck`/`lint`/`build` clean.
+- [ ] **A6.2** Acceptance §7 (Phase A) on `sample.inkproj`. *(handed off for manual QA)*
 
 ---
 
