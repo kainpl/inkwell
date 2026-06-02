@@ -2,7 +2,12 @@ import { mkdtemp, mkdir, writeFile, readFile, rm, realpath, rename, readdir } fr
 import { tmpdir } from 'node:os'
 import { join, dirname, resolve, relative, sep } from 'node:path'
 import JSZip from 'jszip'
-import type { DocRef, InkprojManifest, OpenedInkproj } from '../../shared/mindmap/types'
+import type {
+  DocRef,
+  InkprojManifest,
+  InkprojSavePayload,
+  OpenedInkproj
+} from '../../shared/mindmap/types'
 
 const DEFAULT_BASE = join(tmpdir(), 'inkwell-inkproj')
 
@@ -97,18 +102,39 @@ async function* walkFiles(dir: string, base = dir): AsyncGenerator<{ abs: string
 }
 
 /**
- * Write the new schema into the working dir, re-zip it, and atomically replace
- * the source `.inkproj`. `workingDir` must be known and `srcPath` must match the
- * one this project was opened from.
+ * Write the bundle's dirty parts (schema, optional manifest, edited docs) into the
+ * working dir, re-zip it, and atomically replace the source `.inkproj`. `workingDir`
+ * must be known and `srcPath` must match the one this project was opened from. Every
+ * write target is path-validated to stay inside the working dir.
  */
-export async function saveInkproj(workingDir: string, schemaText: string, srcPath: string): Promise<void> {
+export async function saveInkproj(
+  workingDir: string,
+  payload: InkprojSavePayload,
+  srcPath: string
+): Promise<void> {
   if (PROJECTS.get(workingDir) !== srcPath) throw new Error('unknown project or path mismatch')
-  const manifest = JSON.parse(
-    await readFile(join(workingDir, 'manifest.json'), 'utf8')
-  ) as InkprojManifest
+  const manifest =
+    payload.manifest ??
+    (JSON.parse(await readFile(join(workingDir, 'manifest.json'), 'utf8')) as InkprojManifest)
+
   const schemaDest = await safeJoin(workingDir, manifest.schema || 'schema.mind-map')
   if (!schemaDest) throw new Error('unsafe schema path')
-  await writeFile(schemaDest, schemaText, 'utf8')
+  await writeFile(schemaDest, payload.schema, 'utf8')
+
+  if (payload.manifest) {
+    await writeFile(
+      join(workingDir, 'manifest.json'),
+      JSON.stringify(payload.manifest, null, 2),
+      'utf8'
+    )
+  }
+
+  for (const d of payload.docs ?? []) {
+    const dest = await safeJoin(workingDir, d.path)
+    if (!dest) throw new Error(`unsafe doc path: ${d.path}`)
+    await mkdir(dirname(dest), { recursive: true })
+    await writeFile(dest, d.content, 'utf8')
+  }
 
   const zip = new JSZip()
   for await (const f of walkFiles(workingDir)) zip.file(f.rel, await readFile(f.abs))

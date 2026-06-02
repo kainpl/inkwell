@@ -19,7 +19,7 @@ import {
 import type { NoteGraph } from '../shared/noteGraph'
 import type { DriveAccount, DriveNode } from '../shared/drive'
 import type { Locale } from '../shared/i18n'
-import type { DocRef, OpenedInkproj } from '../shared/mindmap/types'
+import type { DocRef, InkprojSavePayload, OpenedInkproj } from '../shared/mindmap/types'
 
 const menuChannels = [
   IPC.menuNewFile,
@@ -206,8 +206,8 @@ const api = {
     openDialog: (): Promise<OpenedInkproj | null> => ipcRenderer.invoke(IPC.inkprojOpenDialog),
     readDoc: (workingDir: string, ref: DocRef): Promise<string> =>
       ipcRenderer.invoke(IPC.inkprojReadDoc, workingDir, ref),
-    save: (workingDir: string, schema: string, srcPath: string): Promise<void> =>
-      ipcRenderer.invoke(IPC.inkprojSave, workingDir, schema, srcPath),
+    save: (workingDir: string, payload: InkprojSavePayload, srcPath: string): Promise<void> =>
+      ipcRenderer.invoke(IPC.inkprojSave, workingDir, payload, srcPath),
     close: (workingDir: string): Promise<void> => ipcRenderer.invoke(IPC.inkprojClose, workingDir)
   },
 

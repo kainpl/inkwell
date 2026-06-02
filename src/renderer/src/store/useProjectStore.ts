@@ -12,7 +12,12 @@ interface OpenDoc {
 export interface ProjectEntry {
   workingDir: string
   manifest: InkprojManifest
+  /** Merged registry (built-ins + manifest overrides/customs) used for rendering. */
   linkTypes: Record<string, LinkType>
+  /** The manifest's own link-type overrides/customs (what persists to `manifest.json`). */
+  manifestLinkTypes: Record<string, LinkType>
+  /** Link-type registry changed since last save → write `manifest.json` on Save. */
+  manifestDirty: boolean
   /** Source `.inkproj` path (where Save writes back). */
   srcPath: string
   collapsed: Set<string>
@@ -52,6 +57,10 @@ interface ProjectsState {
   beginEdit: (nodeId: string) => void
   /** Leave inline-rename mode. */
   endEdit: () => void
+  /** Add/override a link type (custom or built-in tweak); marks manifest + tab dirty. */
+  addLinkType: (key: string, type: LinkType) => void
+  /** Clear the manifest-dirty flag (after a successful save). */
+  clearManifestDirty: () => void
 }
 
 /** Immutably update the active tab's entry (no-op if the active tab isn't a project). */
@@ -76,6 +85,8 @@ export const useProjectStore = create<ProjectsState>((set) => ({
           workingDir,
           manifest,
           linkTypes,
+          manifestLinkTypes: manifest.linkTypes ?? {},
+          manifestDirty: false,
           srcPath,
           collapsed,
           selectedId: null,
@@ -143,7 +154,22 @@ export const useProjectStore = create<ProjectsState>((set) => ({
       patchActive(s, (e) => ({ ...e, editingId: nodeId, selectedId: nodeId, selectedLink: null }))
     ),
 
-  endEdit: () => set((s) => patchActive(s, (e) => (e.editingId == null ? e : { ...e, editingId: null })))
+  endEdit: () => set((s) => patchActive(s, (e) => (e.editingId == null ? e : { ...e, editingId: null }))),
+
+  addLinkType: (key, type) => {
+    set((s) =>
+      patchActive(s, (e) => ({
+        ...e,
+        manifestLinkTypes: { ...e.manifestLinkTypes, [key]: type },
+        linkTypes: { ...e.linkTypes, [key]: type },
+        manifestDirty: true
+      }))
+    )
+    useAppStore.getState().setTabDirty(useAppStore.getState().activeId, true)
+  },
+
+  clearManifestDirty: () =>
+    set((s) => patchActive(s, (e) => (e.manifestDirty ? { ...e, manifestDirty: false } : e)))
 }))
 
 /** The active tab's project entry, or null. Subscribes to both stores so it

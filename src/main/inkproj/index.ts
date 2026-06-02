@@ -1,7 +1,7 @@
 import { app, dialog, ipcMain, BrowserWindow } from 'electron'
 import { join } from 'node:path'
 import { IPC } from '../../shared/ipc'
-import type { DocRef, OpenedInkproj } from '../../shared/mindmap/types'
+import type { DocRef, InkprojSavePayload, OpenedInkproj } from '../../shared/mindmap/types'
 import { openInkproj, readDocFile, saveInkproj, cleanupInkproj } from './zip'
 
 /** IPC for `.inkproj` mind-map/schema project files (open / read doc / close). */
@@ -25,8 +25,10 @@ export function registerInkprojIpc(): void {
   ipcMain.handle(IPC.inkprojReadDoc, (_e, workingDir: string, ref: DocRef) =>
     readDocFile(workingDir, ref)
   )
-  ipcMain.handle(IPC.inkprojSave, (_e, workingDir: string, schemaText: string, srcPath: string) =>
-    saveInkproj(workingDir, schemaText, srcPath)
+  ipcMain.handle(
+    IPC.inkprojSave,
+    (_e, workingDir: string, payload: InkprojSavePayload, srcPath: string) =>
+      saveInkproj(workingDir, payload, srcPath)
   )
   ipcMain.handle(IPC.inkprojClose, (_e, workingDir: string) => cleanupInkproj(workingDir))
 }

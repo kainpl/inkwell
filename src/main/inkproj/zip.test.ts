@@ -59,18 +59,44 @@ describe('inkproj zip', () => {
   it('saves a new schema back and re-opens it', async () => {
     const opened = await openInkproj(await makeFixture())
     dirs.push(opened.workingDir)
-    await saveInkproj(opened.workingDir, '# T2\n\n- Zed <!-- mindmap {"id":"z"} -->\n', opened.srcPath)
+    await saveInkproj(
+      opened.workingDir,
+      { schema: '# T2\n\n- Zed <!-- mindmap {"id":"z"} -->\n' },
+      opened.srcPath
+    )
     const reopened = await openInkproj(opened.srcPath)
     dirs.push(reopened.workingDir)
     expect(reopened.schema).toContain('# T2')
     expect(reopened.schema).toContain('Zed')
   })
 
+  it('saves manifest + edited docs, and rejects a path-traversal doc write', async () => {
+    const opened = await openInkproj(await makeFixture())
+    dirs.push(opened.workingDir)
+    await saveInkproj(
+      opened.workingDir,
+      {
+        schema: opened.schema,
+        manifest: { ...opened.manifest, linkTypes: { mine: { label: 'mine', color: '#abc' } } },
+        docs: [{ path: 'docs/x.md', content: '# Edited\n' }]
+      },
+      opened.srcPath
+    )
+    const reopened = await openInkproj(opened.srcPath)
+    dirs.push(reopened.workingDir)
+    expect(reopened.manifest.linkTypes?.mine?.label).toBe('mine')
+    expect(await readDocFile(reopened.workingDir, { path: 'docs/x.md' })).toContain('# Edited')
+
+    await expect(
+      saveInkproj(reopened.workingDir, { schema: '# x\n', docs: [{ path: '../evil.md', content: 'x' }] }, reopened.srcPath)
+    ).rejects.toThrow(/unsafe doc path/)
+  })
+
   it('rejects save with a mismatched srcPath', async () => {
     const opened = await openInkproj(await makeFixture())
     dirs.push(opened.workingDir)
     await expect(
-      saveInkproj(opened.workingDir, '# x\n', join(tmpdir(), 'other.inkproj'))
+      saveInkproj(opened.workingDir, { schema: '# x\n' }, join(tmpdir(), 'other.inkproj'))
     ).rejects.toThrow(/path mismatch|unknown project/)
   })
 })

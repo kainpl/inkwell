@@ -2,7 +2,7 @@ import type { Doc as YDoc } from 'yjs'
 import { useAppStore } from '@renderer/store/useAppStore'
 import { useProjectStore } from '@renderer/store/useProjectStore'
 import { markdownToOutline, outlineToMarkdown } from '@shared/mindmap/mindMapMarkdown'
-import type { OpenedInkproj } from '@shared/mindmap/types'
+import type { InkprojSavePayload, OpenedInkproj } from '@shared/mindmap/types'
 import { createProjectDoc, destroyProjectDoc, getProjectDoc } from './yjsRegistry'
 import { nodesOf, yjsToOutline } from './yjsModel'
 import { mergeLinkTypes } from './linkTypes'
@@ -44,14 +44,18 @@ export async function openProjectFromPath(path: string): Promise<void> {
   enterProject(await window.api.inkproj.open(path))
 }
 
-/** Serialize the project's Yjs doc back to `.inkproj` and clear its dirty flag. */
+/** Serialize the project (schema + dirty manifest) back to `.inkproj` and clear dirty. */
 export async function saveProject(tabId: string): Promise<void> {
   const entry = useProjectStore.getState().byTab[tabId]
   const pd = getProjectDoc(tabId)
   if (!entry || !pd) return
   const title = (pd.doc.getMap('meta').get('title') as string) ?? ''
-  const schema = outlineToMarkdown(yjsToOutline(pd.doc), title)
-  await window.api.inkproj.save(entry.workingDir, schema, entry.srcPath)
+  const payload: InkprojSavePayload = { schema: outlineToMarkdown(yjsToOutline(pd.doc), title) }
+  if (entry.manifestDirty) {
+    payload.manifest = { ...entry.manifest, linkTypes: entry.manifestLinkTypes }
+  }
+  await window.api.inkproj.save(entry.workingDir, payload, entry.srcPath)
+  useProjectStore.getState().clearManifestDirty()
   useAppStore.getState().setTabDirty(tabId, false)
 }
 

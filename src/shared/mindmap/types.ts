@@ -89,6 +89,15 @@ export interface InkprojManifest {
   linkTypes?: Record<string, LinkType>
 }
 
+/** Payload for an atomic bundle save: the schema text, plus (when changed) the
+ *  manifest and any edited docs. Main writes each, then re-zips the working dir. */
+export interface InkprojSavePayload {
+  schema: string
+  manifest?: InkprojManifest
+  /** Bundle-relative path → new content for edited/created docs. */
+  docs?: { path: string; content: string }[]
+}
+
 /** Result of opening a `.inkproj`: the extracted working dir + parsed entries. */
 export interface OpenedInkproj {
   workingDir: string
