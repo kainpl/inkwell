@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import * as Y from 'yjs'
-import { outlineToYjs, yjsToOutline } from './yjsModel'
-import { addChild, addSibling, rename, remove, reparent } from './treeOps'
+import { outlineToYjs, yjsToOutline, nodesOf } from './yjsModel'
+import { addChild, addSibling, rename, remove, reparent, reorder } from './treeOps'
 import { markdownToOutline } from '@shared/mindmap/mindMapMarkdown'
 import type { MarkdownNode } from '@shared/mindmap/types'
 
@@ -51,6 +51,17 @@ describe('tree edit ops', () => {
     expect(names).toEqual(['B'])
     const b = outline[0].children?.find((c) => c.data?.id === 'b')
     expect(b?.data?.links ?? []).toEqual([]) // dangling link stripped
+  })
+
+  it('reorder repositions a node among its siblings (orders normalize)', () => {
+    const doc = seed(
+      '# R\n\n- A <!-- mindmap {"id":"a"} -->\n- B <!-- mindmap {"id":"b"} -->\n- C <!-- mindmap {"id":"c"} -->\n'
+    )
+    const parent = nodesOf(doc).get('a')?.get('parentId') as string
+    expect(reorder(doc, 'c', parent, 0)).toBe(true)
+    expect(childNames(doc, parent)).toEqual(['C', 'A', 'B'])
+    reorder(doc, 'c', parent, 2)
+    expect(childNames(doc, parent)).toEqual(['A', 'B', 'C'])
   })
 
   it('reparent moves a node, and rejects a cycle', () => {

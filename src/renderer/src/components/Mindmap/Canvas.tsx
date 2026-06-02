@@ -25,7 +25,7 @@ import {
   type RfEdgeData
 } from '@renderer/lib/mindmap/rfModel'
 import { getProjectDoc } from '@renderer/lib/mindmap/yjsRegistry'
-import { reparent } from '@renderer/lib/mindmap/treeOps'
+import { reparent, reorder } from '@renderer/lib/mindmap/treeOps'
 import { addCrossLink } from '@renderer/lib/mindmap/crossLinkOps'
 import type { LinkType } from '@shared/mindmap/types'
 import MindNode from './MindNode'
@@ -34,8 +34,10 @@ import { TreeEdge, CrosslinkEdge } from './edges'
 const nodeTypes: NodeTypes = { mind: MindNode }
 const edgeTypes: EdgeTypes = { tree: TreeEdge, crosslink: CrosslinkEdge }
 const EMPTY_LINK_TYPES: Record<string, LinkType> = {}
-/** Drop within this many px of another node → reparent onto it. */
+/** Drop within this many px of another node → act on it (reparent or reorder). */
 const REPARENT_RADIUS = 140
+/** Dropped this far to the right of the nearest node → become its child (else reorder as a sibling). */
+const CHILD_DX = 100
 
 /** React Flow canvas: renders the schema tree + typed cross-links, with
  *  drag-to-reparent. Nodes are kept in local state (so a drag is visible) and
@@ -98,22 +100,41 @@ export default function Canvas(): JSX.Element {
 
   const onNodeDragStop = useCallback(
     (_e: unknown, node: RfNode) => {
+      const pd = getProjectDoc(activeId)
       // Nearest other node to the drop point (compare against stable layout positions).
-      let best: { id: string; d: number } | null = null
+      let best: { id: string; d: number; pos: { x: number; y: number } } | null = null
       for (const n of model.nodes) {
         if (n.id === node.id) continue
         const d = Math.hypot(n.position.x - node.position.x, n.position.y - node.position.y)
-        if (best == null || d < best.d) best = { id: n.id, d }
+        if (best == null || d < best.d) best = { id: n.id, d, pos: n.position }
       }
-      const pd = getProjectDoc(activeId)
-      if (best && best.d <= REPARENT_RADIUS && pd && reparent(pd.doc, node.id, best.id)) {
-        useAppStore.getState().setTabDirty(activeId, true)
-        // model change → effect re-lays-out under the new parent
-      } else {
+      if (!graph || !pd || !best || best.d > REPARENT_RADIUS) {
         setNodes(model.nodes) // no target → snap back to layout
+        return
       }
+      let ok = false
+      if (node.position.x - best.pos.x > CHILD_DX) {
+        // dropped in the target's child column → become its child
+        ok = reparent(pd.doc, node.id, best.id)
+      } else {
+        // dropped beside the target → reorder among the target's siblings (before/after by Y)
+        const t = graph.nodes.find((g) => g.id === best!.id)
+        if (t) {
+          const sibs = (
+            t.parentId === null
+              ? graph.nodes.filter((n) => n.parentId === null).map((n) => n.id)
+              : graph.childrenOf.get(t.parentId) ?? []
+          ).filter((id) => id !== node.id)
+          const ti = sibs.indexOf(best.id)
+          if (ti >= 0) {
+            ok = reorder(pd.doc, node.id, t.parentId, ti + (node.position.y < best.pos.y ? 0 : 1))
+          }
+        }
+      }
+      if (ok) useAppStore.getState().setTabDirty(activeId, true)
+      else setNodes(model.nodes) // rejected → snap back
     },
-    [model, activeId]
+    [model, graph, activeId]
   )
 
   return (

@@ -81,6 +81,31 @@ export function remove(doc: Y.Doc, nodeId: string): void {
   }, LOCAL_ORIGIN)
 }
 
+/**
+ * Place `nodeId` under `newParentId` at sibling position `index`, renumbering the
+ * siblings' `order` to `0..n`. Rejects a cycle (target is the node or a descendant).
+ */
+export function reorder(
+  doc: Y.Doc,
+  nodeId: string,
+  newParentId: string | null,
+  index: number
+): boolean {
+  const nodes = nodesOf(doc)
+  if (nodeId === newParentId) return false
+  if (newParentId !== null && descendants(nodes, nodeId).has(newParentId)) return false
+  const m = nodes.get(nodeId)
+  if (!m) return false
+  doc.transact(() => {
+    m.set('parentId', newParentId)
+    const sibs = childIds(nodes, newParentId).filter((id) => id !== nodeId)
+    const at = Math.max(0, Math.min(index, sibs.length))
+    sibs.splice(at, 0, nodeId)
+    sibs.forEach((id, i) => nodes.get(id)?.set('order', i))
+  }, LOCAL_ORIGIN)
+  return true
+}
+
 /** Move `nodeId` under `newParentId`. Rejects self/descendant targets (cycle). */
 export function reparent(doc: Y.Doc, nodeId: string, newParentId: string): boolean {
   const nodes = nodesOf(doc)
