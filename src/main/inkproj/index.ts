@@ -2,7 +2,7 @@ import { app, dialog, ipcMain, BrowserWindow } from 'electron'
 import { join } from 'node:path'
 import { IPC } from '../../shared/ipc'
 import type { DocRef, InkprojSavePayload, OpenedInkproj } from '../../shared/mindmap/types'
-import { openInkproj, readDocFile, saveInkproj, cleanupInkproj } from './zip'
+import { openInkproj, readDocFile, saveInkproj, attachDoc, cleanupInkproj } from './zip'
 
 /** IPC for `.inkproj` mind-map/schema project files (open / read doc / close). */
 export function registerInkprojIpc(): void {
@@ -30,5 +30,17 @@ export function registerInkprojIpc(): void {
     (_e, workingDir: string, payload: InkprojSavePayload, srcPath: string) =>
       saveInkproj(workingDir, payload, srcPath)
   )
+  ipcMain.handle(IPC.inkprojAttachDoc, async (e, workingDir: string): Promise<DocRef | null> => {
+    const win = BrowserWindow.fromWebContents(e.sender)
+    const opts = {
+      title: 'Attach Document',
+      properties: ['openFile' as const],
+      filters: [{ name: 'Markdown', extensions: ['md', 'markdown', 'mdx', 'txt'] }]
+    }
+    const res = win ? await dialog.showOpenDialog(win, opts) : await dialog.showOpenDialog(opts)
+    const picked = res.canceled ? undefined : res.filePaths.at(0)
+    return picked ? attachDoc(workingDir, picked) : null
+  })
+
   ipcMain.handle(IPC.inkprojClose, (_e, workingDir: string) => cleanupInkproj(workingDir))
 }

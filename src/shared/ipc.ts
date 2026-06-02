@@ -215,6 +215,7 @@ export const IPC = {
   inkprojOpenDialog: 'inkproj:openDialog',
   inkprojReadDoc: 'inkproj:readDoc',
   inkprojSave: 'inkproj:save',
+  inkprojAttachDoc: 'inkproj:attachDoc',
   inkprojClose: 'inkproj:close',
   // google drive (cloud mode)
   driveListAccounts: 'drive:listAccounts',

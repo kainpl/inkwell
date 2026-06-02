@@ -1,6 +1,17 @@
-import { mkdtemp, mkdir, writeFile, readFile, rm, realpath, rename, readdir } from 'node:fs/promises'
+import {
+  mkdtemp,
+  mkdir,
+  writeFile,
+  readFile,
+  rm,
+  realpath,
+  rename,
+  readdir,
+  copyFile,
+  access
+} from 'node:fs/promises'
 import { tmpdir } from 'node:os'
-import { join, dirname, resolve, relative, sep } from 'node:path'
+import { join, dirname, resolve, relative, sep, basename, extname } from 'node:path'
 import JSZip from 'jszip'
 import type {
   DocRef,
@@ -91,6 +102,35 @@ export async function readDocFile(workingDir: string, ref: DocRef): Promise<stri
   const dest = await safeResolve(workingDir, ref.path)
   if (!dest) throw new Error(`unsafe doc path: ${ref.path}`)
   return readFile(dest, 'utf8')
+}
+
+const exists = (p: string): Promise<boolean> => access(p).then(() => true, () => false)
+
+/** A free `docs/<name>.md` path under `workingDir` (suffixes `-1`, `-2`, … on clash). */
+async function uniqueDocPath(workingDir: string, filename: string): Promise<string> {
+  const ext = extname(filename) || '.md'
+  const stem = basename(filename, extname(filename)) || 'doc'
+  let rel = `docs/${stem}${ext}`
+  for (let i = 1; await exists(join(workingDir, rel)); i++) rel = `docs/${stem}-${i}${ext}`
+  return rel
+}
+
+/**
+ * Copy a user-picked file into the bundle's `docs/` and return its in-bundle ref.
+ * The source path comes ONLY from a main-side file dialog (D7) — never from the
+ * renderer or a manifest. `workingDir` must be a known project dir.
+ */
+export async function attachDoc(
+  workingDir: string,
+  srcPath: string
+): Promise<{ path: string; title: string }> {
+  if (!PROJECTS.has(workingDir)) throw new Error('unknown workingDir')
+  const rel = await uniqueDocPath(workingDir, basename(srcPath))
+  const dest = await safeJoin(workingDir, rel)
+  if (!dest) throw new Error(`unsafe doc path: ${rel}`)
+  await mkdir(dirname(dest), { recursive: true })
+  await copyFile(srcPath, dest)
+  return { path: rel, title: basename(srcPath, extname(srcPath)) }
 }
 
 async function* walkFiles(dir: string, base = dir): AsyncGenerator<{ abs: string; rel: string }> {

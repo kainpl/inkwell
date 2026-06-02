@@ -208,6 +208,8 @@ const api = {
       ipcRenderer.invoke(IPC.inkprojReadDoc, workingDir, ref),
     save: (workingDir: string, payload: InkprojSavePayload, srcPath: string): Promise<void> =>
       ipcRenderer.invoke(IPC.inkprojSave, workingDir, payload, srcPath),
+    attachDoc: (workingDir: string): Promise<DocRef | null> =>
+      ipcRenderer.invoke(IPC.inkprojAttachDoc, workingDir),
     close: (workingDir: string): Promise<void> => ipcRenderer.invoke(IPC.inkprojClose, workingDir)
   },
 

@@ -5,6 +5,8 @@ import { getProjectDoc } from './yjsRegistry'
 import { saveProject } from './projectActions'
 import { addChild, addSibling, remove as removeNode, rename } from './treeOps'
 import { removeCrossLink } from './crossLinkOps'
+import { nodeDocs, pushDocRef, removeDocRef } from './docOps'
+import type { DocRef } from '@shared/mindmap/types'
 
 /** The active project tab's id + Y.Doc, or null if the active tab isn't a project. */
 function active(): { tabId: string; doc: YDoc } | null {
@@ -109,4 +111,56 @@ export function redoActive(): void {
 /** Save the active project tab back to its `.inkproj`. */
 export function saveActive(): Promise<void> {
   return saveProject(useAppStore.getState().activeId)
+}
+
+/** Open a node's doc ref in the doc pane. */
+export function openDocRef(nodeId: string, ref: DocRef): void {
+  useProjectStore.getState().openDocFor(nodeId, ref)
+}
+
+/** Attach an existing `.md` (copied into the bundle via a file dialog) to the selected node. */
+export async function attachDocToSelected(): Promise<void> {
+  const a = active()
+  if (!a) return
+  const sel = selectedId(a.tabId)
+  if (!sel) return
+  const wd = useProjectStore.getState().byTab[a.tabId]?.workingDir
+  if (!wd) return
+  const ref = await window.api.inkproj.attachDoc(wd)
+  if (!ref) return
+  pushDocRef(a.doc, sel, ref)
+  markDirty(a.tabId)
+  useProjectStore.getState().openDocFor(sel, ref)
+}
+
+/** Create a new (buffered) doc under the selected node and open it. */
+export function createDocForSelected(): void {
+  const a = active()
+  if (!a) return
+  const sel = selectedId(a.tabId)
+  if (!sel) return
+  const entry = useProjectStore.getState().byTab[a.tabId]
+  if (!entry) return
+  const used = new Set<string>([
+    ...Object.keys(entry.dirtyDocs),
+    ...nodeDocs(a.doc, sel)
+      .map((r) => r.path)
+      .filter((p): p is string => !!p)
+  ])
+  let path = `docs/${sel}.md`
+  for (let i = 1; used.has(path); i++) path = `docs/${sel}-${i}.md`
+  const ref: DocRef = { path, title: 'Untitled' }
+  useProjectStore.getState().setDocBuffer(path, '# Untitled\n')
+  pushDocRef(a.doc, sel, ref)
+  markDirty(a.tabId)
+  useProjectStore.getState().openDocFor(sel, ref)
+}
+
+/** Detach the doc ref at `index` from a node (the bundled file stays). */
+export function detachDoc(nodeId: string, index: number): void {
+  const a = active()
+  if (!a) return
+  removeDocRef(a.doc, nodeId, index)
+  markDirty(a.tabId)
+  useProjectStore.getState().clearDoc()
 }
