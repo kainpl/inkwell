@@ -16,13 +16,13 @@
 
 **Files:** create `nodeStyleOps.ts` (+ test), `NodeInspector.tsx`; modify `MindNode.tsx`, `ProjectView.tsx`, `projectEditActions.ts`.
 
-- [ ] **C1.1 Failing test** `nodeStyleOps.test.ts` — `setNodeData(doc, 'a', { fillColor:'#abc', shape:'pill' })` merges into the node's data (other keys preserved); `addTag`/`removeTag`, `addIcon`/`removeIcon` mutate the arrays.
-- [ ] **C1.2 Implement** `nodeStyleOps.ts`: `setNodeData(doc, id, patch: Partial<NodeData>)` (read-modify-write `dataJson`, `LOCAL_ORIGIN`); thin `addTag/removeTag/addIcon/removeIcon` helpers over it. run → pass.
-- [ ] **C1.3** `projectEditActions`: `styleNode(patch)`, `toggleTag/addIcon/...` that resolve the active doc + `selectedId`, call the op, `markDirty`.
-- [ ] **C1.4** `MindNode`: render `shape` (rounded/rectangle/pill/ellipse → border-radius class), `icon[]` (prefix spans), `tag[]` (small chips row). Keep fill/text/border (already there).
-- [ ] **C1.5** `NodeInspector.tsx` — shown when `selectedId` (and not editing): fill / text / line color inputs, shape `<select>`, icon add (emoji input) + removable list, tag add (text) + removable chips. Each → `styleNode`/helpers + dirty.
-- [ ] **C1.6** `ProjectView`: render `<NodeInspector/>` in the canvas column (next to `EdgeInspector`; only one shows at a time).
-- [ ] **C1.7** `typecheck`/`lint`. **C1.8** commit `feat(mindmap): node styling (color/shape/icons/tags)`.
+- [x] **C1.1 Failing test** `nodeStyleOps.test.ts` — `setNodeData(doc, 'a', { fillColor:'#abc', shape:'pill' })` merges into the node's data (other keys preserved); `addTag`/`removeTag`, `addIcon`/`removeIcon` mutate the arrays.
+- [x] **C1.2 Implement** `nodeStyleOps.ts`: `setNodeData(doc, id, patch: Partial<NodeData>)` (read-modify-write `dataJson`, `LOCAL_ORIGIN`); thin `addTag/removeTag/addIcon/removeIcon` helpers over it. run → pass.
+- [x] **C1.3** ~~`projectEditActions` wrappers~~ — folded: `NodeInspector` calls the ops directly via `getProjectDoc` + `setTabDirty` (same pattern as `EdgeInspector`).
+- [x] **C1.4** `MindNode`: renders `shape` (rounded/rectangle/pill/ellipse → border-radius class), `icon[]` (prefix spans), `tag[]` (chips row). Keeps fill/text/border.
+- [x] **C1.5** `NodeInspector.tsx` — shown when `selectedId` (and not editing): fill / text / line color inputs, shape `<select>`, icon add + removable list, tag add + removable chips. Each → op + dirty.
+- [x] **C1.6** `ProjectView`: renders `<NodeInspector/>` in the canvas column (next to `EdgeInspector`; only one shows at a time).
+- [x] **C1.7** `typecheck`/`lint` green (vitest 406). **C1.8** commit `feat(mindmap): node styling (color/shape/icons/tags)` (`fd3b956`).
 
 ---
 
@@ -32,12 +32,12 @@
 
 **Files:** modify `anchors.ts` (+ test) — add `listAnchors`; modify `DocPane.tsx` (expose the live view), `DocBar.tsx` (Anchor + Link-anchor actions); `docOps.ts` (`setDocAnchor`).
 
-- [ ] **C2.1 Failing test** `anchors.test.ts` — `listAnchors('## H {#sec}\n\ntext ^b1\n')` → `[{id:'sec', line:0, kind:'heading'}, {id:'b1', line:2, kind:'block'}]`.
-- [ ] **C2.2 Implement** `listAnchors(text)` in `anchors.ts` (scan lines for `{#id}` and trailing `^id`). run → pass.
-- [ ] **C2.3** `DocPane`: keep the `EditorView` reachable (store the live view in a ref exposed via a small module-level registry keyed by tab, or lift an `insertAnchorAtCaret(view)` helper). Add `insertAnchorAtCaret`: if the caret line is a heading → append ` {#id}`; else append ` ^id` (id via `genId`-style short id). Buffers (dirty) via the existing updateListener.
-- [ ] **C2.4** `DocBar`: **Anchor** button (caret-insert, enabled when a doc is open & internal) and **Link anchor ▾** (a menu of `listAnchors(currentText)` → `setDocAnchor(nodeId, docIndex, '#id')` so the node ref points there).
-- [ ] **C2.5** `docOps.ts`: `setDocAnchor(doc, nodeId, index, anchor)` (patch `data.docs[index].anchor`, Yjs transact).
-- [ ] **C2.6** `typecheck`/`lint`. **C2.7** commit `feat(mindmap): anchor insert + node→anchor linking`.
+- [x] **C2.1 Failing test** `anchors.test.ts` — `listAnchors('## H {#sec}\n\ntext ^b1\n')` → `[{id:'sec', line:0, kind:'heading'}, {id:'b1', line:2, kind:'block'}]`.
+- [x] **C2.2 Implement** `listAnchors(text)` in `anchors.ts` (scans for heading `{#id}` and trailing `^id`). run → pass.
+- [x] **C2.3** `docView.ts` registry holds the live `EditorView`; `insertAnchorAtCaret` appends ` {#id}` on a heading line, else ` ^id`; buffered via the update listener. `DocPane` registers/clears the view.
+- [x] **C2.4** `DocBar`: ⚓ insert-anchor button + a Link-anchor `<select>` (lists `listAnchors(view text)` → `linkOpenDocAnchor('#id')`, re-opens to scroll), shown for an open internal doc.
+- [x] **C2.5** `docOps.ts`: `setDocAnchor(doc, nodeId, index, anchor?)` (patch `data.docs[index].anchor`, Yjs transact; empty clears).
+- [x] **C2.6** `typecheck`/`lint` green (vitest 408). **C2.7** commit `feat(mindmap): anchor insert + node→anchor linking` (`69226c1`).
 
 ---
 
@@ -47,11 +47,11 @@
 
 **Files:** modify `treeOps.ts` (+ test) — add `reorder`; modify `Canvas.tsx` (drop heuristic).
 
-- [ ] **C3.1 Failing test** `treeOps.test.ts` — `reorder(doc, 'c', parent, 0)` puts C first among its siblings; `reorder` to a later index works; orders normalize to `0..n`.
-- [ ] **C3.2 Implement** `reorder(doc, nodeId, newParentId, index)`: set `parentId`, rebuild the sibling id list with `nodeId` inserted at `index`, reassign `order = 0..n` (cycle-guarded like `reparent`). run → pass.
-- [ ] **C3.3** `Canvas onNodeDragStop`: find nearest node `t` within radius. If drop X clearly right of `t` (child zone, `dx > NODE_W*0.5`) → `reparent` (existing). Else → sibling move: `reorder(node, parentOf(t), indexOf(t in siblings) + (dropY < t.y ? 0 : 1))`. Snap back if no target.
-- [ ] **C3.4** (light) a drop indicator line between siblings via `onNodeDrag` (optional; skip if fiddly — note it).
-- [ ] **C3.5** `typecheck`/`lint`. **C3.6** commit `feat(mindmap): sibling reordering by drag`.
+- [x] **C3.1 Failing test** `treeOps.test.ts` — `reorder(doc, 'c', parent, 0)` puts C first among its siblings; `reorder` to a later index works; orders normalize to `0..n`.
+- [x] **C3.2 Implement** `reorder(doc, nodeId, newParentId, index)`: set `parentId`, rebuild the sibling id list with `nodeId` inserted at `index`, reassign `order = 0..n` (cycle-guarded). run → pass.
+- [x] **C3.3** `Canvas onNodeDragStop`: nearest node `t` within radius; drop X right of `t` (`dx > CHILD_DX=100`, half the 200px level gap) → `reparent`; else sibling `reorder` (before/after by drop Y). Snap back if no target/rejected.
+- [~] **C3.4** drop-indicator line — **skipped** (optional polish; reorder works on drop without a live ghost).
+- [x] **C3.5** `typecheck`/`lint` green (vitest 409). **C3.6** commit `feat(mindmap): sibling reordering by drag` (`92eaade`).
 
 ---
 
@@ -61,21 +61,21 @@
 
 **Files:** modify `zip.ts` (+ test) — `readExternalPicked`, `internalizePicked`; `index.ts` (dialogs); `shared/ipc.ts`, `preload`; `useProjectStore.ts` (`externalDocs` cache); `DocPane.tsx`, `DocBar.tsx`, `docOps.ts`.
 
-- [ ] **C4.1** Main: `inkproj:attachExternal(workingDir)` → dialog; returns `{ ref:{external:true, src, title}, content }` (reads the just-picked file — a valid user grant). `inkproj:openExternal(workingDir)` → dialog; returns `{ src, content }`. `inkproj:internalize(workingDir)` → dialog; copies into `docs/` (reuse `attachDoc`'s copy); returns the internal `DocRef`. All path-validated; no stored-`src` reads. zip.test: internalize copies + returns an in-bundle path.
-- [ ] **C4.2** `useProjectStore`: `externalDocs: Record<string,string>` (src→content, transient) + `setExternalDoc(src, content)`; cleared on tab close (it's per-entry).
-- [ ] **C4.3** `docOps`/`projectEditActions`: `attachExternalToSelected` (push external ref + cache content + open), `internalizeOpenDoc` (replace the ref with the returned internal ref + dirty).
-- [ ] **C4.4** `DocPane`: for an `external` ref, render the cached content (`externalDocs[src]`) read-only; if absent, show "external — Open to load".
-- [ ] **C4.5** `DocBar`: **Attach external…**; when the open ref is external → **Open** (re-grant) + **Internalize**.
-- [ ] **C4.6** `typecheck`/`lint`/`build`. **C4.7** commit `feat(mindmap): external docs (attach/open/internalize, D7)`.
+- [x] **C4.1** Main: `inkproj:pickExternal` → dialog; returns `{ src, content, title }` (reads ONLY the just-picked file — serves both attach-external and re-open). `inkproj:internalize(workingDir)` → dialog; copies into `docs/` via `attachDoc`; returns the internal `DocRef`. No stored-`src` reads. zip.test covers the `attachDoc` copy-in.
+- [x] **C4.2** `useProjectStore`: `externalDocs: Record<string,string>` (src→content, transient) + `setExternalDoc`; lives on the entry → gone on tab close.
+- [x] **C4.3** `docOps.replaceDocRef`; `projectEditActions` `attachExternalToSelected` / `openExternalDoc` (re-grant) / `internalizeOpenDoc` (swap ref + dirty).
+- [x] **C4.4** `DocPane`: external ref → cached content (`externalDocs[src]`) read-only; absent → "external — use Open to load".
+- [x] **C4.5** `DocBar`: **Ext…** (attach external); when the open ref is external → **Open** (re-grant) + **Internalize**.
+- [x] **C4.6** `typecheck`/`lint`/`build` green (vitest 410). **C4.7** commit `feat(mindmap): external docs (attach/open/internalize, D7)` (`5a571cb`).
 
 ---
 
 # Phase C5 — combined gate + QA
 
-- [ ] **C5.1** `npx vitest run` green (known `Editor.tab.test.tsx` jsdom error remains); `typecheck`/`lint`/`build` clean.
-- [ ] **C5.2** One big manual QA on `sample.inkproj` across all four: styling round-trips; anchors insert + link + scroll; reorder; external attach/open/internalize; Save persists; file editing untouched.
-- [ ] **C5.3** Update `docs/mindmap/README.md` → M2c shipped (per QA OK).
-- [ ] **C5.4** Hand off for the one combined QA; commit/merge per the user's OK.
+- [x] **C5.1** `npx vitest run` green (410 pass; known `Editor.tab.test.tsx` jsdom error remains); `typecheck`/`lint`/`build` clean.
+- [ ] **C5.2** One big manual QA on `sample.inkproj` across all four. *(handed off)*
+- [x] **C5.3** Update `docs/mindmap/README.md` → M2c code-complete (pending QA).
+- [ ] **C5.4** Hand off for the one combined QA; commit/merge per the user's OK. *(handed off)*
 
 ## Self-review
 - **Additive / interop (D1):** styling + anchors live in `data`/doc text; external refs in `data.docs`; custom nothing-new in the ZIP → their reader still round-trips. ✓
