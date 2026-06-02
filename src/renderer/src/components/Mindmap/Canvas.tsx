@@ -6,6 +6,7 @@ import {
   MiniMap,
   applyNodeChanges,
   applyEdgeChanges,
+  type Connection,
   type EdgeTypes,
   type NodeTypes,
   type NodeChange,
@@ -19,6 +20,7 @@ import { computeLayout, type Pos } from '@renderer/lib/mindmap/layout'
 import { buildRfModel, type RfNode, type RfEdge, type RfNodeData } from '@renderer/lib/mindmap/rfModel'
 import { getProjectDoc } from '@renderer/lib/mindmap/yjsRegistry'
 import { reparent } from '@renderer/lib/mindmap/treeOps'
+import { addCrossLink } from '@renderer/lib/mindmap/crossLinkOps'
 import type { LinkType } from '@shared/mindmap/types'
 import MindNode from './MindNode'
 import { TreeEdge, CrosslinkEdge } from './edges'
@@ -36,6 +38,7 @@ export default function Canvas(): JSX.Element {
   const project = useActiveProject()
   const activeId = useAppStore((s) => s.activeId)
   const openDocFor = useProjectStore((s) => s.openDocFor)
+  const selectLink = useProjectStore((s) => s.selectLink)
   const graph = useProjectGraph(activeId)
   const collapsed = project?.collapsed
   const linkTypes = project?.linkTypes ?? EMPTY_LINK_TYPES
@@ -72,6 +75,20 @@ export default function Canvas(): JSX.Element {
     []
   )
 
+  const onConnect = useCallback(
+    ({ source, target }: Connection) => {
+      if (!source || !target) return
+      const pd = getProjectDoc(activeId)
+      if (!pd) return
+      const linkId = addCrossLink(pd.doc, source, target)
+      if (linkId) {
+        useAppStore.getState().setTabDirty(activeId, true)
+        selectLink(source, linkId)
+      }
+    },
+    [activeId, selectLink]
+  )
+
   const onNodeDragStop = useCallback(
     (_e: unknown, node: RfNode) => {
       // Nearest other node to the drop point (compare against stable layout positions).
@@ -99,10 +116,11 @@ export default function Canvas(): JSX.Element {
       onNodesChange={onNodesChange}
       onEdgesChange={onEdgesChange}
       onNodeDragStop={onNodeDragStop}
+      onConnect={onConnect}
       nodeTypes={nodeTypes}
       edgeTypes={edgeTypes}
       onNodeClick={(_e, node) => openDocFor(node.id, (node.data as RfNodeData).raw.data.docs?.[0])}
-      nodesConnectable={false}
+      nodesConnectable
       deleteKeyCode={null}
       elementsSelectable
       fitView

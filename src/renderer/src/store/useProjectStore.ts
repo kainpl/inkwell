@@ -19,6 +19,8 @@ export interface ProjectEntry {
   selectedId: string | null
   /** Node currently in inline-rename mode (its `MindNode` shows an input). */
   editingId: string | null
+  /** Selected cross-link (mutually exclusive with `selectedId`). */
+  selectedLink: { fromNodeId: string; linkId: string } | null
   openDoc: OpenDoc | null
 }
 
@@ -41,6 +43,8 @@ interface ProjectsState {
   /** Expand a node (remove it from the collapsed set) so its children show. */
   expand: (nodeId: string) => void
   select: (nodeId: string | null) => void
+  /** Select a cross-link (clears node selection); `null` clears the link selection. */
+  selectLink: (fromNodeId: string | null, linkId?: string) => void
   /** Select a node; open its doc if a ref is supplied (else keep the current doc). */
   openDocFor: (nodeId: string, ref: DocRef | undefined) => void
   clearDoc: () => void
@@ -76,6 +80,7 @@ export const useProjectStore = create<ProjectsState>((set) => ({
           collapsed,
           selectedId: null,
           editingId: null,
+          selectedLink: null,
           openDoc: null
         }
       }
@@ -109,19 +114,34 @@ export const useProjectStore = create<ProjectsState>((set) => ({
       })
     ),
 
-  select: (nodeId) => set((s) => patchActive(s, (e) => ({ ...e, selectedId: nodeId }))),
+  select: (nodeId) =>
+    set((s) => patchActive(s, (e) => ({ ...e, selectedId: nodeId, selectedLink: null }))),
+
+  selectLink: (fromNodeId, linkId) =>
+    set((s) =>
+      patchActive(s, (e) => ({
+        ...e,
+        selectedLink: fromNodeId == null || linkId == null ? null : { fromNodeId, linkId },
+        selectedId: null,
+        editingId: null
+      }))
+    ),
 
   openDocFor: (nodeId, ref) =>
     set((s) =>
       patchActive(s, (e) =>
-        ref ? { ...e, openDoc: { nodeId, ref }, selectedId: nodeId } : { ...e, selectedId: nodeId }
+        ref
+          ? { ...e, openDoc: { nodeId, ref }, selectedId: nodeId, selectedLink: null }
+          : { ...e, selectedId: nodeId, selectedLink: null }
       )
     ),
 
   clearDoc: () => set((s) => patchActive(s, (e) => ({ ...e, openDoc: null }))),
 
   beginEdit: (nodeId) =>
-    set((s) => patchActive(s, (e) => ({ ...e, editingId: nodeId, selectedId: nodeId }))),
+    set((s) =>
+      patchActive(s, (e) => ({ ...e, editingId: nodeId, selectedId: nodeId, selectedLink: null }))
+    ),
 
   endEdit: () => set((s) => patchActive(s, (e) => (e.editingId == null ? e : { ...e, editingId: null })))
 }))

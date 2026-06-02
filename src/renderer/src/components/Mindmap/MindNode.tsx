@@ -22,12 +22,16 @@ export default function MindNode({ id, data }: NodeProps): JSX.Element {
   return (
     <div
       className={
-        'rounded-md border border-line bg-paper px-2 py-1 text-[13px] shadow-sm ' +
+        'group rounded-md border border-line bg-paper px-2 py-1 text-[13px] shadow-sm ' +
         (nd.selected ? 'ring-2 ring-accent' : '')
       }
       style={{ background: fill, color: textColor, borderColor }}
     >
-      <Handle type="target" position={Position.Left} style={{ opacity: 0 }} isConnectable={false} />
+      <Handle
+        type="target"
+        position={Position.Left}
+        className="!h-2 !w-2 !border-paper !bg-accent opacity-0 transition-opacity group-hover:opacity-100"
+      />
       <div className="flex items-center gap-1">
         {nd.hasChildren ? (
           <button
@@ -73,7 +77,11 @@ export default function MindNode({ id, data }: NodeProps): JSX.Element {
           </span>
         ) : null}
       </div>
-      <Handle type="source" position={Position.Right} style={{ opacity: 0 }} isConnectable={false} />
+      <Handle
+        type="source"
+        position={Position.Right}
+        className="!h-2 !w-2 !border-paper !bg-accent opacity-0 transition-opacity group-hover:opacity-100"
+      />
     </div>
   )
 }
