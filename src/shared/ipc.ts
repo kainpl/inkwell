@@ -210,6 +210,10 @@ export const IPC = {
   gitBranch: 'git:branch',
   // note graph (wiki-link connections across the workspace)
   noteGraph: 'graph:notes',
+  // inkproj mind-map / schema project files (extract + read; never writes in M1)
+  inkprojOpen: 'inkproj:open',
+  inkprojReadDoc: 'inkproj:readDoc',
+  inkprojClose: 'inkproj:close',
   // google drive (cloud mode)
   driveListAccounts: 'drive:listAccounts',
   driveConnect: 'drive:connect',

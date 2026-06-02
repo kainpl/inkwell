@@ -11,6 +11,8 @@ export default tseslint.config(
       'release/**',
       'dist/**',
       'node_modules/**',
+      // Scratch + reference repos under temp/ (never linted; have their own configs).
+      'temp/**',
       // Plain-JS tool configs (own ecosystems, not worth linting here).
       'tailwind.config.js',
       'postcss.config.js'

@@ -27,6 +27,9 @@ temp/
 docs/assets/
 resources/assets/
 
+# Generated mind-map fixture (rebuild via scripts/make-fixture-inkproj.mjs)
+resources/fixtures/*.inkproj
+
 # Editors / IDEs
 .idea/
 .vscode/

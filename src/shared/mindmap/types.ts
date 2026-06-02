@@ -89,6 +89,13 @@ export interface InkprojManifest {
   linkTypes?: Record<string, LinkType>
 }
 
+/** Result of opening a `.inkproj`: the extracted working dir + parsed entries. */
+export interface OpenedInkproj {
+  workingDir: string
+  manifest: InkprojManifest
+  schema: string
+}
+
 /** Renderer graph model (engine-agnostic — D8; React Flow consumes it). */
 export interface GraphNode {
   id: string

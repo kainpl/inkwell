@@ -19,6 +19,7 @@ import {
 import type { NoteGraph } from '../shared/noteGraph'
 import type { DriveAccount, DriveNode } from '../shared/drive'
 import type { Locale } from '../shared/i18n'
+import type { DocRef, OpenedInkproj } from '../shared/mindmap/types'
 
 const menuChannels = [
   IPC.menuNewFile,
@@ -197,6 +198,14 @@ const api = {
 
   /** Build the wiki-link graph for the workspace. */
   noteGraph: (folder: string): Promise<NoteGraph> => ipcRenderer.invoke(IPC.noteGraph, folder),
+
+  /** Mind-map / schema project files (.inkproj). Read-only in M1. */
+  inkproj: {
+    open: (path: string): Promise<OpenedInkproj> => ipcRenderer.invoke(IPC.inkprojOpen, path),
+    readDoc: (workingDir: string, ref: DocRef): Promise<string> =>
+      ipcRenderer.invoke(IPC.inkprojReadDoc, workingDir, ref),
+    close: (workingDir: string): Promise<void> => ipcRenderer.invoke(IPC.inkprojClose, workingDir)
+  },
 
   /** Google Drive (cloud mode). All calls go through the main-process service. */
   drive: {
