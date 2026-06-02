@@ -17,6 +17,8 @@ export interface ProjectEntry {
   srcPath: string
   collapsed: Set<string>
   selectedId: string | null
+  /** Node currently in inline-rename mode (its `MindNode` shows an input). */
+  editingId: string | null
   openDoc: OpenDoc | null
 }
 
@@ -36,10 +38,16 @@ interface ProjectsState {
   removeProjectForTab: (tabId: string) => void
   // The following mutate the *active* tab's project (active tab id read from useAppStore).
   toggleCollapse: (nodeId: string) => void
+  /** Expand a node (remove it from the collapsed set) so its children show. */
+  expand: (nodeId: string) => void
   select: (nodeId: string | null) => void
   /** Select a node; open its doc if a ref is supplied (else keep the current doc). */
   openDocFor: (nodeId: string, ref: DocRef | undefined) => void
   clearDoc: () => void
+  /** Enter inline-rename mode for a node. */
+  beginEdit: (nodeId: string) => void
+  /** Leave inline-rename mode. */
+  endEdit: () => void
 }
 
 /** Immutably update the active tab's entry (no-op if the active tab isn't a project). */
@@ -60,7 +68,16 @@ export const useProjectStore = create<ProjectsState>((set) => ({
     set((s) => ({
       byTab: {
         ...s.byTab,
-        [tabId]: { workingDir, manifest, linkTypes, srcPath, collapsed, selectedId: null, openDoc: null }
+        [tabId]: {
+          workingDir,
+          manifest,
+          linkTypes,
+          srcPath,
+          collapsed,
+          selectedId: null,
+          editingId: null,
+          openDoc: null
+        }
       }
     })),
 
@@ -82,6 +99,16 @@ export const useProjectStore = create<ProjectsState>((set) => ({
       })
     ),
 
+  expand: (nodeId) =>
+    set((s) =>
+      patchActive(s, (e) => {
+        if (!e.collapsed.has(nodeId)) return e
+        const collapsed = new Set(e.collapsed)
+        collapsed.delete(nodeId)
+        return { ...e, collapsed }
+      })
+    ),
+
   select: (nodeId) => set((s) => patchActive(s, (e) => ({ ...e, selectedId: nodeId }))),
 
   openDocFor: (nodeId, ref) =>
@@ -91,7 +118,12 @@ export const useProjectStore = create<ProjectsState>((set) => ({
       )
     ),
 
-  clearDoc: () => set((s) => patchActive(s, (e) => ({ ...e, openDoc: null })))
+  clearDoc: () => set((s) => patchActive(s, (e) => ({ ...e, openDoc: null }))),
+
+  beginEdit: (nodeId) =>
+    set((s) => patchActive(s, (e) => ({ ...e, editingId: nodeId, selectedId: nodeId }))),
+
+  endEdit: () => set((s) => patchActive(s, (e) => (e.editingId == null ? e : { ...e, editingId: null })))
 }))
 
 /** The active tab's project entry, or null. Subscribes to both stores so it

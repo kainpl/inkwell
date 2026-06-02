@@ -1,10 +1,15 @@
 import { Handle, Position, type NodeProps } from '@xyflow/react'
+import { useAppStore } from '@renderer/store/useAppStore'
 import { useProjectStore } from '@renderer/store/useProjectStore'
+import { commitRename, cancelRename } from '@renderer/lib/mindmap/projectEditActions'
 import type { RfNodeData } from '@renderer/lib/mindmap/rfModel'
 
-/** Custom React Flow node for the schema canvas (read-only in M1). */
+/** Custom React Flow node for the schema canvas (inline-editable in project tabs). */
 export default function MindNode({ id, data }: NodeProps): JSX.Element {
   const toggleCollapse = useProjectStore((s) => s.toggleCollapse)
+  const beginEdit = useProjectStore((s) => s.beginEdit)
+  const activeId = useAppStore((s) => s.activeId)
+  const editing = useProjectStore((s) => s.byTab[activeId]?.editingId === id)
   const nd = data as RfNodeData
   const d = nd.raw.data
   const fill = typeof d.fillColor === 'string' ? d.fillColor : undefined
@@ -37,7 +42,31 @@ export default function MindNode({ id, data }: NodeProps): JSX.Element {
           </button>
         ) : null}
         {d.task ? <span className="shrink-0">{d.taskStatus === 'done' ? '☑' : '☐'}</span> : null}
-        <span className="truncate">{nd.label}</span>
+        {editing ? (
+          <input
+            autoFocus
+            defaultValue={nd.label}
+            onFocus={(e) => e.currentTarget.select()}
+            onPointerDown={(e) => e.stopPropagation()}
+            onKeyDown={(e) => {
+              e.stopPropagation()
+              if (e.key === 'Enter') commitRename(id, e.currentTarget.value.trim())
+              else if (e.key === 'Escape') cancelRename()
+            }}
+            onBlur={(e) => commitRename(id, e.currentTarget.value.trim())}
+            className="min-w-0 flex-1 rounded border border-accent bg-paper px-1 text-[13px] text-ink outline-none"
+          />
+        ) : (
+          <span
+            className="truncate"
+            onDoubleClick={(e) => {
+              e.stopPropagation()
+              beginEdit(id)
+            }}
+          >
+            {nd.label}
+          </span>
+        )}
         {hasDoc ? (
           <span title="Has document" className="shrink-0 text-faint">
             📄

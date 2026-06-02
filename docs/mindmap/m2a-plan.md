@@ -247,12 +247,12 @@ export function reparent(doc: Y.Doc, nodeId: string, newParentId: string): boole
 
 **Files:** create `yjsRegistry.ts`, `useProjectGraph.ts`; modify `useProjectStore.ts`, `useAppStore.ts`, `projectActions.ts`.
 
-- [ ] **4.1** `yjsRegistry.ts` — `Map<tabId, { doc: Y.Doc; undo: Y.UndoManager; srcPath: string }>`; `createProjectDoc(tabId, outline, title, srcPath)` (seeds via `outlineToYjs`, makes a `Y.UndoManager(nodesOf(doc), { trackedOrigins: new Set([LOCAL_ORIGIN]), captureTimeout: 400 })`); `getProjectDoc(tabId)`; `destroyProjectDoc(tabId)` (`doc.destroy()`).
-- [ ] **4.2** `useProjectStore` entry: replace `graph` with `srcPath` (keep `workingDir/manifest/linkTypes/collapsed/selectedId/openDoc`). `setProjectForTab` no longer stores a static graph — it calls `createProjectDoc(...)`.
-- [ ] **4.3** `useAppStore`: add `setTabDirty(id, dirty)` (sets the tab's + mirrors `doc.dirty` when active).
-- [ ] **4.4** `useProjectGraph(tabId)` hook: `useSyncExternalStore` over the tab's `Y.Doc` (`nodes.observeDeep`), returning a memoized `buildGraph(yjsToOutline(doc))`. Returns `null` if no doc.
-- [ ] **4.5** `projectActions`: `enterProject` creates the tab, then `createProjectDoc(tabId, outline, title, srcPath)`, then `setProjectForTab`. `cleanupProjectTab` also `destroyProjectDoc(tabId)`.
-- [ ] **4.6** `typecheck`. **4.7** commit `feat(mindmap): yjs registry + project-graph hook + dirty`.
+- [x] **4.1** `yjsRegistry.ts` — `Map<tabId, { doc: Y.Doc; undo: Y.UndoManager; srcPath: string }>`; `createProjectDoc(tabId, outline, title, srcPath)` (seeds via `outlineToYjs`, makes a `Y.UndoManager(nodesOf(doc), { trackedOrigins: new Set([LOCAL_ORIGIN]), captureTimeout: 400 })`); `getProjectDoc(tabId)`; `destroyProjectDoc(tabId)` (`doc.destroy()`).
+- [x] **4.2** `useProjectStore` entry: replace `graph` with `srcPath` (keep `workingDir/manifest/linkTypes/collapsed/selectedId/openDoc`). `setProjectForTab` no longer stores a static graph — it calls `createProjectDoc(...)`.
+- [x] **4.3** `useAppStore`: add `setTabDirty(id, dirty)` (sets the tab's + mirrors `doc.dirty` when active).
+- [x] **4.4** `useProjectGraph(tabId)` hook: `useSyncExternalStore` over the tab's `Y.Doc` (`nodes.observeDeep`), returning a memoized `buildGraph(yjsToOutline(doc))`. Returns `null` if no doc.
+- [x] **4.5** `projectActions`: `enterProject` creates the tab, then `createProjectDoc(tabId, outline, title, srcPath)`, then `setProjectForTab`. `cleanupProjectTab` also `destroyProjectDoc(tabId)`.
+- [x] **4.6** `typecheck`. **4.7** commit `feat(mindmap): yjs registry + project-graph hook + dirty`. (`752069b`)
 
 ---
 
@@ -260,8 +260,8 @@ export function reparent(doc: Y.Doc, nodeId: string, newParentId: string): boole
 
 **Files:** modify `Canvas.tsx`.
 
-- [ ] **5.1** Canvas: `const graph = useProjectGraph(activeTabId)` instead of `project.graph`; keep `collapsed/selectedId/linkTypes` from `useActiveProject`. (`activeTabId` from `useAppStore`.)
-- [ ] **5.2 Verify** M1 still renders the fixture unchanged (manual) + full unit suite green (no static-graph regressions). **5.3** commit `refactor(mindmap): render canvas from the yjs model`.
+- [x] **5.1** Canvas: `const graph = useProjectGraph(activeTabId)` instead of `project.graph`; keep `collapsed/selectedId/linkTypes` from `useActiveProject`. (`activeTabId` from `useAppStore`.)
+- [x] **5.2 Verify** M1 still renders the fixture unchanged (manual) + full unit suite green (no static-graph regressions). **5.3** commit `refactor(mindmap): render canvas from the yjs model`. (folded into `752069b`)
 
 ---
 
@@ -269,11 +269,11 @@ export function reparent(doc: Y.Doc, nodeId: string, newParentId: string): boole
 
 **Files:** create `EditToolbar.tsx`; modify `MindNode.tsx`, `ProjectView.tsx`, `App.tsx`.
 
-- [ ] **6.1** `EditToolbar` — buttons: Add child / Add sibling (enabled when a node is selected), Delete, Undo, Redo, Save (enabled when dirty). Each calls the matching `treeOps`/registry action on the active doc + selected node; mutating ops call `setTabDirty(tabId, true)`.
-- [ ] **6.2** `MindNode` inline rename: double-click → `contentEditable`; Enter commits `rename(doc, id, text)` + dirty; Esc cancels. New node (empty name) auto-enters edit.
-- [ ] **6.3** `ProjectView` renders `<EditToolbar/>` in its header strip.
-- [ ] **6.4** Keyboard (project tab active, in `App` or a Canvas-level handler): `Tab`=addChild(selected), `Enter`=addSibling, `F2`=rename, `Delete`/`Backspace`=remove, all dirty-marking.
-- [ ] **6.5** `typecheck`/`lint`; manual: add/rename/delete a node on the fixture. **6.6** commit `feat(mindmap): node create/rename/delete UI`.
+- [x] **6.1** `EditToolbar` — buttons: Add child / Add sibling (enabled when a node is selected), Delete, Undo, Redo, Save (enabled when dirty). Each calls the matching `treeOps`/registry action on the active doc + selected node; mutating ops call `setTabDirty(tabId, true)`. (Edit ops centralized in `projectEditActions.ts`, shared with keys/rename.)
+- [x] **6.2** `MindNode` inline rename: double-click → input (instead of `contentEditable`); Enter commits `rename(doc, id, text)` + dirty; Esc cancels; blur commits. New node auto-enters edit (`beginEdit` from create actions).
+- [x] **6.3** `ProjectView` renders `<EditToolbar/>` in its header strip.
+- [x] **6.4** Keyboard (project-tab-scoped window listener in `ProjectView`): `Tab`=addChild(selected), `Enter`=addSibling, `F2`=rename, `Delete`/`Backspace`=remove, all dirty-marking; ignores typing/interactive targets.
+- [x] **6.5** `typecheck`/`lint` green (runtime add/rename/delete verified in Task 10 QA). **6.6** commit `feat(mindmap): node create/rename/delete UI`.
 
 ---
 

@@ -43,6 +43,7 @@ export default function Canvas(): JSX.Element {
       onNodeClick={(_e, node) => openDocFor(node.id, (node.data as RfNodeData).raw.data.docs?.[0])}
       nodesDraggable={false}
       nodesConnectable={false}
+      deleteKeyCode={null}
       elementsSelectable
       fitView
       minZoom={0.2}
