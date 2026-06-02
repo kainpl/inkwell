@@ -41,4 +41,18 @@ describe('inkproj zip', () => {
     dirs.push(workingDir)
     await expect(readDocFile(workingDir, { path: '../../../etc/passwd' })).rejects.toThrow()
   })
+
+  it('rejects an unknown workingDir (not one we extracted)', async () => {
+    await expect(
+      readDocFile(join(tmpdir(), 'nope-not-ours'), { path: 'docs/x.md' })
+    ).rejects.toThrow(/unknown workingDir/)
+  })
+
+  it('refuses external doc refs (must go through a user file picker)', async () => {
+    const { workingDir } = await openInkproj(await makeFixture())
+    dirs.push(workingDir)
+    await expect(
+      readDocFile(workingDir, { external: true, src: join(tmpdir(), 'whatever') })
+    ).rejects.toThrow(/file picker/)
+  })
 })
