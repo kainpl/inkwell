@@ -22,7 +22,9 @@ export default function EditToolbar(): JSX.Element {
   const setFocus = useProjectStore((s) => s.setFocus)
   const toggleQuick = useProjectStore((s) => s.toggleQuick)
   const toggleDocs = useProjectStore((s) => s.toggleDocs)
+  const toggleVersions = useProjectStore((s) => s.toggleVersions)
   const docsOn = project?.docsOpen ?? false
+  const versionsOn = project?.versionsOpen ?? false
   const hasNotes = (project?.manifestInstructions ?? '') !== ''
   const setViewMode = useProjectStore((s) => s.setViewMode)
   const setDirection = useProjectStore((s) => s.setDirection)
@@ -93,6 +95,13 @@ export default function EditToolbar(): JSX.Element {
         title="All project documents + their nodes (and project notes)"
       >
         Docs{hasNotes ? <span className="ml-0.5 text-accent">•</span> : null}
+      </button>
+      <button
+        className={`${BTN} ${versionsOn ? 'text-accent' : ''}`}
+        onClick={toggleVersions}
+        title="Schema version history (snapshots on save)"
+      >
+        History
       </button>
       <button
         className={`${BTN} ${focused ? 'text-accent' : ''}`}

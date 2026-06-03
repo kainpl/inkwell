@@ -14,6 +14,7 @@ import { importAny } from './importFormats'
 import { importMindnode } from './importMindnode'
 import { toOpml, toPlainMarkdown, toFreeMind } from './exportFormats'
 import { withRetry } from './retry'
+import { projectVersionId } from './projectVersionId'
 
 /** Ids whose subtree should start collapsed (`data.expand === false`). */
 function initialCollapsed(doc: YDoc): Set<string> {
@@ -219,6 +220,16 @@ export async function saveProject(tabId: string): Promise<void> {
   useProjectStore.getState().clearDirtyDocs()
   useProjectStore.getState().setSavedNodeCount(nodesOf(pd.doc).size)
   useAppStore.getState().setTabDirty(tabId, false)
+
+  // Snapshot the schema into the local version history (dedup + prune handled by the
+  // store). Reuses the markdown editor's version IPC; untitled (no path) isn't versioned.
+  const vid = projectVersionId(useProjectStore.getState().byTab[tabId]?.srcPath ?? '')
+  if (vid) void window.api.saveVersion(vid, payload.schema)
+}
+
+/** Restore a schema snapshot non-destructively: open it as a new untitled project. */
+export async function restoreSchemaAsUntitled(schema: string): Promise<void> {
+  enterProject(await window.api.inkproj.createUntitled(schema))
 }
 
 /** Tear down a project tab's runtime state, Yjs doc, and extracted working dir. */

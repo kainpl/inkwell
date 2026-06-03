@@ -89,8 +89,9 @@ export function registerInkprojIpc(): void {
   })
 
   // Untitled project: no source file yet; bound to a path on the first save-as.
-  ipcMain.handle(IPC.inkprojCreateUntitled, () =>
-    createUntitledInkproj(DEFAULT_SCHEMA, 'Untitled', base)
+  // An optional schema seeds it (used by version-restore).
+  ipcMain.handle(IPC.inkprojCreateUntitled, (_e, schemaText?: string) =>
+    createUntitledInkproj(schemaText && schemaText.trim() ? schemaText : DEFAULT_SCHEMA, 'Untitled', base)
   )
   ipcMain.handle(
     IPC.inkprojSaveAs,

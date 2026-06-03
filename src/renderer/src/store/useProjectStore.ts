@@ -41,6 +41,8 @@ export interface ProjectEntry {
   quickOpen: boolean
   /** Whether the project docs panel (all docs + referencing nodes) is open. */
   docsOpen: boolean
+  /** Whether the schema version-history panel is open. */
+  versionsOpen: boolean
   /** When set, nodes without this tag are dimmed. */
   highlightTag: string | null
   /** When set, nodes outside this node's focus set (it + ancestors + descendants) are dimmed. */
@@ -108,6 +110,9 @@ interface ProjectsState {
   /** Toggle / set the project docs panel. */
   toggleDocs: () => void
   setDocsOpen: (open: boolean) => void
+  /** Toggle / set the version-history panel. */
+  toggleVersions: () => void
+  setVersionsOpen: (open: boolean) => void
   /** Toggle the highlighted tag (passing the current one clears it). */
   setHighlightTag: (tag: string | null) => void
   /** Set / clear the focused node. */
@@ -161,6 +166,7 @@ export const useProjectStore = create<ProjectsState>((set) => ({
           searchOpen: false,
           quickOpen: false,
           docsOpen: false,
+          versionsOpen: false,
           highlightTag: null,
           focusId: null,
           viewMode: 'map',
@@ -291,6 +297,9 @@ export const useProjectStore = create<ProjectsState>((set) => ({
 
   toggleDocs: () => set((s) => patchActive(s, (e) => ({ ...e, docsOpen: !e.docsOpen }))),
   setDocsOpen: (open) => set((s) => patchActive(s, (e) => ({ ...e, docsOpen: open }))),
+
+  toggleVersions: () => set((s) => patchActive(s, (e) => ({ ...e, versionsOpen: !e.versionsOpen }))),
+  setVersionsOpen: (open) => set((s) => patchActive(s, (e) => ({ ...e, versionsOpen: open }))),
 
   setHighlightTag: (tag) =>
     set((s) => patchActive(s, (e) => ({ ...e, highlightTag: e.highlightTag === tag ? null : tag }))),
