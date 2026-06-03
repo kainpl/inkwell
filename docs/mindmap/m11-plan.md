@@ -58,7 +58,7 @@ the store; commit per green group; one QA.
 ## Phase E — gate + QA
 
 - [x] **E1** `npx vitest run` green (448; +6 across saveGuard / layout); `typecheck`/`lint`/`build` clean.
-- [ ] **E2** QA: autosave (toggle on, edit, watch it save; delete most nodes → autosave skips, explicit Save still works); Table view edits + selects; direction → / ↓ relayouts with correct handles/edges; large map stays smooth. *(handed off)*
+- [x] **E2** QA: autosave (toggle on, edit, watch it save; delete most nodes → autosave skips, explicit Save still works); Table view edits + selects; direction → / ↓ relayouts with correct handles/edges; large map stays smooth. *(accepted; pushed)*
 
 ## Self-review
 - **Additive:** direction + viewMode are store flags; autosave reuses the global toggle; the shrink-guard only blocks *auto*-saves (explicit Save always proceeds). ✓
