@@ -22,6 +22,7 @@ Branch: `feat/mindmap`. Started 2026‑06‑02.
 | [`m15-plan.md`](m15-plan.md) | **Milestone 15** — the rest of backlog §B: line/embedded shapes · task subtree progress rollup · rich-text labels (font size/family + inline markdown) · custom theme palettes · left+right radial layout. **Done / shipped.** |
 | [`m16-plan.md`](m16-plan.md) | **Milestone 16** — the small leftovers: slides projection (§C) · auto-collapse for large maps (§G). ELK auto-layout deferred (heavy dependency). **Done / shipped.** |
 | [`m17-plan.md`](m17-plan.md) | **Milestone 17** — ELK auto-layout: `elkjs` as an opt-in alternative engine (Banded ⟷ ELK toggle; async with a banded fallback). The last backlog item (§G). **Done / shipped.** |
+| [`m18-plan.md`](m18-plan.md) | **Milestone 18** — edit-history (first §F item, local): granular snapshots · schema diff · in-place rollback (Edit-History panel). **Code-complete** (pending QA). |
 | [`m1-spec.md`](m1-spec.md) | **Milestone 1 spec** — the read‑only vertical slice (open `.inkproj` → render schema → click node → open doc). **Shipped.** |
 | [`m1-plan.md`](m1-plan.md) | **Milestone 1 implementation plan** — 14 task‑by‑task steps (TDD). **Done.** |
 | [`m2a-spec.md`](m2a-spec.md) | **Milestone 2a spec** — editing + save with a Yjs model (create/rename/delete/reparent, undo/redo, zip-back). |

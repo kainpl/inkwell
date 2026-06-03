@@ -42,41 +42,41 @@ CRDT history is noted as a future alternative — overkill for single-user.)
 
 **Files:** create `lib/mindmap/projectHistory.ts` (+ maybe test the gate logic); modify `App.tsx` (start it).
 
-- [ ] **A1** `startProjectHistory(delay = 4000, snapshot = …)` — subscribe to `useAppStore`; when the active tab is a **dirty project with a `srcPath`** (→ a `projectVersionId`), debounce → `window.api.saveVersion(projectVersionId(srcPath), schema)` (the store dedups + prunes). Independent of the `autoSave` flag (history records regardless). Mirrors `startProjectAutoSave`.
-- [ ] **A2** `App.tsx` starts/stops it alongside `startProjectAutoSave`.
-- [ ] **A3** `typecheck`/`lint`. Commit `feat(mindmap): granular edit-history snapshots`.
+- [x] **A1** `startProjectHistory(delay = 4000, snapshot = …)` — subscribe to `useAppStore`; when the active tab is a **dirty project with a `srcPath`** (→ a `projectVersionId`), debounce → `window.api.saveVersion(projectVersionId(srcPath), schema)` (the store dedups + prunes). Independent of the `autoSave` flag (history records regardless). Mirrors `startProjectAutoSave`.
+- [x] **A2** `App.tsx` starts/stops it alongside `startProjectAutoSave`.
+- [x] **A3** `typecheck`/`lint`. Commit `feat(mindmap): granular edit-history snapshots`.
 
 ## Phase B — schema diff
 
 **Files:** create `lib/mindmap/diffGraphs.ts` (+ test).
 
-- [ ] **B1** `diffGraphs(prev, next)` → `{ added: NodeRef[]; removed: NodeRef[]; renamed: {id,from,to}[]; moved: NodeRef[] }` where `NodeRef = { id, label }`:
+- [x] **B1** `diffGraphs(prev, next)` → `{ added: NodeRef[]; removed: NodeRef[]; renamed: {id,from,to}[]; moved: NodeRef[] }` where `NodeRef = { id, label }`:
   - build `id → node` maps for both (nodes have stable `data.id` → `GraphNode.id`);
   - **added** = ids in `next` not in `prev`; **removed** = ids in `prev` not in `next`;
   - for ids in both: **renamed** if `label` differs; **moved** if `parentId` differs.
-- [ ] **B2** Tests: add a child, remove one, rename one, reparent one → each lands in the right bucket; identical graphs → all empty.
-- [ ] **B3** `typecheck`/`lint`. Commit `feat(mindmap): schema graph diff`.
+- [x] **B2** Tests: add a child, remove one, rename one, reparent one → each lands in the right bucket; identical graphs → all empty.
+- [x] **B3** `typecheck`/`lint`. Commit `feat(mindmap): schema graph diff`.
 
 ## Phase C — in-place rollback
 
 **Files:** modify `lib/mindmap/yjsModel.ts` or `treeOps.ts` (`replaceOutline`, + test); `projectEditActions.ts` (`rollbackToSchema`).
 
-- [ ] **C1** `replaceOutline(doc, outline, title)` — in one `LOCAL_ORIGIN` transaction: delete every node in `nodesOf(doc)`, then re-seed from `outline` (reusing the `outlineToYjs` seeding), and set `meta.title`. Test: a doc reseeded from outline B yields outline B (round-trip via `yjsToOutline`).
-- [ ] **C2** `projectEditActions.rollbackToSchema(schema)` — `markdownToOutline(schema)` → `replaceOutline(activeDoc, outline, title)` → mark dirty + clear selection/open-doc. (Reuses `markdownToOutline`.)
-- [ ] **C3** `typecheck`/`lint`. Commit `feat(mindmap): in-place rollback to a schema snapshot`.
+- [x] **C1** `replaceOutline(doc, outline, title)` — in one `LOCAL_ORIGIN` transaction: delete every node in `nodesOf(doc)`, then re-seed from `outline` (reusing the `outlineToYjs` seeding), and set `meta.title`. Test: a doc reseeded from outline B yields outline B (round-trip via `yjsToOutline`).
+- [x] **C2** `projectEditActions.rollbackToSchema(schema)` — `markdownToOutline(schema)` → `replaceOutline(activeDoc, outline, title)` → mark dirty + clear selection/open-doc. (Reuses `markdownToOutline`.)
+- [x] **C3** `typecheck`/`lint`. Commit `feat(mindmap): in-place rollback to a schema snapshot`.
 
 ## Phase D — Edit-History panel
 
 **Files:** modify `components/Mindmap/VersionsPanel.tsx` (diff + Restore here), `EditToolbar.tsx` (label "History" stays).
 
-- [ ] **D1** `VersionsPanel`: each snapshot row stays (date + size + **Open**); **expanding/selecting** a row parses its schema (`readVersion` → `markdownToOutline` → `buildGraph`) and shows `diffGraphs(currentGraph, snapshotGraph)` — a compact summary (`+N · −M · ✎K · ⇄J`) + the changed node labels, framed as "Restoring this would …".
-- [ ] **D2** A **Restore here** button per row → `readVersion` → `rollbackToSchema` (in-place) + close. Keep **Open** (new tab) from M13.
-- [ ] **D3** `typecheck`/`lint`/`build`. Commit `feat(mindmap): edit-history panel (diff + in-place restore)`.
+- [x] **D1** `VersionsPanel`: each snapshot row stays (date + size + **Open**); **expanding/selecting** a row parses its schema (`readVersion` → `markdownToOutline` → `buildGraph`) and shows `diffGraphs(currentGraph, snapshotGraph)` — a compact summary (`+N · −M · ✎K · ⇄J`) + the changed node labels, framed as "Restoring this would …".
+- [x] **D2** A **Restore here** button per row → `readVersion` → `rollbackToSchema` (in-place) + close. Keep **Open** (new tab) from M13.
+- [x] **D3** `typecheck`/`lint`/`build`. Commit `feat(mindmap): edit-history panel (diff + in-place restore)`.
 
 ## Phase E — gate + QA
 
-- [ ] **E1** `npx vitest run` green; `typecheck`/`lint`/`build` clean.
-- [ ] **E2** QA: edit a saved project, wait → new history snapshots appear; select one → the diff vs current is right; **Restore here** reverts the map in place (and Ctrl-Z undoes it); **Open** still makes a new tab; untitled shows "save to start history". Update `README.md` + `backlog.md` (§F edit-history ✅). Commit/push per OK.
+- [x] **E1** `npx vitest run` green; `typecheck`/`lint`/`build` clean.
+- [ ] **E2** QA (live): edit a saved project, wait → new history snapshots appear; select one → the diff vs current is right; **Restore here** reverts the map in place (and Ctrl-Z undoes it); **Open** still makes a new tab; untitled shows "save to start history". *(handed off for live QA)*
 
 ## Self-review
 - **Reuses:** the M13 version store + `projectVersionId` + `VersionsPanel`, `markdownToOutline`/`buildGraph`, the `startProjectAutoSave` pattern, `outlineToYjs` seeding. ✓

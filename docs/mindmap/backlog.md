@@ -137,7 +137,9 @@ multi-root layout + drop-ghost · per-node junction add-child/expand control.
 - **★ Peer presence** — remote cursors + selection boxes via Yjs awareness. *Protocolist `peer-presence.tsx`. · M (needs multiplayer)*
 - **★ AI assist** — command bar ("merge similar branches", "rename root"), expand/brainstorm
   a node, mind-map → article, summarize. Needs an LLM integration. *Protocolist `ai-command-bar.tsx`; MindNode on-device AI. · M–L*
-- **★ Edit-history panel** with diff + rollback. *Protocolist `collab-history-panel.tsx`. · L (backend-ish)*
+- **✅ Edit-history panel** (M18, local) — granular schema snapshots (between saves) + a
+  `diffGraphs` change summary + **in-place rollback** (`replaceOutline`, undoable) alongside
+  M13's open-as-new. *built on M13's version store, no backend.* *Protocolist `collab-history-panel.tsx`.*
 
 ## G. Performance
 
