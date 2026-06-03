@@ -10,6 +10,7 @@ import { navigate } from './treeNav'
 import { removeCrossLink } from './crossLinkOps'
 import { nodeDocs, pushDocRef, removeDocRef, replaceDocRef, setDocAnchor } from './docOps'
 import { setNodeData, addTag, cycleTask } from './nodeStyleOps'
+import { applyTheme } from './themes'
 import { insertAtCaret } from './docView'
 import type { DocRef, NodeData } from '@shared/mindmap/types'
 
@@ -62,6 +63,14 @@ export function toggleTask(nodeId: string): void {
   const a = active()
   if (!a) return
   cycleTask(a.doc, nodeId)
+  markDirty(a.tabId)
+}
+
+/** Recolor the whole map from a curated palette (or `clear` to strip theme colors). */
+export function applyMindmapTheme(key: string): void {
+  const a = active()
+  if (!a) return
+  applyTheme(a.doc, key)
   markDirty(a.tabId)
 }
 

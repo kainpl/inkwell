@@ -3,11 +3,13 @@ import { useActiveProject, useProjectStore } from '@renderer/store/useProjectSto
 import {
   addChildToSelected,
   addSiblingToSelected,
+  applyMindmapTheme,
   deleteSelection,
   redoActive,
   saveActive,
   undoActive
 } from '@renderer/lib/mindmap/projectEditActions'
+import { THEME_KEYS } from '@renderer/lib/mindmap/themes'
 
 const BTN =
   'rounded px-2 py-1 text-[13px] text-ink enabled:hover:bg-line/40 disabled:opacity-40 disabled:cursor-default'
@@ -71,6 +73,23 @@ export default function EditToolbar(): JSX.Element {
       >
         Focus
       </button>
+      <select
+        value=""
+        onChange={(e) => {
+          if (e.target.value) applyMindmapTheme(e.target.value)
+        }}
+        title="Recolor the whole map from a palette"
+        className="rounded border border-line bg-paper px-1 py-1 text-[12px] text-ink"
+      >
+        <option value="" disabled>
+          🎨 Theme
+        </option>
+        {THEME_KEYS.map((k) => (
+          <option key={k} value={k}>
+            {k === 'clear' ? 'Clear colors' : k.charAt(0).toUpperCase() + k.slice(1)}
+          </option>
+        ))}
+      </select>
       <span className="mx-1 h-4 w-px bg-line" />
       <button className={BTN} onClick={undoActive} title="Undo (Ctrl+Z)">
         Undo
