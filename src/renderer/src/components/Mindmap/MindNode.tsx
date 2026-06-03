@@ -8,6 +8,7 @@ import {
   toggleTask
 } from '@renderer/lib/mindmap/projectEditActions'
 import { openProjectFromPath } from '@renderer/lib/mindmap/projectActions'
+import { useAssetDataUri } from '@renderer/lib/mindmap/useAssetDataUri'
 import type { RfNodeData } from '@renderer/lib/mindmap/rfModel'
 
 /** Node outline shape → border-radius class (border + shadow preserved). */
@@ -34,8 +35,10 @@ export default function MindNode({ id, data }: NodeProps): JSX.Element {
   const editing = useProjectStore((s) => s.byTab[activeId]?.editingId === id)
   const highlightTag = useProjectStore((s) => s.byTab[activeId]?.highlightTag ?? null)
   const vertical = useProjectStore((s) => s.byTab[activeId]?.direction === 'down')
+  const workingDir = useProjectStore((s) => s.byTab[activeId]?.workingDir ?? null)
   const nd = data as RfNodeData
   const d = nd.raw.data
+  const imageUri = useAssetDataUri(workingDir, typeof d.image === 'string' ? d.image : undefined)
   const fill = typeof d.fillColor === 'string' ? d.fillColor : undefined
   const textColor = typeof d.color === 'string' ? d.color : undefined
   const borderColor = [d.lineColor, d.borderColor].find((c) => typeof c === 'string' && c) as
@@ -87,6 +90,9 @@ export default function MindNode({ id, data }: NodeProps): JSX.Element {
           position={vertical ? Position.Top : Position.Left}
           className="!h-2 !w-2 !border-paper !bg-accent opacity-0 transition-opacity group-hover:opacity-100"
         />
+        {imageUri ? (
+          <img src={imageUri} alt="" className="mb-1 max-h-20 w-full rounded object-cover" />
+        ) : null}
         <div className="flex items-center gap-1">
         {nd.hasChildren && !nd.collapsed ? (
           <button

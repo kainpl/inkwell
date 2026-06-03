@@ -418,6 +418,28 @@ export async function internalizeOpenDoc(): Promise<void> {
   useProjectStore.getState().openDocFor(od.nodeId, internal)
 }
 
+/** Attach an image into `assets/` and set it as the selected node's thumbnail. */
+export async function setNodeImage(): Promise<void> {
+  const a = active()
+  if (!a) return
+  const sel = selectedId(a.tabId)
+  if (!sel) return
+  const entry = useProjectStore.getState().byTab[a.tabId]
+  if (!entry) return
+  const path = await window.api.inkproj.attachAsset(entry.workingDir)
+  if (!path) return
+  setNodeData(a.doc, sel, { image: path })
+  markDirty(a.tabId)
+}
+
+/** Clear a node's thumbnail (the asset file stays in the bundle). */
+export function clearNodeImage(nodeId: string): void {
+  const a = active()
+  if (!a) return
+  setNodeData(a.doc, nodeId, { image: undefined })
+  markDirty(a.tabId)
+}
+
 /** Copy a user-picked image into the bundle's `assets/` and insert a markdown ref
  *  at the doc caret (the HTML export inlines it). */
 export async function attachImageToOpenDoc(): Promise<void> {

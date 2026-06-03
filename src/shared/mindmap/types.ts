@@ -34,6 +34,8 @@ export interface NodeData {
   lineColor?: string
   fillColor?: string
   shape?: string
+  /** A bundle `assets/…` image shown as a thumbnail on the node. */
+  image?: string
   /** Draw a frame around this node's visible subtree (group bracket / underline). */
   frame?: 'bracket' | 'underline'
   icon?: string[]

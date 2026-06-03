@@ -10,7 +10,9 @@ import {
   toggleTask,
   toggleLabel,
   linkToProject,
-  removeProjectLink
+  removeProjectLink,
+  setNodeImage,
+  clearNodeImage
 } from '@renderer/lib/mindmap/projectEditActions'
 import type { NodeData } from '@shared/mindmap/types'
 
@@ -132,6 +134,18 @@ export default function NodeInspector(): JSX.Element | null {
         rows={2}
         className={`${field} w-full resize-none outline-none`}
       />
+
+      <div className="flex items-center gap-2">
+        <span className="w-9 shrink-0 text-[11px] text-faint">Image</span>
+        <button onClick={() => void setNodeImage()} className={`${field} flex-1 text-left hover:border-accent`}>
+          {typeof d.image === 'string' ? 'Change…' : 'Set image…'}
+        </button>
+        {typeof d.image === 'string' ? (
+          <button onClick={() => clearNodeImage(sel)} className="text-[11px] text-faint hover:text-ink">
+            clear
+          </button>
+        ) : null}
+      </div>
 
       <div>
         <div className="mb-1 flex flex-wrap items-center gap-1">
