@@ -16,7 +16,7 @@ import {
 } from '@renderer/lib/mindmap/projectEditActions'
 import { getDocView, insertAnchorAtCaret } from '@renderer/lib/mindmap/docView'
 import { listAnchors } from '@renderer/lib/mindmap/anchors'
-import { projectDocs } from '@renderer/lib/mindmap/projectDocs'
+import { projectDocs, nodesReferencing } from '@renderer/lib/mindmap/projectDocs'
 
 const BTN = 'rounded px-2 py-1 text-[12px] text-ink enabled:hover:bg-line/40 disabled:opacity-40'
 
@@ -42,6 +42,12 @@ export default function DocBar(): JSX.Element {
   const openNodeLabel = openNodeId ? graph?.nodes.find((n) => n.id === openNodeId)?.label : null
   // Existing bundle docs not already attached to the selected node (the M:N "Link…" pool).
   const linkable = sel && graph ? projectDocs(graph).filter((d) => !d.nodeIds.includes(sel)) : []
+  // Other nodes sharing the open internal doc (M:N — surfaces who else links it).
+  const sharedWith =
+    openInternal && openPath && graph
+      ? nodesReferencing(graph, openPath).filter((id) => id !== openNodeId)
+      : []
+  const labelOf = (id: string): string => graph?.nodes.find((n) => n.id === id)?.label ?? id
   const openAnchor = project?.openDoc?.ref.anchor ?? ''
   const anchors = openInternal ? listAnchors(getDocView()?.state.doc.toString() ?? '') : []
 
@@ -78,6 +84,21 @@ export default function DocBar(): JSX.Element {
         >
           ⌖ {openNodeLabel ?? 'node'}
         </button>
+      ) : null}
+      {sharedWith.length ? (
+        <span className="flex shrink-0 items-center gap-1 text-faint" title="Also linked from">
+          <span className="text-[11px]">🔗 also:</span>
+          {sharedWith.map((id) => (
+            <button
+              key={id}
+              onClick={() => revealNode(id)}
+              title={`Reveal ${labelOf(id)}`}
+              className="max-w-[90px] truncate rounded bg-line/50 px-1 text-[11px] text-muted hover:text-ink"
+            >
+              {labelOf(id)}
+            </button>
+          ))}
+        </span>
       ) : null}
       {openInternal ? (
         <>
