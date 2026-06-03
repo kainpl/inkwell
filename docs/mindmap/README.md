@@ -12,7 +12,7 @@ Branch: `feat/mindmap`. Started 2026‑06‑02.
 | [`our-vision.md`](our-vision.md) | **What we build & how** — the `.inkproj` ZIP project, Inkwell integration, take/adapt/drop, locked decisions **D1–D13**, backlog. |
 | [`backlog.md`](backlog.md) | **Consolidated backlog** — everything parked, from our specs + a survey of Protocolist / AiOffice / MindNode; tagged source · effort · priority. Strategy: max the schema editor now, then bridge schema⟷markdown (Outline view) on top of the project. |
 | [`m7-plan.md`](m7-plan.md) | **Milestone 7** — backlog block A: node search + reveal · keyboard navigation · multi-select + batch · tag-highlight · canvas focus mode · (E) hotkeys help / quick-entry / breadcrumb. **Done / shipped.** |
-| [`m8-plan.md`](m8-plan.md) | **Milestone 8** — Outline view (schema⟷markdown bridge, block C): Map/Outline/Split, edit the schema as an indented outline over the same Yjs model. |
+| [`m8-plan.md`](m8-plan.md) | **Milestone 8** — Outline view (schema⟷markdown bridge, block C): Map/Outline/Split, edit the schema as an indented outline over the same Yjs model. **Code-complete** (pending QA). |
 | [`m1-spec.md`](m1-spec.md) | **Milestone 1 spec** — the read‑only vertical slice (open `.inkproj` → render schema → click node → open doc). **Shipped.** |
 | [`m1-plan.md`](m1-plan.md) | **Milestone 1 implementation plan** — 14 task‑by‑task steps (TDD). **Done.** |
 | [`m2a-spec.md`](m2a-spec.md) | **Milestone 2a spec** — editing + save with a Yjs model (create/rename/delete/reparent, undo/redo, zip-back). |

@@ -21,25 +21,25 @@ is a per-project store flag. Decisions: [`backlog.md`](backlog.md) §C; [`our-vi
 
 **Files:** create `lib/mindmap/treeNav.ts` `visibleInOrder` (+ test), `components/Mindmap/OutlinePanel.tsx` + `OutlineRow.tsx`; modify `useProjectStore.ts` (`viewMode`), `ProjectView.tsx` (render by mode), `EditToolbar.tsx` (Map/Outline/Split toggle).
 
-- [ ] **A1** `treeNav.visibleInOrder(graph, collapsed) → { id, depth }[]` — DFS over roots, skipping children of collapsed nodes. Test.
-- [ ] **A2** `useProjectStore` entry `viewMode: 'map' | 'outline' | 'split'` (default `'map'`) + `setViewMode`.
-- [ ] **A3** `OutlinePanel` (scrollable): rows via `visibleInOrder`; each `OutlineRow` = depth indent + collapse caret (`toggleCollapse`) + label. The selected row is highlighted; clicking a row `select`s it (+ `centerOnNode` so the map follows). Doc/📄 + tag chips shown compactly.
-- [ ] **A4** `EditToolbar`: a Map / Outline / Split segmented toggle (`setViewMode`). `ProjectView` left column renders Canvas / OutlinePanel / both (split = outline | map side-by-side).
-- [ ] **A5** `typecheck`/`lint`. Commit `feat(mindmap): outline view (read + select + collapse)`.
+- [x] **A1** `treeNav.visibleInOrder` (tested).
+- [x] **A2** `useProjectStore` `viewMode` + `setViewMode`.
+- [x] **A3** `OutlinePanel`: indented rows, collapse caret, selected highlight, doc/tag chips; row focus selects + centers the map. (Rows inline, no separate `OutlineRow`.)
+- [x] **A4** `EditToolbar` Map/Outline/Split toggle; `ProjectView` renders the left column by mode (split = outline | map).
+- [x] **A5** Commit `feat(mindmap): outline view (read + select + collapse)` (`d7c9004`).
 
 ## Phase B — outline editing
 
 **Files:** modify `OutlineRow.tsx`, `treeOps.ts` (indent/outdent helpers if needed), `projectEditActions.ts`.
 
-- [ ] **B1** Inline rename: each row's label is an editable input; Enter/blur commits `rename`; Esc reverts. New rows auto-focus.
-- [ ] **B2** Keyboard in a row (outliner semantics): **Enter** = add sibling after + focus it; **Tab** = indent (reparent under the previous sibling); **Shift+Tab** = outdent (reparent as a sibling of the parent, just after it); **Backspace** on an empty label = delete + focus previous; **↑/↓** = move focus to the previous/next visible row. Reuse `treeOps.reparent`/`reorder` + `treeNav.navigate`.
-- [ ] **B3** Editing marks the tab dirty; map + outline update live from the shared model.
-- [ ] **B4** `typecheck`/`lint`/`build`. Commit `feat(mindmap): outline editing (rename / indent / reorder)`.
+- [x] **B1** Each row is a controlled input → `renameNode` live; Esc blurs; structural edits restore focus via a ref.
+- [x] **B2** Keys: Enter = add sibling + focus; Tab / Shift+Tab = indent / outdent; Backspace (empty) = delete + focus prev; ↑/↓ = move focus. Reuses `treeOps` + `treeNav.navigate`.
+- [x] **B3** Edits mark dirty; map + outline update live from the shared model.
+- [x] **B4** `typecheck`/`lint`/`build` green (vitest 431). Commit `feat(mindmap): outline editing (rename / indent / reorder)` (`287706a`).
 
 ## Phase C — gate + QA
 
-- [ ] **C1** `npx vitest run` green; `typecheck`/`lint`/`build` clean.
-- [ ] **C2** QA: toggle Map/Outline/Split; edit a node in the outline → the map updates and vice-versa; Tab/Shift+Tab restructure; Enter/Backspace; selection + collapse stay in sync. Update `README.md` + `backlog.md`. Hand off; commit/push per OK.
+- [x] **C1** `npx vitest run` green (431); `typecheck`/`lint`/`build` clean.
+- [ ] **C2** QA: toggle Map/Outline/Split; edit in the outline → map updates; Tab/Shift+Tab; Enter/Backspace; sync. *(handed off)*
 
 ## Self-review
 - **One model, two views:** outline + map both read `useProjectGraph` and write through `treeOps`/`rename` — no serialization round-trip, identity/undo/cross-links preserved. ✓

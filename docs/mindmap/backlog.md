@@ -72,9 +72,8 @@ multi-root layout + drop-ghost · per-node junction add-child/expand control.
 
 ## C. Schema ⟷ Markdown bridge  *(the unification seam)*
 
-- **★★★ Outline view** — edit the schema as an indented markdown-ish outline, switch
-  mind-map ⟷ outline (or side-by-side), both driven by the same Yjs model. **The headline
-  bridge feature** and the most natural one for an md-first app. *MindNode (core); MindDoc. · M*
+- **✅ Outline view** (M8) — edit the schema as an indented outline; Map/Outline/Split over the
+  same Yjs model (rename, Enter/Tab/Shift+Tab/Backspace, ↑/↓). *MindNode (core); MindDoc. · M*
 - **★★ Node ↔ doc deep linking polish** — jump from an outline/doc heading to its node and
   back; surface a node's docs inline. Builds on anchors (D6). *ours. · M*
 - **★ AST → projections (multi-view)** — one canonical model → mind-map / outline / table /
