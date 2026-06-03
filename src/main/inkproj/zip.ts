@@ -168,6 +168,29 @@ export async function readAssetDataUri(workingDir: string, relPath: string): Pro
   return `data:${mime};base64,${(await readFile(dest)).toString('base64')}`
 }
 
+/**
+ * Delete top-level `docs/` files whose bundle-rel path isn't in `keep` (orphaned-doc
+ * GC). Working-dir only — the next save re-zips without them. Symlink-safe; subdirs
+ * are left untouched (conservative).
+ */
+export async function gcDocs(workingDir: string, keep: string[]): Promise<string[]> {
+  if (!PROJECTS.has(workingDir)) throw new Error('unknown workingDir')
+  const keepSet = new Set(keep)
+  const deleted: string[] = []
+  const entries = await readdir(join(workingDir, 'docs'), { withFileTypes: true }).catch(() => [])
+  for (const ent of entries) {
+    if (ent.isDirectory()) continue
+    const rel = `docs/${ent.name}`
+    if (keepSet.has(rel)) continue
+    const dest = await safeResolve(workingDir, rel)
+    if (dest) {
+      await rm(dest, { force: true })
+      deleted.push(rel)
+    }
+  }
+  return deleted
+}
+
 async function* walkFiles(dir: string, base = dir): AsyncGenerator<{ abs: string; rel: string }> {
   for (const ent of await readdir(dir, { withFileTypes: true })) {
     const abs = join(dir, ent.name)

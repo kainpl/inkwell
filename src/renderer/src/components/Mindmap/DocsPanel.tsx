@@ -1,9 +1,9 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useAppStore } from '@renderer/store/useAppStore'
 import { useProjectStore } from '@renderer/store/useProjectStore'
 import { useProjectGraph } from '@renderer/lib/mindmap/useProjectGraph'
 import { projectDocs } from '@renderer/lib/mindmap/projectDocs'
-import { openDocRef, revealNode } from '@renderer/lib/mindmap/projectEditActions'
+import { gcOrphanDocs, openDocRef, revealNode } from '@renderer/lib/mindmap/projectEditActions'
 
 /** Doc-centric overlay: every bundle doc + the nodes that reference it (the M:N view).
  *  Click a doc to open it (via its first node); click a node chip to reveal it. */
@@ -12,6 +12,7 @@ export default function DocsPanel(): JSX.Element | null {
   const open = useProjectStore((s) => s.byTab[activeId]?.docsOpen ?? false)
   const setDocsOpen = useProjectStore((s) => s.setDocsOpen)
   const graph = useProjectGraph(activeId)
+  const [gcStatus, setGcStatus] = useState<string | null>(null)
 
   useEffect(() => {
     if (!open) return
@@ -82,6 +83,19 @@ export default function DocsPanel(): JSX.Element | null {
             ))}
           </ul>
         )}
+        <div className="flex items-center justify-between gap-2 border-t border-line px-3 py-2">
+          <span className="text-[11px] text-faint">{gcStatus ?? 'Remove docs/ files no node references.'}</span>
+          <button
+            onClick={() =>
+              void gcOrphanDocs().then((n) =>
+                setGcStatus(n ? `Removed ${n} unused file${n > 1 ? 's' : ''}.` : 'No unused files.')
+              )
+            }
+            className="shrink-0 rounded border border-line px-2 py-0.5 text-[12px] text-ink hover:border-accent hover:text-accent"
+          >
+            Clean up unused
+          </button>
+        </div>
       </div>
     </div>
   )

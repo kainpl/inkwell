@@ -13,6 +13,7 @@ import { nodeDocs, pushDocRef, removeDocRef, replaceDocRef, setDocAnchor } from 
 import { setNodeData, addTag, cycleTask, toggleLabelFlag } from './nodeStyleOps'
 import { applyTheme } from './themes'
 import { insertAtCaret } from './docView'
+import { projectDocs } from './projectDocs'
 import type { DocRef, NodeData } from '@shared/mindmap/types'
 
 /** The full node selection of the active project tab (primary `selectedId` ∪ `multi`). */
@@ -396,6 +397,20 @@ export async function attachImageToOpenDoc(): Promise<void> {
   if (!entry) return
   const path = await window.api.inkproj.attachAsset(entry.workingDir)
   if (path) insertAtCaret(`![](${path})`)
+}
+
+/** Delete bundle `docs/` files no node references (orphaned-doc GC). Marks the tab
+ *  dirty so the next save persists the cleaned bundle. Returns the removed count. */
+export async function gcOrphanDocs(): Promise<number> {
+  const a = active()
+  if (!a) return 0
+  const entry = useProjectStore.getState().byTab[a.tabId]
+  if (!entry) return 0
+  const graph = buildGraph(yjsToOutline(a.doc))
+  const keep = [...new Set([...projectDocs(graph).map((d) => d.path), ...Object.keys(entry.dirtyDocs)])]
+  const deleted = await window.api.inkproj.gcDocs(entry.workingDir, keep)
+  if (deleted.length) markDirty(a.tabId)
+  return deleted.length
 }
 
 /** Detach the doc ref at `index` from a node (the bundled file stays). */

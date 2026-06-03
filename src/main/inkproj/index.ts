@@ -18,6 +18,7 @@ import {
   readAssetDataUri,
   createInkproj,
   createUntitledInkproj,
+  gcDocs,
   cleanupInkproj
 } from './zip'
 
@@ -183,6 +184,10 @@ export function registerInkprojIpc(): void {
   })
   ipcMain.handle(IPC.inkprojReadAssetDataUri, (_e, workingDir: string, relPath: string) =>
     readAssetDataUri(workingDir, relPath)
+  )
+
+  ipcMain.handle(IPC.inkprojGcDocs, (_e, workingDir: string, keep: string[]) =>
+    gcDocs(workingDir, keep)
   )
 
   ipcMain.handle(IPC.inkprojClose, (_e, workingDir: string) => cleanupInkproj(workingDir))
