@@ -12,8 +12,8 @@ Branch: `feat/mindmap`. Started 2026‑06‑02.
 | [`our-vision.md`](our-vision.md) | **What we build & how** — the `.inkproj` ZIP project, Inkwell integration, take/adapt/drop, locked decisions **D1–D13**, backlog. |
 | [`backlog.md`](backlog.md) | **Consolidated backlog** — everything parked, from our specs + a survey of Protocolist / AiOffice / MindNode; tagged source · effort · priority. Strategy: max the schema editor now, then bridge schema⟷markdown (Outline view) on top of the project. |
 | [`m7-plan.md`](m7-plan.md) | **Milestone 7** — backlog block A: node search + reveal · keyboard navigation · multi-select + batch · tag-highlight · canvas focus mode · (E) hotkeys help / quick-entry / breadcrumb. **Done / shipped.** |
-| [`m8-plan.md`](m8-plan.md) | **Milestone 8** — Outline view (schema⟷markdown bridge, block C): Map/Outline/Split, edit the schema as an indented outline over the same Yjs model. **Code-complete** (pending QA). |
-| [`m9-plan.md`](m9-plan.md) | **Milestone 9** — schema visuals + exports (blocks B & D): export OPML/Markdown/FreeMind · interactive tasks · more node shapes (cloud/hexagon/octagon) · subtree frames. **Code-complete** (pending QA). |
+| [`m8-plan.md`](m8-plan.md) | **Milestone 8** — Outline view (schema⟷markdown bridge, block C): Map/Outline/Split, edit the schema as an indented outline over the same Yjs model. **Done / shipped.** |
+| [`m9-plan.md`](m9-plan.md) | **Milestone 9** — schema visuals + exports (blocks B & D): export OPML/Markdown/FreeMind · interactive tasks · more node shapes (cloud/hexagon/octagon) · subtree frames. **Done / shipped.** |
 | [`m1-spec.md`](m1-spec.md) | **Milestone 1 spec** — the read‑only vertical slice (open `.inkproj` → render schema → click node → open doc). **Shipped.** |
 | [`m1-plan.md`](m1-plan.md) | **Milestone 1 implementation plan** — 14 task‑by‑task steps (TDD). **Done.** |
 | [`m2a-spec.md`](m2a-spec.md) | **Milestone 2a spec** — editing + save with a Yjs model (create/rename/delete/reparent, undo/redo, zip-back). |
@@ -55,3 +55,9 @@ Research complete; **vision locked (D1–D13)**; **M1 shipped** on `feat/mindmap
 **M4 code-complete** on `feat/mindmap` — **Export Project as HTML**: a pure generator turns the graph into a single self-contained `.html` (nested-outline tree with styled node chips, typed cross-links, and collapsible doc sections; click a node → jump to its doc). Inline CSS, no scripts, all text escaped; reuses `buildGraph`. Green gate passed (vitest 412, typecheck, lint, build); manual QA accepted; pushed to origin.
 
 **M5 + M6 code-complete** on `feat/mindmap` (pending QA). **M5** — a multi-format **import hub** (`.mind-map`/`.mind-doc`/FreeMind `.mm`/OPML/`.md`/`.txt`/`.json` + **`.mindnode`** binary protobuf, all adapted from the source's importer per §1a) + **image assets** (attach into `assets/`, inlined as base64 in the HTML export). **M6** — non-overlapping **multi-root layout** + a live drag **drop-ghost** (shared pure `resolveDrop`). Green gate passed (vitest 423, typecheck, lint, build).
+
+**M7 shipped** on `feat/mindmap` — backlog **block A** (navigation): node search + reveal (`Ctrl+Shift+F`), keyboard navigation (arrows / `1–9` expand-to-level / `Home`), multi-select + batch (color/tag/delete), tag-highlight + canvas focus mode, plus **E** (hotkeys help `?`, ⚡ quick-entry, breadcrumb). Manual QA accepted.
+
+**M8 shipped** on `feat/mindmap` — **Outline view** (the first schema⟷markdown bridge, block C): a Map / Outline / Split toggle; the schema edits as an indented outline (rename, Enter/Tab/Shift+Tab/Backspace, ↑/↓) over the **same Yjs model**, so map and outline stay in lockstep (no text round-trip). Manual QA accepted.
+
+**M9 shipped** on `feat/mindmap` — schema visuals + interop (blocks **B** & **D**): **export OPML / Markdown / FreeMind `.mm`** (pure generators, each re-importable), **interactive tasks** (click to cycle `taskStatus`), **more node shapes** (cloud + clip-path hexagon/octagon), and **subtree frames** (bracket / underline). Green gate passed (vitest 438, typecheck, lint, build); manual QA accepted.

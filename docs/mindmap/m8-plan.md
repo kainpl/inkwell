@@ -39,7 +39,7 @@ is a per-project store flag. Decisions: [`backlog.md`](backlog.md) §C; [`our-vi
 ## Phase C — gate + QA
 
 - [x] **C1** `npx vitest run` green (431); `typecheck`/`lint`/`build` clean.
-- [ ] **C2** QA: toggle Map/Outline/Split; edit in the outline → map updates; Tab/Shift+Tab; Enter/Backspace; sync. *(handed off)*
+- [x] **C2** QA: toggle Map/Outline/Split; edit in the outline → map updates; Tab/Shift+Tab; Enter/Backspace; sync. *(accepted)*
 
 ## Self-review
 - **One model, two views:** outline + map both read `useProjectGraph` and write through `treeOps`/`rename` — no serialization round-trip, identity/undo/cross-links preserved. ✓

@@ -45,7 +45,7 @@ overlay (`ViewportPortal`) like the drop-ghost. Decisions: [`backlog.md`](backlo
 ## Phase D — gate + QA
 
 - [x] **D1** `npx vitest run` green (438; +11 new across exportFormats/nodeStyleOps/layout); `typecheck`/`lint`/`build` clean.
-- [ ] **D2** QA: export OPML/MD/.mm + re-import; toggle tasks; new shapes; frames around a subtree. Update `README.md` + `backlog.md`. Hand off; commit/push per OK. *(handed off)*
+- [x] **D2** QA: export OPML/MD/.mm + re-import; toggle tasks; new shapes; frames around a subtree. Update `README.md` + `backlog.md`. *(accepted; pushed)*
 
 ## Self-review
 - **Additive (D1):** tasks/shape/frame are node `data`; export generators are read-only. ✓
