@@ -19,6 +19,8 @@ Branch: `feat/mindmap`. Started 2026‑06‑02.
 | [`m2c-plan.md`](m2c-plan.md) | **Milestone 2c plan + design** — node styling · anchors UI · sibling reorder · external docs (Phases C1–C5). **Done / shipped.** |
 | [`m3-plan.md`](m3-plan.md) | **Milestone 3 plan + design** — project lifecycle: New project · Import `.mind-map` · Export `.mind-map` (D10/D11 interop). **Done / shipped.** |
 | [`m4-plan.md`](m4-plan.md) | **Milestone 4 plan + design** — export the active project to a single self-contained `.html` (shareable read-only artifact). **Done / shipped.** |
+| [`m5-plan.md`](m5-plan.md) | **Milestone 5 plan (for review)** — import hub (`.mind-map`/`.mind-doc`/FreeMind `.mm`/OPML/MD/TXT/JSON; `.mindnode` stretch) + image assets. |
+| [`m6-plan.md`](m6-plan.md) | **Milestone 6 plan (for review)** — canvas polish: non-overlapping multi-root layout + live drag drop-ghost. |
 
 ## Source repos (read‑only, gitignored, under `temp/ref/`)
 
