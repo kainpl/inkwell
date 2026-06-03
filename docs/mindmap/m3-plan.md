@@ -16,11 +16,11 @@
 
 **Files:** modify `zip.ts` (+ test) — `createInkproj`; `index.ts` (`inkproj:createDialog`); `shared/ipc.ts`, `preload`; `projectActions.ts` (`newProject`); `menu.ts`, `App.tsx`, `shared/ipc.ts` (`menuNewProject`).
 
-- [ ] **M3.1.1** `zip.ts createInkproj(srcPath, schemaText, title, baseDir)`: make a working dir; write `manifest.json` (`format:'inkproj', formatVersion:1, app:'Inkwell', title, schema:'schema.mind-map', createdAt`) + `schema.mind-map` + an empty `docs/`; zip → `srcPath`; `PROJECTS.set(workingDir, srcPath)`; return `OpenedInkproj`. zip.test: create → re-open → manifest.title + schema round-trip.
-- [ ] **M3.1.2** `index.ts` `inkproj:createDialog`: save dialog (`.inkproj`) → `createInkproj(path, DEFAULT_SCHEMA, 'Untitled', base)` → return `OpenedInkproj | null`. `DEFAULT_SCHEMA = '# Untitled\n'` (one root).
-- [ ] **M3.1.3** `shared/ipc.ts` `inkprojCreateDialog` + `menuNewProject`; `preload` `inkproj.createDialog()`.
-- [ ] **M3.1.4** `projectActions.newProject()` → `const o = await window.api.inkproj.createDialog(); if (o) enterProject(o)`. `menu.ts` File → New Project (after Open Project); `App.tsx` wires `menuNewProject` → `newProject`.
-- [ ] **M3.1.5** `typecheck`/`lint`. **M3.1.6** commit `feat(mindmap): new project (create + open)`.
+- [x] **M3.1.1** `zip.ts createInkproj(srcPath, schemaText, title, baseDir)` — fresh working dir + `manifest.json` + `schema.mind-map` + empty `docs/`; zip → `srcPath`; registers `PROJECTS`; returns `OpenedInkproj`. zip.test: create → re-open round-trip.
+- [x] **M3.1.2** `index.ts` `inkproj:createDialog`: save dialog → `createInkproj(path, '# Untitled\n', 'Untitled', base)`.
+- [x] **M3.1.3** `shared/ipc.ts` `inkprojCreateDialog` + `menuNewProject`; `preload` `inkproj.createDialog()` (+ `menuChannels`).
+- [x] **M3.1.4** `projectActions.newProject()`; `menu.ts` File → New Project; `App.tsx` wires `menuNewProject`.
+- [x] **M3.1.5** `typecheck`/`lint`. **M3.1.6** committed with M3 (`437c484`).
 
 ## Phase M3.2 — Import `.mind-map`
 
@@ -28,10 +28,10 @@
 
 **Files:** modify `index.ts` (`inkproj:importDialog`); `shared/ipc.ts`, `preload`; `projectActions.ts` (`importMindMap`); `menu.ts`, `App.tsx`.
 
-- [ ] **M3.2.1** `index.ts` `inkproj:importDialog`: open dialog (`.mind-map`,`.md`,`.markdown`) → read text → save dialog (`.inkproj`) → `createInkproj(dest, text, basename(src), base)` → return `OpenedInkproj | null`.
-- [ ] **M3.2.2** `shared/ipc.ts` `inkprojImportDialog` + `menuImportMindMap`; `preload` `inkproj.importDialog()`.
-- [ ] **M3.2.3** `projectActions.importMindMap()` → dialog flow → `enterProject`. `menu.ts` File → Import Mind-map…; `App.tsx` wire.
-- [ ] **M3.2.4** `typecheck`/`lint`. **M3.2.5** commit `feat(mindmap): import .mind-map → new project`.
+- [x] **M3.2.1** `index.ts` `inkproj:importDialog`: pick `.mind-map`/`.md` → read text → pick dest `.inkproj` → `createInkproj(dest, text, basename(src), base)`.
+- [x] **M3.2.2** `shared/ipc.ts` `inkprojImportDialog` + `menuImportMindMap`; `preload` `inkproj.importDialog()`.
+- [x] **M3.2.3** `projectActions.importMindMap()`; `menu.ts` File → Import Mind-map…; `App.tsx` wire.
+- [x] **M3.2.4** `typecheck`/`lint`. **M3.2.5** committed with M3 (`437c484`).
 
 ## Phase M3.3 — Export `.mind-map`
 
@@ -39,17 +39,17 @@
 
 **Files:** modify `index.ts` (`inkproj:exportMindMap`); `shared/ipc.ts`, `preload`; `projectActions.ts` (`exportMindMap`); `menu.ts`, `App.tsx`.
 
-- [ ] **M3.3.1** `index.ts` `inkproj:exportMindMap(schemaText, suggestedName)`: save dialog (`.mind-map`, default name) → write `schemaText` to the chosen path → return the path or null.
-- [ ] **M3.3.2** `shared/ipc.ts` `inkprojExportMindMap` + `menuExportMindMap`; `preload` `inkproj.exportMindMap(schemaText, name)`.
-- [ ] **M3.3.3** `projectActions.exportMindMap()`: from the active project tab build `schema = outlineToMarkdown(yjsToOutline(doc), title)` → `window.api.inkproj.exportMindMap(schema, title + '.mind-map')`. `menu.ts` File → Export Mind-map… (enabled is fine always; no-op when not a project tab); `App.tsx` wire.
-- [ ] **M3.3.4** `typecheck`/`lint`/`build`. **M3.3.5** commit `feat(mindmap): export schema → .mind-map`.
+- [x] **M3.3.1** `index.ts` `inkproj:exportMindMap(schemaText, suggestedName)`: save dialog → write `schemaText` → return the path/null.
+- [x] **M3.3.2** `shared/ipc.ts` `inkprojExportMindMap` + `menuExportMindMap`; `preload` `inkproj.exportMindMap(schemaText, name)`.
+- [x] **M3.3.3** `projectActions.exportMindMap()` (no-op when not a project tab); `menu.ts` File → Export Mind-map…; `App.tsx` wire.
+- [x] **M3.3.4** `typecheck`/`lint`/`build` green (vitest 411). **M3.3.5** committed with M3 (`437c484`).
 
 ## Phase M3.4 — gate + QA
 
-- [ ] **M3.4.1** `npx vitest run` green (known `Editor.tab.test.tsx` jsdom error remains); `typecheck`/`lint`/`build` clean.
-- [ ] **M3.4.2** Manual QA: New Project → edit → Save → reopen; Import a `.mind-map` (e.g. exported from a project) → round-trips; Export the fixture → the `.mind-map` opens in any editor + re-imports.
-- [ ] **M3.4.3** Update `docs/mindmap/README.md` → M3 shipped (per QA OK).
-- [ ] **M3.4.4** Hand off for QA; commit/push per the user's OK.
+- [x] **M3.4.1** `npx vitest run` green (411 pass; known `Editor.tab.test.tsx` jsdom error remains); `typecheck`/`lint`/`build` clean.
+- [ ] **M3.4.2** Manual QA: New Project → edit → Save → reopen; Import a `.mind-map` → round-trips; Export the fixture → `.mind-map` re-imports. *(handed off)*
+- [x] **M3.4.3** Update `docs/mindmap/README.md` → M3 code-complete (pending QA).
+- [ ] **M3.4.4** Hand off for QA; commit/push per the user's OK. *(handed off)*
 
 ## Self-review
 - **Reuses open/save:** New/Import create a real `.inkproj` then `enterProject` (no untitled-project special-casing); Export reuses `outlineToMarkdown`. ✓
