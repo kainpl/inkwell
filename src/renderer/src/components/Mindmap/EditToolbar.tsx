@@ -21,6 +21,8 @@ export default function EditToolbar(): JSX.Element {
   const dirty = useAppStore((s) => s.tabs.find((t) => t.id === activeId)?.dirty ?? false)
   const setFocus = useProjectStore((s) => s.setFocus)
   const toggleQuick = useProjectStore((s) => s.toggleQuick)
+  const toggleDocs = useProjectStore((s) => s.toggleDocs)
+  const docsOn = project?.docsOpen ?? false
   const setViewMode = useProjectStore((s) => s.setViewMode)
   const setDirection = useProjectStore((s) => s.setDirection)
   const direction = project?.direction ?? 'right'
@@ -83,6 +85,13 @@ export default function EditToolbar(): JSX.Element {
       </button>
       <button className={BTN} disabled={!hasSel} onClick={deleteSelection} title="Delete (Del)">
         Delete
+      </button>
+      <button
+        className={`${BTN} ${docsOn ? 'text-accent' : ''}`}
+        onClick={toggleDocs}
+        title="All project documents + their nodes"
+      >
+        Docs
       </button>
       <button
         className={`${BTN} ${focused ? 'text-accent' : ''}`}

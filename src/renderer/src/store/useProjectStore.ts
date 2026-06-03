@@ -37,6 +37,8 @@ export interface ProjectEntry {
   searchOpen: boolean
   /** Whether the quick-entry box is open. */
   quickOpen: boolean
+  /** Whether the project docs panel (all docs + referencing nodes) is open. */
+  docsOpen: boolean
   /** When set, nodes without this tag are dimmed. */
   highlightTag: string | null
   /** When set, nodes outside this node's focus set (it + ancestors + descendants) are dimmed. */
@@ -97,6 +99,9 @@ interface ProjectsState {
   /** Toggle / set the quick-entry box. */
   toggleQuick: () => void
   setQuickOpen: (open: boolean) => void
+  /** Toggle / set the project docs panel. */
+  toggleDocs: () => void
+  setDocsOpen: (open: boolean) => void
   /** Toggle the highlighted tag (passing the current one clears it). */
   setHighlightTag: (tag: string | null) => void
   /** Set / clear the focused node. */
@@ -144,6 +149,7 @@ export const useProjectStore = create<ProjectsState>((set) => ({
           externalDocs: {},
           searchOpen: false,
           quickOpen: false,
+          docsOpen: false,
           highlightTag: null,
           focusId: null,
           viewMode: 'map',
@@ -265,6 +271,9 @@ export const useProjectStore = create<ProjectsState>((set) => ({
 
   toggleQuick: () => set((s) => patchActive(s, (e) => ({ ...e, quickOpen: !e.quickOpen }))),
   setQuickOpen: (open) => set((s) => patchActive(s, (e) => ({ ...e, quickOpen: open }))),
+
+  toggleDocs: () => set((s) => patchActive(s, (e) => ({ ...e, docsOpen: !e.docsOpen }))),
+  setDocsOpen: (open) => set((s) => patchActive(s, (e) => ({ ...e, docsOpen: open }))),
 
   setHighlightTag: (tag) =>
     set((s) => patchActive(s, (e) => ({ ...e, highlightTag: e.highlightTag === tag ? null : tag }))),

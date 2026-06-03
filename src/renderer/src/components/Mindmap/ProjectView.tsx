@@ -8,6 +8,7 @@ import NodeInspector from './NodeInspector'
 import HotkeysHelp from './HotkeysHelp'
 import OutlinePanel from './OutlinePanel'
 import TablePanel from './TablePanel'
+import DocsPanel from './DocsPanel'
 import { useAppStore } from '@renderer/store/useAppStore'
 import { useProjectStore } from '@renderer/store/useProjectStore'
 import { useProjectGraph } from '@renderer/lib/mindmap/useProjectGraph'
@@ -201,6 +202,7 @@ export default function ProjectView(): JSX.Element {
         </div>
       </div>
       {helpOpen ? <HotkeysHelp onClose={() => setHelpOpen(false)} /> : null}
+      <DocsPanel />
     </div>
   )
 }
