@@ -31,7 +31,15 @@ export function buildMenu(win: BrowserWindow, locale: Locale): void {
             { label: t('file.asFreeMind'), click: send(IPC.menuExportSchemaMm) }
           ]
         },
-        { label: t('file.exportProjectHtml'), click: send(IPC.menuExportHtmlProject) },
+        {
+          label: t('file.exportProjectAs'),
+          submenu: [
+            { label: t('file.asHtml'), click: send(IPC.menuExportHtmlProject) },
+            { label: t('file.asPdf'), click: send(IPC.menuExportProjectPdf) },
+            { label: t('file.asPng'), click: send(IPC.menuExportProjectImage) },
+            { label: t('file.printProject'), click: send(IPC.menuPrintProject) }
+          ]
+        },
         { label: t('file.openFolder'), accelerator: 'CmdOrCtrl+Shift+O', click: send(IPC.menuOpenFolder) },
         { label: t('file.openQuickly'), accelerator: 'CmdOrCtrl+P', click: send(IPC.menuOpenQuickly) },
         { label: t('file.openRecent'), click: send(IPC.menuOpenRecent) },

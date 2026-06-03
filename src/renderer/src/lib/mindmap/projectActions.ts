@@ -9,6 +9,7 @@ import { mergeLinkTypes } from './linkTypes'
 import { buildGraph } from './buildGraph'
 import { renderProjectHtml, type HtmlDoc } from './exportHtml'
 import { renderMarkdownBody } from '@renderer/lib/exportRender'
+import { pdfOptions } from '@renderer/lib/pageSetup'
 import { importAny } from './importFormats'
 import { importMindnode } from './importMindnode'
 import { toOpml, toPlainMarkdown, toFreeMind } from './exportFormats'
@@ -91,12 +92,13 @@ export async function exportAs(kind: 'opml' | 'md' | 'mm'): Promise<void> {
   await window.api.inkproj.exportText(text, name)
 }
 
-/** Export the active project → a single self-contained `.html` (tree + cross-links + docs). */
-export async function exportHtml(): Promise<void> {
+/** Build the self-contained project HTML (tree + cross-links + rendered docs + inlined
+ *  assets) once; reused by Export HTML / PDF / PNG / Print. Null if no active project. */
+async function buildProjectHtml(): Promise<{ html: string; title: string } | null> {
   const tabId = useAppStore.getState().activeId
   const entry = useProjectStore.getState().byTab[tabId]
   const pd = getProjectDoc(tabId)
-  if (!entry || !pd) return
+  if (!entry || !pd) return null
   const title = ((pd.doc.getMap('meta').get('title') as string) ?? '') || 'Project'
   const graph = buildGraph(yjsToOutline(pd.doc))
 
@@ -142,7 +144,33 @@ export async function exportHtml(): Promise<void> {
     assets,
     renderMd: (m) => renderMarkdownBody(m, features)
   })
-  await window.api.inkproj.exportHtml(html, `${title}.html`)
+  return { html, title }
+}
+
+/** Export the active project → a single self-contained `.html` (tree + cross-links + docs). */
+export async function exportHtml(): Promise<void> {
+  const built = await buildProjectHtml()
+  if (built) await window.api.inkproj.exportHtml(built.html, `${built.title}.html`)
+}
+
+/** Export the active project → PDF (the same HTML, printed via the offscreen window). */
+export async function exportProjectPdf(): Promise<void> {
+  const built = await buildProjectHtml()
+  if (built) {
+    await window.api.exportPdf(built.html, pdfOptions(useAppStore.getState().pageSetup), `${built.title}.pdf`)
+  }
+}
+
+/** Export the active project → a full-page PNG (the same HTML, captured offscreen). */
+export async function exportProjectImage(): Promise<void> {
+  const built = await buildProjectHtml()
+  if (built) await window.api.exportImage(built.html, `${built.title}.png`)
+}
+
+/** Print the active project (the same HTML, in the print-preview window). */
+export async function printProject(): Promise<void> {
+  const built = await buildProjectHtml()
+  if (built) await window.api.printDoc(built.html, pdfOptions(useAppStore.getState().pageSetup))
 }
 
 /** Open a `.inkproj` from a known path (file association / double-click). */
