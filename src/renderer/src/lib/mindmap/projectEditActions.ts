@@ -54,6 +54,16 @@ export function addChildTo(nodeId: string): void {
   ps.beginEdit(id)
 }
 
+/** Quick-add a named child under `parentId` (no inline-rename — keeps the quick-entry focus). */
+export function quickAddChild(parentId: string, text: string): void {
+  const a = active()
+  if (!a) return
+  const id = addChild(a.doc, parentId)
+  if (text.trim()) rename(a.doc, id, text.trim())
+  markDirty(a.tabId)
+  useProjectStore.getState().expand(parentId)
+}
+
 /** Add an empty sibling after the selected node; select + edit it. */
 export function addSiblingToSelected(): void {
   const a = active()

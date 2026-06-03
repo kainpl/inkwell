@@ -35,6 +35,8 @@ export interface ProjectEntry {
   externalDocs: Record<string, string>
   /** Whether the canvas search box is open. */
   searchOpen: boolean
+  /** Whether the quick-entry box is open. */
+  quickOpen: boolean
   /** When set, nodes without this tag are dimmed. */
   highlightTag: string | null
   /** When set, nodes outside this node's focus set (it + ancestors + descendants) are dimmed. */
@@ -86,6 +88,9 @@ interface ProjectsState {
   /** Toggle / set the canvas search box. */
   toggleSearch: () => void
   setSearchOpen: (open: boolean) => void
+  /** Toggle / set the quick-entry box. */
+  toggleQuick: () => void
+  setQuickOpen: (open: boolean) => void
   /** Toggle the highlighted tag (passing the current one clears it). */
   setHighlightTag: (tag: string | null) => void
   /** Set / clear the focused node. */
@@ -126,6 +131,7 @@ export const useProjectStore = create<ProjectsState>((set) => ({
           dirtyDocs: {},
           externalDocs: {},
           searchOpen: false,
+          quickOpen: false,
           highlightTag: null,
           focusId: null
         }
@@ -241,6 +247,9 @@ export const useProjectStore = create<ProjectsState>((set) => ({
 
   toggleSearch: () => set((s) => patchActive(s, (e) => ({ ...e, searchOpen: !e.searchOpen }))),
   setSearchOpen: (open) => set((s) => patchActive(s, (e) => ({ ...e, searchOpen: open }))),
+
+  toggleQuick: () => set((s) => patchActive(s, (e) => ({ ...e, quickOpen: !e.quickOpen }))),
+  setQuickOpen: (open) => set((s) => patchActive(s, (e) => ({ ...e, quickOpen: open }))),
 
   setHighlightTag: (tag) =>
     set((s) => patchActive(s, (e) => ({ ...e, highlightTag: e.highlightTag === tag ? null : tag }))),

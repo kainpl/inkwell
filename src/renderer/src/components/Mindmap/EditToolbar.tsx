@@ -18,9 +18,11 @@ export default function EditToolbar(): JSX.Element {
   const activeId = useAppStore((s) => s.activeId)
   const dirty = useAppStore((s) => s.tabs.find((t) => t.id === activeId)?.dirty ?? false)
   const setFocus = useProjectStore((s) => s.setFocus)
+  const toggleQuick = useProjectStore((s) => s.toggleQuick)
   const sel = project?.selectedId ?? null
   const hasSel = sel != null
   const focused = project?.focusId != null
+  const quickOn = project?.quickOpen ?? false
 
   return (
     <div className="flex items-center gap-1 border-b border-line bg-chrome px-2 py-1">
@@ -34,6 +36,13 @@ export default function EditToolbar(): JSX.Element {
         title="Add sibling (Enter)"
       >
         + Sibling
+      </button>
+      <button
+        className={`${BTN} ${quickOn ? 'text-accent' : ''}`}
+        onClick={toggleQuick}
+        title="Quick add (rapid keyboard capture)"
+      >
+        ⚡ Quick
       </button>
       <button className={BTN} disabled={!hasSel} onClick={deleteSelection} title="Delete (Del)">
         Delete

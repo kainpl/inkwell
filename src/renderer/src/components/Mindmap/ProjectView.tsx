@@ -1,10 +1,11 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import Canvas from './Canvas'
 import DocPane from './DocPane'
 import DocBar from './DocBar'
 import EditToolbar from './EditToolbar'
 import EdgeInspector from './EdgeInspector'
 import NodeInspector from './NodeInspector'
+import HotkeysHelp from './HotkeysHelp'
 import { useAppStore } from '@renderer/store/useAppStore'
 import { useProjectStore } from '@renderer/store/useProjectStore'
 import { useProjectGraph } from '@renderer/lib/mindmap/useProjectGraph'
@@ -44,6 +45,12 @@ export default function ProjectView(): JSX.Element {
   useEffect(() => {
     graphRef.current = graph
   }, [graph])
+
+  const [helpOpen, setHelpOpen] = useState(false)
+  const helpRef = useRef(false)
+  useEffect(() => {
+    helpRef.current = helpOpen
+  }, [helpOpen])
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent): void => {
@@ -109,6 +116,10 @@ export default function ProjectView(): JSX.Element {
           }
           break
         }
+        case '?':
+          e.preventDefault()
+          setHelpOpen((v) => !v)
+          break
         case '.':
           if (sel) {
             e.preventDefault()
@@ -116,8 +127,11 @@ export default function ProjectView(): JSX.Element {
           }
           break
         case 'Escape':
-          store.setHighlightTag(null)
-          store.setFocus(null)
+          if (helpRef.current) setHelpOpen(false)
+          else {
+            store.setHighlightTag(null)
+            store.setFocus(null)
+          }
           break
         case 'Tab':
           if (sel) {
@@ -154,7 +168,7 @@ export default function ProjectView(): JSX.Element {
   }, [])
 
   return (
-    <div className="flex h-full w-full flex-col">
+    <div className="relative flex h-full w-full flex-col">
       <EditToolbar />
       <div className="flex min-h-0 flex-1">
         <div className="relative min-w-0 flex-1">
@@ -169,6 +183,7 @@ export default function ProjectView(): JSX.Element {
           </div>
         </div>
       </div>
+      {helpOpen ? <HotkeysHelp onClose={() => setHelpOpen(false)} /> : null}
     </div>
   )
 }

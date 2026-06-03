@@ -36,6 +36,8 @@ import type { LinkType } from '@shared/mindmap/types'
 import MindNode from './MindNode'
 import { TreeEdge, CrosslinkEdge } from './edges'
 import SearchPanel from './SearchPanel'
+import Breadcrumb from './Breadcrumb'
+import QuickEntry from './QuickEntry'
 
 /** Registers a center-on-node fn (it has both the layout and a React Flow instance)
  *  so callers outside the flow (key handlers) can center the viewport. */
@@ -233,6 +235,8 @@ export default function Canvas(): JSX.Element {
       <MiniMap pannable zoomable />
       <ViewportRegistrar layout={layout} />
       <SearchPanel graph={graph} />
+      <QuickEntry graph={graph} />
+      <Breadcrumb graph={graph} />
       {dropHint ? (
         <ViewportPortal>
           <DropGhost hint={dropHint} layout={layout} />
