@@ -72,15 +72,23 @@ multi-root layout + drop-ghost · per-node junction add-child/expand control.
 
 ## C. Schema ⟷ Markdown bridge  *(the unification seam)*
 
+> **Architecture decided (2026-06):** the **tree is the core / SSOT**; markdown docs simply
+> **attach to nodes, many-to-many** (one doc on N nodes, one node with N docs). There is **no
+> canonical-AST rebuild** and **no `#heading ⇄ node` merge** — the MindDoc-style single-AST
+> vision is *not* our direction. The current model (node `DocRef[]` + the views below) already
+> realises this.
+
 - **✅ Outline view** (M8) — edit the schema as an indented outline; Map/Outline/Split over the
-  same Yjs model (rename, Enter/Tab/Shift+Tab/Backspace, ↑/↓). *MindNode (core); MindDoc. · M*
+  same Yjs model (rename, Enter/Tab/Shift+Tab/Backspace, ↑/↓). *MindNode (core). · M*
 - **✅ Node ↔ doc deep linking polish** (M10) — outline 📄 opens a node's doc; a ⌖ chip in
   the doc bar reveals the open doc's node on the map (expand ancestors + select + center).
-  *doc-heading → node still open. Builds on anchors (D6). *ours. · M*
-- **◐ AST → projections (multi-view)** — one canonical model → mind-map / outline / **table** /
-  slides projections; instant view switch, not export. **Table projection shipped (M11)**;
-  slides + a canonical-AST rebuild still open. Strategic for the converged product.
-  *Protocolist MindDoc `MIND_DOC_ARCHITECTURE.md`, ADR-0033. · L*
+  *Builds on anchors (D6). *ours. · M*
+- **✅ Many-to-many node ↔ doc links** (M12) — link an existing bundle doc to another node
+  (**Link…**), an **🔗 also:** row of the nodes sharing the open doc, and a **Docs** panel
+  (all docs + referencing nodes). *ours. · M*
+- **✅ Multi-view projections of the tree** — map / outline / **table** (M11) are live
+  projections of the one model (instant switch, not export). *slides projection still open;
+  a canonical-AST rebuild is **explicitly not pursued** (see the note above). · S each*
 
 ## D. Import / export / interop
 
