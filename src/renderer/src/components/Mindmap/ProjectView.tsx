@@ -50,6 +50,7 @@ export default function ProjectView(): JSX.Element {
   }, [graph])
 
   const viewMode = useProjectStore((s) => s.byTab[activeId]?.viewMode ?? 'map')
+  const saveError = useProjectStore((s) => s.byTab[activeId]?.saveError ?? null)
   const [helpOpen, setHelpOpen] = useState(false)
   const helpRef = useRef(false)
   useEffect(() => {
@@ -173,6 +174,18 @@ export default function ProjectView(): JSX.Element {
 
   return (
     <div className="relative flex h-full w-full flex-col">
+      {saveError ? (
+        <div className="flex items-center justify-between gap-2 bg-[#d35454] px-3 py-1 text-[12px] text-white">
+          <span className="min-w-0 truncate">Couldn’t save the project — retried. {saveError}</span>
+          <button
+            onClick={() => useProjectStore.getState().setSaveError(null)}
+            className="shrink-0 rounded px-1 hover:bg-white/20"
+            title="Dismiss"
+          >
+            ✕
+          </button>
+        </div>
+      ) : null}
       <EditToolbar />
       <div className="flex min-h-0 flex-1">
         <div className="flex min-w-0 flex-1">

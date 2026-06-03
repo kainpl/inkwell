@@ -49,6 +49,8 @@ export interface ProjectEntry {
   direction: 'right' | 'down'
   /** Node count at the last successful save — the shrink-guard's baseline (0 until first save). */
   savedNodeCount: number
+  /** Last save failure message (after retries), or null — shown as a banner. */
+  saveError: string | null
 }
 
 interface ProjectsState {
@@ -114,6 +116,8 @@ interface ProjectsState {
   setSavedNodeCount: (n: number) => void
   /** Bind an untitled project to its chosen source path (after the first save-as). */
   setSrcPath: (srcPath: string) => void
+  /** Set / clear the last save-failure message. */
+  setSaveError: (msg: string | null) => void
 }
 
 /** Immutably update the active tab's entry (no-op if the active tab isn't a project). */
@@ -156,7 +160,8 @@ export const useProjectStore = create<ProjectsState>((set) => ({
           focusId: null,
           viewMode: 'map',
           direction: 'right',
-          savedNodeCount: 0
+          savedNodeCount: 0,
+          saveError: null
         }
       }
     })),
@@ -283,7 +288,8 @@ export const useProjectStore = create<ProjectsState>((set) => ({
   setViewMode: (mode) => set((s) => patchActive(s, (e) => ({ ...e, viewMode: mode }))),
   setDirection: (dir) => set((s) => patchActive(s, (e) => ({ ...e, direction: dir }))),
   setSavedNodeCount: (n) => set((s) => patchActive(s, (e) => ({ ...e, savedNodeCount: n }))),
-  setSrcPath: (srcPath) => set((s) => patchActive(s, (e) => ({ ...e, srcPath })))
+  setSrcPath: (srcPath) => set((s) => patchActive(s, (e) => ({ ...e, srcPath }))),
+  setSaveError: (msg) => set((s) => patchActive(s, (e) => ({ ...e, saveError: msg })))
 }))
 
 /** The active tab's project entry, or null. Subscribes to both stores so it

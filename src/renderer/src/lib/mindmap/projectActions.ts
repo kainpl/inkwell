@@ -13,6 +13,7 @@ import { pdfOptions } from '@renderer/lib/pageSetup'
 import { importAny } from './importFormats'
 import { importMindnode } from './importMindnode'
 import { toOpml, toPlainMarkdown, toFreeMind } from './exportFormats'
+import { withRetry } from './retry'
 
 /** Ids whose subtree should start collapsed (`data.expand === false`). */
 function initialCollapsed(doc: YDoc): Set<string> {
@@ -196,14 +197,20 @@ export async function saveProject(tabId: string): Promise<void> {
   const docs = Object.entries(entry.dirtyDocs).map(([path, content]) => ({ path, content }))
   if (docs.length) payload.docs = docs
 
-  if (!entry.srcPath) {
-    // Untitled project: prompt for a destination on the first save.
-    const newPath = await window.api.inkproj.saveAs(entry.workingDir, payload)
-    if (!newPath) return // user cancelled — keep the tab dirty
-    useProjectStore.getState().setSrcPath(newPath)
-  } else {
-    await window.api.inkproj.save(entry.workingDir, payload, entry.srcPath)
+  try {
+    if (!entry.srcPath) {
+      // Untitled project: prompt for a destination on the first save.
+      const newPath = await withRetry(() => window.api.inkproj.saveAs(entry.workingDir, payload))
+      if (!newPath) return // user cancelled — keep the tab dirty
+      useProjectStore.getState().setSrcPath(newPath)
+    } else {
+      await withRetry(() => window.api.inkproj.save(entry.workingDir, payload, entry.srcPath))
+    }
+  } catch (e) {
+    useProjectStore.getState().setSaveError(e instanceof Error ? e.message : String(e))
+    throw e
   }
+  useProjectStore.getState().setSaveError(null)
   useProjectStore.getState().clearManifestDirty()
   useProjectStore.getState().clearDirtyDocs()
   useProjectStore.getState().setSavedNodeCount(nodesOf(pd.doc).size)
