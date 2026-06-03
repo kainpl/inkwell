@@ -61,7 +61,7 @@ the export reuses `renderMarkdownBody` (sanitized fragment). Decisions: [`backlo
 ## Phase F — gate + QA
 
 - [x] **F1** `npx vitest run` green (442; +4 across themes / nodeStyleOps / exportHtml); `typecheck`/`lint`/`build` clean.
-- [ ] **F2** QA: apply/clear a theme; B/I/U + a note on a node; export HTML (rendered md) + PDF/PNG/Print; outline 📄 opens a doc; doc-pane ⌖ reveals the node. *(handed off)*
+- [x] **F2** QA: apply/clear a theme; B/I/U + a note on a node; export HTML (rendered md) + PDF/PNG/Print; outline 📄 opens a doc; doc-pane ⌖ reveals the node. *(accepted; pushed)*
 
 ## Self-review
 - **Additive (D1):** theme colors, label flags, notes are node `data`; exports are read-only. ✓
