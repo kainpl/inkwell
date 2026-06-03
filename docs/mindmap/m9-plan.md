@@ -19,33 +19,33 @@ overlay (`ViewportPortal`) like the drop-ghost. Decisions: [`backlog.md`](backlo
 
 **Files:** create `lib/mindmap/exportFormats.ts` (+ test); modify `main/inkproj/{zip? index}.ts` (`inkproj:exportText`), `shared/ipc.ts`, `preload`, `projectActions.ts`, `menu.ts`, `i18n`, `App.tsx`.
 
-- [ ] **A1** `exportFormats.ts` pure: `toOpml(title, outline)`, `toPlainMarkdown(outline)` (nested bullets, no data comments), `toFreeMind(title, outline)` (`<map><node TEXT=…>` with `COLOR`/`BACKGROUND_COLOR` from `data`). All XML/text-escaped. Tests (round-trippable shapes).
-- [ ] **A2** Main `inkproj:exportText(text, suggestedName)` → save dialog (filter from the name's extension) → write → return path. `shared/ipc.ts` + `preload`.
-- [ ] **A3** `projectActions`: `exportAs(kind: 'opml'|'md'|'mm')` builds the text from `outlineToMarkdown`-source outline (`yjsToOutline`) via the generator → `inkproj.exportText`. `menu.ts` File → Export ▸ (OPML / Markdown / FreeMind); `i18n`; `App.tsx` wire.
-- [ ] **A4** `typecheck`/`lint`. Commit `feat(mindmap): export OPML / Markdown / FreeMind`.
+- [x] **A1** `exportFormats.ts` pure: `toOpml`, `toPlainMarkdown`, `toFreeMind` (with `COLOR`/`BACKGROUND_COLOR`/`FOLDED`). XML/text-escaped; 5 round-trip tests through `importAny`.
+- [x] **A2** Main `inkproj:exportText(text, suggestedName)` → save dialog (filter inferred from the name's extension) → write → return path. `shared/ipc.ts` + `preload`.
+- [x] **A3** `projectActions.exportAs('opml'|'md'|'mm')` builds via the generators from `yjsToOutline`; `menu.ts` File → **Export Schema as** ▸ (OPML / Markdown / FreeMind); i18n en/uk/ru; `App.tsx` wired (+ `menuChannels`).
+- [x] **A4** `typecheck`/`lint` clean. Commit `feat(mindmap): export OPML / Markdown / FreeMind`.
 
 ## Phase B — interactive tasks + more shapes
 
 **Files:** modify `nodeStyleOps.ts`, `MindNode.tsx`, `NodeInspector.tsx`.
 
-- [ ] **B1** `nodeStyleOps.cycleTask(doc, id)` — none → open → done → cancelled → none (sets `task`/`taskStatus`). Test.
-- [ ] **B2** `MindNode`: the task checkbox is clickable → `cycleTask`; render open `☐` / done `☑` (strikethrough label) / cancelled `⊘`. `NodeInspector`: a Task control (toggle + status).
-- [ ] **B3** More shapes in `SHAPE_RADIUS` + the inspector list: add `cloud`/`hexagon`/`octagon` (approximate with border-radius / clip-path), keep rounded/rectangle/pill/ellipse.
-- [ ] **B4** `typecheck`/`lint`. Commit `feat(mindmap): interactive tasks + more node shapes`.
+- [x] **B1** `nodeStyleOps.cycleTask(doc, id)` — none → open → done → cancelled → none (clears `task`/`taskStatus` at 'none', preserves other keys). Tested.
+- [x] **B2** `MindNode`: clickable task checkbox → `toggleTask` (open `☐` / done `☑` / cancelled `⊘`, strikethrough label when closed). `NodeInspector`: a Task control cycling the status.
+- [x] **B3** `cloud` (border-radius) + `hexagon`/`octagon` (clip-path, two stacked clipped layers for a visible outline) added to `SHAPE_*` + the inspector list. The tail control moved to a wrapper element so clip-path can't hide it.
+- [x] **B4** `typecheck`/`lint` clean. Commit `feat(mindmap): interactive tasks + more node shapes`.
 
 ## Phase C — frames (group brackets)
 
 **Files:** modify `nodeStyleOps.ts`/types, `Canvas.tsx` (+ a `Frames` overlay), `NodeInspector.tsx`.
 
-- [ ] **C1** `data.frame: 'bracket' | 'underline' | null` on a node → draws a frame around that node's **visible subtree** bounding box. Compute the bbox from `layout` + visible descendants; render an SVG rect/bracket in a `ViewportPortal` (like the drop-ghost).
-- [ ] **C2** `NodeInspector`: a Frame control (none / bracket / underline). `setNodeData({ frame })`.
-- [ ] **C3** Exported HTML: frames noted as backlog (skip in `renderProjectHtml` for now).
-- [ ] **C4** `typecheck`/`lint`/`build`. Commit `feat(mindmap): subtree frames`.
+- [x] **C1** `data.frame: 'bracket' | 'underline'` → `subtreeBounds(graph, collapsed, layout, id)` (collapse-aware bbox, tested) drives a translucent `Frames` overlay in a `ViewportPortal`, behind the nodes.
+- [x] **C2** `NodeInspector`: a Frame select (none / bracket / underline) via `apply({ frame })`.
+- [x] **C3** Exported HTML: frames left as backlog (no change to `renderProjectHtml`).
+- [x] **C4** `typecheck`/`lint`/`build` green. Commit `feat(mindmap): subtree frames`.
 
 ## Phase D — gate + QA
 
-- [ ] **D1** `npx vitest run` green; `typecheck`/`lint`/`build` clean.
-- [ ] **D2** QA: export OPML/MD/.mm + re-import; toggle tasks; new shapes; frames around a subtree. Update `README.md` + `backlog.md`. Hand off; commit/push per OK.
+- [x] **D1** `npx vitest run` green (438; +11 new across exportFormats/nodeStyleOps/layout); `typecheck`/`lint`/`build` clean.
+- [ ] **D2** QA: export OPML/MD/.mm + re-import; toggle tasks; new shapes; frames around a subtree. Update `README.md` + `backlog.md`. Hand off; commit/push per OK. *(handed off)*
 
 ## Self-review
 - **Additive (D1):** tasks/shape/frame are node `data`; export generators are read-only. ✓

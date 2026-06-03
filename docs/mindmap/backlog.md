@@ -55,12 +55,12 @@ multi-root layout + drop-ghost · per-node junction add-child/expand control.
 
 ## B. Schema editor — nodes & visuals
 
-- **★★ More node shapes** — cloud / hexagon / octagon / line / embedded (we have
-  rounded/rectangle/pill/ellipse). *MindNode; Protocolist. · S*
-- **★★ Interactive tasks** — toggle `taskStatus` by click; subtree progress rollup
-  (we only render the badge today). *Protocolist `mind-node.tsx`; MindNode. · S–M*
-- **★★ Frames / group brackets** — square/curved bracket / underline overlays that visually
-  group a subtree (SVG over the band). *Protocolist `frames.tsx`. · S*
+- **✅ More node shapes** (M9) — added cloud (border-radius) + hexagon/octagon (clip-path,
+  two-layer outline) to rounded/rectangle/pill/ellipse. *line / embedded still open. · S*
+- **✅ Interactive tasks** (M9) — click the node checkbox to cycle `taskStatus`
+  (none → open → done → cancelled); strikethrough when closed. *subtree progress rollup still open. · S–M*
+- **✅ Frames / group brackets** (M9) — `data.frame` (bracket / underline) draws a translucent
+  frame around a node's visible subtree (collapse-aware bbox, ViewportPortal overlay). *Protocolist `frames.tsx`. · S*
 - **★ Short per-node note** (`data.note`) — a light annotation distinct from full attached
   docs; hover/expand to read. *MindNode "Notes"; Protocolist. · S*
 - **★ Rich-text node labels** (bold/italic/font/size) — `labelHtml` already exists in the
@@ -82,8 +82,8 @@ multi-root layout + drop-ghost · per-node junction add-child/expand control.
 
 ## D. Import / export / interop
 
-- **★★ Export OPML / Markdown / FreeMind `.mm`** — symmetry with our importers; `.mm` writer
-  is a ~55-line port. *Protocolist `freemind-writer.ts`; MindNode exports all these. · S*
+- **✅ Export OPML / Markdown / FreeMind `.mm`** (M9) — pure generators (`exportFormats.ts`),
+  each re-importable through its parser; File → Export Schema as ▸. *MindNode exports all these. · S*
 - **★★ Export PDF / PNG + Print** — Electron print-to-PDF and a canvas screenshot; print the
   map or the outline. *MindNode; Electron built-in. · S–M*
 - **★ Rendered-markdown in the HTML export** — render doc bodies as HTML (sanitized) instead
