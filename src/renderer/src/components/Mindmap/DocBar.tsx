@@ -9,12 +9,14 @@ import {
   detachDoc,
   internalizeOpenDoc,
   linkOpenDocAnchor,
+  linkExistingDocToSelected,
   openDocRef,
   openExternalDoc,
   revealNode
 } from '@renderer/lib/mindmap/projectEditActions'
 import { getDocView, insertAnchorAtCaret } from '@renderer/lib/mindmap/docView'
 import { listAnchors } from '@renderer/lib/mindmap/anchors'
+import { projectDocs } from '@renderer/lib/mindmap/projectDocs'
 
 const BTN = 'rounded px-2 py-1 text-[12px] text-ink enabled:hover:bg-line/40 disabled:opacity-40'
 
@@ -38,6 +40,8 @@ export default function DocBar(): JSX.Element {
   const openInternal = project?.openDoc != null && !openExternal
   const openNodeId = project?.openDoc?.nodeId ?? null
   const openNodeLabel = openNodeId ? graph?.nodes.find((n) => n.id === openNodeId)?.label : null
+  // Existing bundle docs not already attached to the selected node (the M:N "Link…" pool).
+  const linkable = sel && graph ? projectDocs(graph).filter((d) => !d.nodeIds.includes(sel)) : []
   const openAnchor = project?.openDoc?.ref.anchor ?? ''
   const anchors = openInternal ? listAnchors(getDocView()?.state.doc.toString() ?? '') : []
 
@@ -122,6 +126,26 @@ export default function DocBar(): JSX.Element {
       >
         Ext…
       </button>
+      {linkable.length ? (
+        <select
+          value=""
+          onChange={(e) => {
+            const d = linkable.find((x) => x.path === e.target.value)
+            if (d) linkExistingDocToSelected(d.path, d.title)
+          }}
+          title="Link an existing project doc to this node (many-to-many)"
+          className="max-w-[28%] rounded border border-line bg-paper px-1 py-0.5 text-[12px] text-ink"
+        >
+          <option value="" disabled>
+            Link…
+          </option>
+          {linkable.map((d) => (
+            <option key={d.path} value={d.path}>
+              {d.title}
+            </option>
+          ))}
+        </select>
+      ) : null}
       {openExternal ? (
         <>
           <button className={BTN} onClick={() => void openExternalDoc()} title="Re-grant + load the external file">

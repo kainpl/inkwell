@@ -294,6 +294,23 @@ export async function attachDocToSelected(): Promise<void> {
   useProjectStore.getState().openDocFor(sel, ref)
 }
 
+/** Link an existing bundle doc (already in the project) to the selected node — the
+ *  M:N attach. No-op-but-open if it's already linked here; otherwise push + open. */
+export function linkExistingDocToSelected(path: string, title: string): void {
+  const a = active()
+  if (!a) return
+  const sel = selectedId(a.tabId)
+  if (!sel) return
+  const ref: DocRef = { path, title }
+  if (nodeDocs(a.doc, sel).some((r) => !r.external && r.path === path)) {
+    useProjectStore.getState().openDocFor(sel, ref)
+    return
+  }
+  pushDocRef(a.doc, sel, ref)
+  markDirty(a.tabId)
+  useProjectStore.getState().openDocFor(sel, ref)
+}
+
 /** Create a new (buffered) doc under the selected node and open it. */
 export function createDocForSelected(): void {
   const a = active()
