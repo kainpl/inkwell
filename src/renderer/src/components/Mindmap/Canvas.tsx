@@ -57,6 +57,7 @@ function ViewportRegistrar({ layout }: { layout: Map<string, Pos> }): null {
 const nodeTypes: NodeTypes = { mind: MindNode }
 const edgeTypes: EdgeTypes = { tree: TreeEdge, crosslink: CrosslinkEdge }
 const EMPTY_LINK_TYPES: Record<string, LinkType> = {}
+const EMPTY_MULTI: Set<string> = new Set()
 
 const posList = (nodes: RfNode[]): { id: string; x: number; y: number }[] =>
   nodes.map((n) => ({ id: n.id, x: n.position.x, y: n.position.y }))
@@ -101,11 +102,13 @@ export default function Canvas(): JSX.Element {
   const activeId = useAppStore((s) => s.activeId)
   const openDocFor = useProjectStore((s) => s.openDocFor)
   const selectLink = useProjectStore((s) => s.selectLink)
+  const toggleInSelection = useProjectStore((s) => s.toggleInSelection)
   const graph = useProjectGraph(activeId)
   const collapsed = project?.collapsed
   const linkTypes = project?.linkTypes ?? EMPTY_LINK_TYPES
   const selectedId = project?.selectedId ?? null
   const selectedLinkId = project?.selectedLink?.linkId ?? null
+  const multi = project?.multi ?? EMPTY_MULTI
 
   // Positions depend on the tree shape AND collapse (collapsed subtrees reserve no
   // space — otherwise visible nodes spread out as if everything were expanded).
@@ -116,9 +119,9 @@ export default function Canvas(): JSX.Element {
   const model = useMemo(
     () =>
       graph
-        ? buildRfModel(graph, layout, collapsed ?? new Set<string>(), linkTypes, selectedId, selectedLinkId)
+        ? buildRfModel(graph, layout, collapsed ?? new Set<string>(), linkTypes, selectedId, selectedLinkId, multi)
         : { nodes: [] as RfNode[], edges: [] as RfEdge[] },
-    [graph, layout, collapsed, linkTypes, selectedId, selectedLinkId]
+    [graph, layout, collapsed, linkTypes, selectedId, selectedLinkId, multi]
   )
 
   // Local copies React Flow mutates during a drag, re-synced whenever the Yjs model
@@ -202,7 +205,10 @@ export default function Canvas(): JSX.Element {
       onConnect={onConnect}
       nodeTypes={nodeTypes}
       edgeTypes={edgeTypes}
-      onNodeClick={(_e, node) => openDocFor(node.id, (node.data as RfNodeData).raw.data.docs?.[0])}
+      onNodeClick={(e, node) => {
+        if (e.shiftKey || e.metaKey || e.ctrlKey) toggleInSelection(node.id)
+        else openDocFor(node.id, (node.data as RfNodeData).raw.data.docs?.[0])
+      }}
       onEdgeClick={(_e, edge) => {
         const d = edge.data as RfEdgeData | undefined
         if (edge.type === 'crosslink' && d?.fromNodeId && d?.linkId) selectLink(d.fromNodeId, d.linkId)

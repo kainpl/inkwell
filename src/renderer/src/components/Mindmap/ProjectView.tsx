@@ -14,7 +14,7 @@ import {
   addChildToSelected,
   addSiblingToSelected,
   beginRenameSelected,
-  deleteSelected,
+  deleteSelection,
   deleteSelectedLink,
   redoActive,
   undoActive
@@ -131,7 +131,7 @@ export default function ProjectView(): JSX.Element {
         case 'Backspace':
           if (sel) {
             e.preventDefault()
-            deleteSelected()
+            deleteSelection()
           } else if (proj.selectedLink) {
             e.preventDefault()
             deleteSelectedLink()

@@ -22,6 +22,8 @@ export interface ProjectEntry {
   srcPath: string
   collapsed: Set<string>
   selectedId: string | null
+  /** Extra multi-selected nodes (beyond `selectedId`); the full selection is the union. */
+  multi: Set<string>
   /** Node currently in inline-rename mode (its `MindNode` shows an input). */
   editingId: string | null
   /** Selected cross-link (mutually exclusive with `selectedId`). */
@@ -56,6 +58,8 @@ interface ProjectsState {
   /** Replace the whole collapsed set (used by expand-to-level). */
   setCollapsed: (ids: Set<string>) => void
   select: (nodeId: string | null) => void
+  /** Toggle a node in the multi-selection (Shift/Cmd-click); first pick becomes primary. */
+  toggleInSelection: (nodeId: string) => void
   /** Select a cross-link (clears node selection); `null` clears the link selection. */
   selectLink: (fromNodeId: string | null, linkId?: string) => void
   /** Select a node; open its doc if a ref is supplied (else keep the current doc). */
@@ -107,6 +111,7 @@ export const useProjectStore = create<ProjectsState>((set) => ({
           srcPath,
           collapsed,
           selectedId: null,
+          multi: new Set<string>(),
           editingId: null,
           selectedLink: null,
           openDoc: null,
@@ -148,7 +153,26 @@ export const useProjectStore = create<ProjectsState>((set) => ({
   setCollapsed: (ids) => set((s) => patchActive(s, (e) => ({ ...e, collapsed: ids }))),
 
   select: (nodeId) =>
-    set((s) => patchActive(s, (e) => ({ ...e, selectedId: nodeId, selectedLink: null }))),
+    set((s) =>
+      patchActive(s, (e) => ({
+        ...e,
+        selectedId: nodeId,
+        multi: e.multi.size ? new Set<string>() : e.multi,
+        selectedLink: null
+      }))
+    ),
+
+  toggleInSelection: (nodeId) =>
+    set((s) =>
+      patchActive(s, (e) => {
+        if (e.selectedId == null) return { ...e, selectedId: nodeId }
+        if (nodeId === e.selectedId) return e
+        const multi = new Set(e.multi)
+        if (multi.has(nodeId)) multi.delete(nodeId)
+        else multi.add(nodeId)
+        return { ...e, multi, selectedLink: null }
+      })
+    ),
 
   selectLink: (fromNodeId, linkId) =>
     set((s) =>
@@ -162,11 +186,10 @@ export const useProjectStore = create<ProjectsState>((set) => ({
 
   openDocFor: (nodeId, ref) =>
     set((s) =>
-      patchActive(s, (e) =>
-        ref
-          ? { ...e, openDoc: { nodeId, ref }, selectedId: nodeId, selectedLink: null }
-          : { ...e, selectedId: nodeId, selectedLink: null }
-      )
+      patchActive(s, (e) => {
+        const base = { ...e, selectedId: nodeId, selectedLink: null, multi: new Set<string>() }
+        return ref ? { ...base, openDoc: { nodeId, ref } } : base
+      })
     ),
 
   clearDoc: () => set((s) => patchActive(s, (e) => ({ ...e, openDoc: null }))),

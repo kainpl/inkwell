@@ -3,7 +3,8 @@ import { useAppStore } from '@renderer/store/useAppStore'
 import { useActiveProject } from '@renderer/store/useProjectStore'
 import { useProjectGraph } from '@renderer/lib/mindmap/useProjectGraph'
 import { getProjectDoc } from '@renderer/lib/mindmap/yjsRegistry'
-import { setNodeData, addTag, removeTag, addIcon, removeIcon } from '@renderer/lib/mindmap/nodeStyleOps'
+import { removeTag, addIcon, removeIcon } from '@renderer/lib/mindmap/nodeStyleOps'
+import { styleSelection, addTagToSelection } from '@renderer/lib/mindmap/projectEditActions'
 import type { NodeData } from '@shared/mindmap/types'
 
 const SHAPES = ['rounded', 'rectangle', 'pill', 'ellipse']
@@ -30,7 +31,8 @@ export default function NodeInspector(): JSX.Element | null {
     fn(pd)
     useAppStore.getState().setTabDirty(activeId, true)
   }
-  const apply = (patch: Partial<NodeData>): void => withDoc((pd) => pd && setNodeData(pd.doc, sel, patch))
+  // Colors/shape apply to the whole selection (primary ∪ multi); single node when not multi-selecting.
+  const apply = (patch: Partial<NodeData>): void => styleSelection(patch)
 
   const colorRow = (label: string, key: 'fillColor' | 'color' | 'lineColor'): JSX.Element => {
     const v = d[key]
@@ -121,7 +123,7 @@ export default function NodeInspector(): JSX.Element | null {
           onChange={(e) => setTagInput(e.target.value)}
           onKeyDown={(e) => {
             if (e.key === 'Enter' && tagInput.trim()) {
-              withDoc((pd) => pd && addTag(pd.doc, sel, tagInput.trim()))
+              addTagToSelection(tagInput.trim())
               setTagInput('')
             }
           }}

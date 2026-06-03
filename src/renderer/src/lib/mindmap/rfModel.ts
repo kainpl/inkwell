@@ -48,7 +48,8 @@ export function buildRfModel(
   collapsed: Set<string>,
   linkTypes: Record<string, LinkType>,
   selectedId: string | null = null,
-  selectedLinkId: string | null = null
+  selectedLinkId: string | null = null,
+  multi: Set<string> = new Set()
 ): { nodes: RfNode[]; edges: RfEdge[] } {
   const hidden = hiddenSet(graph, collapsed)
   const visible = (id: string): boolean => !hidden.has(id)
@@ -64,7 +65,7 @@ export function buildRfModel(
         raw: n,
         hasChildren: (graph.childrenOf.get(n.id)?.length ?? 0) > 0,
         collapsed: collapsed.has(n.id),
-        selected: n.id === selectedId
+        selected: n.id === selectedId || multi.has(n.id)
       }
     }))
 

@@ -6,8 +6,18 @@ import { saveProject } from './projectActions'
 import { addChild, addSibling, remove as removeNode, rename } from './treeOps'
 import { removeCrossLink } from './crossLinkOps'
 import { nodeDocs, pushDocRef, removeDocRef, replaceDocRef, setDocAnchor } from './docOps'
+import { setNodeData, addTag } from './nodeStyleOps'
 import { insertAtCaret } from './docView'
-import type { DocRef } from '@shared/mindmap/types'
+import type { DocRef, NodeData } from '@shared/mindmap/types'
+
+/** The full node selection of the active project tab (primary `selectedId` ∪ `multi`). */
+function selectionIds(tabId: string): string[] {
+  const e = useProjectStore.getState().byTab[tabId]
+  if (!e) return []
+  const ids = e.selectedId ? [e.selectedId] : []
+  for (const id of e.multi) if (id !== e.selectedId) ids.push(id)
+  return ids
+}
 
 /** The active project tab's id + Y.Doc, or null if the active tab isn't a project. */
 function active(): { tabId: string; doc: YDoc } | null {
@@ -62,6 +72,39 @@ export function deleteSelected(): void {
   const sel = selectedId(a.tabId)
   if (!sel) return
   removeNode(a.doc, sel)
+  markDirty(a.tabId)
+  const ps = useProjectStore.getState()
+  ps.clearDoc()
+  ps.select(null)
+}
+
+/** Apply a style/data patch to the whole selection (one undo step via captureTimeout). */
+export function styleSelection(patch: Partial<NodeData>): void {
+  const a = active()
+  if (!a) return
+  const ids = selectionIds(a.tabId)
+  if (!ids.length) return
+  for (const id of ids) setNodeData(a.doc, id, patch)
+  markDirty(a.tabId)
+}
+
+/** Add a tag to every node in the selection. */
+export function addTagToSelection(tag: string): void {
+  const a = active()
+  if (!a) return
+  const ids = selectionIds(a.tabId)
+  if (!ids.length) return
+  for (const id of ids) addTag(a.doc, id, tag)
+  markDirty(a.tabId)
+}
+
+/** Delete every node in the selection (with subtrees) and clear the selection. */
+export function deleteSelection(): void {
+  const a = active()
+  if (!a) return
+  const ids = selectionIds(a.tabId)
+  if (!ids.length) return
+  for (const id of ids) removeNode(a.doc, id)
   markDirty(a.tabId)
   const ps = useProjectStore.getState()
   ps.clearDoc()

@@ -3,7 +3,7 @@ import { useActiveProject } from '@renderer/store/useProjectStore'
 import {
   addChildToSelected,
   addSiblingToSelected,
-  deleteSelected,
+  deleteSelection,
   redoActive,
   saveActive,
   undoActive
@@ -32,7 +32,7 @@ export default function EditToolbar(): JSX.Element {
       >
         + Sibling
       </button>
-      <button className={BTN} disabled={!hasSel} onClick={deleteSelected} title="Delete (Del)">
+      <button className={BTN} disabled={!hasSel} onClick={deleteSelection} title="Delete (Del)">
         Delete
       </button>
       <span className="mx-1 h-4 w-px bg-line" />
