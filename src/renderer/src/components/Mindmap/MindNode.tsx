@@ -165,6 +165,16 @@ export default function MindNode({ id, data }: NodeProps): JSX.Element {
             📝
           </span>
         ) : null}
+        {nd.rollup.total > 0 ? (
+          <span
+            title={`Subtasks: ${nd.rollup.done}/${nd.rollup.total} done`}
+            className={`shrink-0 rounded px-1 text-[10px] leading-tight ${
+              nd.rollup.done === nd.rollup.total ? 'bg-accent text-paper' : 'bg-line/50 text-muted'
+            }`}
+          >
+            {nd.rollup.done}/{nd.rollup.total}
+          </span>
+        ) : null}
       </div>
       {extLinks.length ? (
         <div className="mt-0.5 flex flex-wrap gap-0.5">

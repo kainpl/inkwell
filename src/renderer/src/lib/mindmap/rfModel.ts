@@ -2,6 +2,7 @@ import type { Edge, Node } from '@xyflow/react'
 import type { GraphModel, GraphNode, LinkType } from '@shared/mindmap/types'
 import type { Pos } from './layout'
 import { resolveLinkType } from './linkTypes'
+import { taskRollups, type Rollup } from './taskRollup'
 
 export interface RfNodeData {
   label: string
@@ -11,6 +12,8 @@ export interface RfNodeData {
   selected: boolean
   /** Dimmed by tag-highlight or focus mode. */
   dimmed: boolean
+  /** Subtree task progress (badge on parents). */
+  rollup: Rollup
   [k: string]: unknown
 }
 export type RfNode = Node<RfNodeData, 'mind'>
@@ -57,6 +60,7 @@ export function buildRfModel(
 ): { nodes: RfNode[]; edges: RfEdge[] } {
   const hidden = hiddenSet(graph, collapsed)
   const visible = (id: string): boolean => !hidden.has(id)
+  const rollups = taskRollups(graph)
   const isDimmed = (n: GraphNode): boolean => {
     if (highlightTag && !(Array.isArray(n.data.tag) && n.data.tag.includes(highlightTag))) return true
     if (focusSet && !focusSet.has(n.id)) return true
@@ -75,7 +79,8 @@ export function buildRfModel(
         hasChildren: (graph.childrenOf.get(n.id)?.length ?? 0) > 0,
         collapsed: collapsed.has(n.id),
         selected: n.id === selectedId || multi.has(n.id),
-        dimmed: isDimmed(n)
+        dimmed: isDimmed(n),
+        rollup: rollups.get(n.id) ?? { done: 0, total: 0 }
       }
     }))
 
