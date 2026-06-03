@@ -21,12 +21,12 @@
 - [x] **A6** `projectActions.importMindMap()` now: `pickImportFile` → `importAny` → `outlineToMarkdown` → `createFromImport` → `enterProject`. Menu Import wired to it (label kept).
 - [x] **A7** `typecheck`/`lint`/`build` green (vitest 417). Commit `feat(mindmap): multi-format import hub` (`53997e9`).
 
-## Phase B — `.mindnode` import (binary) — **BLOCKED, deferred**
+## Phase B — `.mindnode` import (binary) — **DONE**
 
-**Reality check (2026-06-03).** On inspecting the source, `.mindnode` is **~1400 lines** of deeply reverse-engineered, MindNode-version-specific protobuf (`parseMindnodeV2`: flat node list + relations, LZFSE-compressed theme blocks, per-file findings in the comments) — not the ~174-line figure first estimated. **We have no real `.mindnode` fixture to verify against**, so porting it blind would ship unverifiable binary parsing (violates "never claim green unverified"). Decision: **defer** — matches the vision's park (revisit with the Protocolist lib). Unblock by either (a) a real `.mindnode` sample to build+test against, or (b) adopting the Protocolist lib's reader.
+**Unblocked** by a real fixture (`temp/Стенографист new.mindnode`, the v2 `Contents.data` protobuf). Built a **minimal** reader (node tree only; the source's ~1400-line `parseMindnodeV2` also decodes styling/images/themes/viewport, skipped here). Verified against the real 675-node file before committing.
 
-- [ ] **B1** *(blocked)* port a node-tree extractor (pb primitives + flat-nodes→tree) — needs a fixture.
-- [ ] **B2** *(blocked)* wire the binary branch into `pickImportFile`/`importAny`.
+- [x] **B1** `importMindnode.ts` — pb primitives (`pbDecode`/`pbBuf`/`pbStr`/`pbHex`) + `mindnodeContentsToOutline`: nodes (`mm.f2[]` → id `f1` + text via content `f11` runs), relations (`mm.f3.f2[]` child/parent/order), tombstones (`mm.f3.f3`), root (`mm.f1.f1`, fallback = most-children); `cleanImportedOutline`. CI-safe synthetic-buffer test.
+- [x] **B2** `pickImportFile` returns base64 for `.mindnode`; `importMindMap` decodes (`atob` → bytes) → `importMindnode`. `mindnode` added to the import filter. Commit `feat(mindmap): .mindnode import` (`818ddd6`).
 
 ## Phase C — image assets
 

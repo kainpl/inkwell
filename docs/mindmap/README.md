@@ -19,7 +19,7 @@ Branch: `feat/mindmap`. Started 2026‑06‑02.
 | [`m2c-plan.md`](m2c-plan.md) | **Milestone 2c plan + design** — node styling · anchors UI · sibling reorder · external docs (Phases C1–C5). **Done / shipped.** |
 | [`m3-plan.md`](m3-plan.md) | **Milestone 3 plan + design** — project lifecycle: New project · Import `.mind-map` · Export `.mind-map` (D10/D11 interop). **Done / shipped.** |
 | [`m4-plan.md`](m4-plan.md) | **Milestone 4 plan + design** — export the active project to a single self-contained `.html` (shareable read-only artifact). **Done / shipped.** |
-| [`m5-plan.md`](m5-plan.md) | **Milestone 5** — import hub (`.mind-map`/`.mind-doc`/FreeMind `.mm`/OPML/MD/TXT/JSON) + image assets. **A+C code-complete** (pending QA); **B (`.mindnode`) deferred** — no fixture. |
+| [`m5-plan.md`](m5-plan.md) | **Milestone 5** — import hub (`.mind-map`/`.mind-doc`/FreeMind `.mm`/OPML/MD/TXT/JSON **+ `.mindnode`**) + image assets. **Code-complete** (pending QA). |
 | [`m6-plan.md`](m6-plan.md) | **Milestone 6** — canvas polish: non-overlapping multi-root layout + live drag drop-ghost. **Code complete** (pending QA). |
 
 ## Source repos (read‑only, gitignored, under `temp/ref/`)
@@ -50,4 +50,4 @@ Research complete; **vision locked (D1–D13)**; **M1 shipped** on `feat/mindmap
 
 **M4 code-complete** on `feat/mindmap` — **Export Project as HTML**: a pure generator turns the graph into a single self-contained `.html` (nested-outline tree with styled node chips, typed cross-links, and collapsible doc sections; click a node → jump to its doc). Inline CSS, no scripts, all text escaped; reuses `buildGraph`. Green gate passed (vitest 412, typecheck, lint, build); manual QA accepted; pushed to origin.
 
-**M5 + M6 code-complete** on `feat/mindmap` (pending QA). **M5** — a multi-format **import hub** (`.mind-map`/`.mind-doc`/FreeMind `.mm`/OPML/`.md`/`.txt`/`.json`, adapted from the source's client importer per §1a) + **image assets** (attach into `assets/`, inlined as base64 in the HTML export). `.mindnode` (binary protobuf, ~1400 lines, no fixture) is **deferred**. **M6** — non-overlapping **multi-root layout** + a live drag **drop-ghost** (shared pure `resolveDrop`). Green gate passed (vitest 422, typecheck, lint, build).
+**M5 + M6 code-complete** on `feat/mindmap` (pending QA). **M5** — a multi-format **import hub** (`.mind-map`/`.mind-doc`/FreeMind `.mm`/OPML/`.md`/`.txt`/`.json` + **`.mindnode`** binary protobuf, all adapted from the source's importer per §1a) + **image assets** (attach into `assets/`, inlined as base64 in the HTML export). **M6** — non-overlapping **multi-root layout** + a live drag **drop-ghost** (shared pure `resolveDrop`). Green gate passed (vitest 423, typecheck, lint, build).
