@@ -50,6 +50,7 @@ export default function MindNode({ id, data }: NodeProps): JSX.Element {
   const shape = typeof d.shape === 'string' ? d.shape : 'rounded'
   const shapeClass = SHAPE_RADIUS[shape] ?? 'rounded-md'
   const clip = SHAPE_CLIP[shape]
+  const bare = shape === 'line' || shape === 'embedded' // no box: plain text (+ a bottom line)
   const ringColor = nd.selected ? 'rgb(var(--accent))' : borderColor ?? 'rgb(var(--line))'
   const taskStatus = d.task ? (typeof d.taskStatus === 'string' ? d.taskStatus : 'open') : null
   const taskMark = taskStatus === 'done' ? '☑' : taskStatus === 'cancelled' ? '⊘' : '☐'
@@ -61,12 +62,16 @@ export default function MindNode({ id, data }: NodeProps): JSX.Element {
   // Polygon shapes can't keep a border/shadow (clip-path removes them), so they
   // get a px-5 gutter + two stacked clipped layers for the outline; radius shapes
   // keep the plain bordered box.
-  const boxClass = clip
-    ? `relative isolate max-w-[230px] px-5 py-1 text-[13px] transition-opacity ${nd.dimmed ? 'opacity-30' : ''}`
-    : `relative max-w-[230px] border border-line bg-paper px-2 py-1 text-[13px] shadow-sm transition-opacity ${shapeClass} ${nd.selected ? 'ring-2 ring-accent ' : ''}${nd.dimmed ? 'opacity-30' : ''}`
-  const boxStyle = clip
-    ? { color: textColor, clipPath: clip }
-    : { background: fill, color: textColor, borderColor }
+  const boxClass = bare
+    ? `relative max-w-[230px] px-2 py-1 text-[13px] transition-opacity ${shape === 'line' ? 'rounded-none border-b-2 border-line' : ''} ${nd.selected ? 'ring-2 ring-accent ' : ''}${nd.dimmed ? 'opacity-30' : ''}`
+    : clip
+      ? `relative isolate max-w-[230px] px-5 py-1 text-[13px] transition-opacity ${nd.dimmed ? 'opacity-30' : ''}`
+      : `relative max-w-[230px] border border-line bg-paper px-2 py-1 text-[13px] shadow-sm transition-opacity ${shapeClass} ${nd.selected ? 'ring-2 ring-accent ' : ''}${nd.dimmed ? 'opacity-30' : ''}`
+  const boxStyle = bare
+    ? { background: fill, color: textColor, borderColor }
+    : clip
+      ? { color: textColor, clipPath: clip }
+      : { background: fill, color: textColor, borderColor }
 
   return (
     <div className="group relative">

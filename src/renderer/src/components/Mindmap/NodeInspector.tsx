@@ -16,7 +16,7 @@ import {
 } from '@renderer/lib/mindmap/projectEditActions'
 import type { NodeData } from '@shared/mindmap/types'
 
-const SHAPES = ['rounded', 'rectangle', 'pill', 'ellipse', 'cloud', 'hexagon', 'octagon']
+const SHAPES = ['rounded', 'rectangle', 'pill', 'ellipse', 'cloud', 'hexagon', 'octagon', 'line', 'embedded']
 
 /** Floating inspector for the selected node: colors, shape, icons, tags. */
 export default function NodeInspector(): JSX.Element | null {
