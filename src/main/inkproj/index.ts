@@ -20,6 +20,7 @@ import {
 const MD_FILTER = [{ name: 'Markdown', extensions: ['md', 'markdown', 'mdx', 'txt'] }]
 const INKPROJ_FILTER = [{ name: 'Inkwell Project', extensions: ['inkproj'] }]
 const MINDMAP_FILTER = [{ name: 'Mind-map', extensions: ['mind-map', 'md', 'markdown'] }]
+const HTML_FILTER = [{ name: 'HTML', extensions: ['html', 'htm'] }]
 const DEFAULT_SCHEMA = '# Untitled\n'
 
 /** Show an open-file dialog parented to the sender's window; return the picked path. */
@@ -85,6 +86,14 @@ export function registerInkprojIpc(): void {
     const dest = await pickSave(e, 'Export Mind-map', suggestedName, MINDMAP_FILTER)
     if (!dest) return null
     await writeFile(dest, schemaText, 'utf8')
+    return dest
+  })
+
+  // Export the active project → a single self-contained .html (renderer builds the markup).
+  ipcMain.handle(IPC.inkprojExportHtml, async (e, html: string, suggestedName: string) => {
+    const dest = await pickSave(e, 'Export as HTML', suggestedName, HTML_FILTER)
+    if (!dest) return null
+    await writeFile(dest, html, 'utf8')
     return dest
   })
 

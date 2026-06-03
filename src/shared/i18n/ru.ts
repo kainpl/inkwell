@@ -14,6 +14,7 @@ export const ru: Dict = {
   'file.openProject': 'Открыть проект…',
   'file.importMindMap': 'Импорт mind-map…',
   'file.exportMindMap': 'Экспорт mind-map…',
+  'file.exportProjectHtml': 'Экспорт проекта в HTML…',
   'file.openFolder': 'Открыть папку…',
   'file.openQuickly': 'Быстрое открытие…',
   'file.openRecent': 'Открыть недавнее…',

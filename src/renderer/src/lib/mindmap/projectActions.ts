@@ -6,6 +6,8 @@ import type { InkprojSavePayload, OpenedInkproj } from '@shared/mindmap/types'
 import { createProjectDoc, destroyProjectDoc, getProjectDoc } from './yjsRegistry'
 import { nodesOf, yjsToOutline } from './yjsModel'
 import { mergeLinkTypes } from './linkTypes'
+import { buildGraph } from './buildGraph'
+import { renderProjectHtml, type HtmlDoc } from './exportHtml'
 
 /** Ids whose subtree should start collapsed (`data.expand === false`). */
 function initialCollapsed(doc: YDoc): Set<string> {
@@ -60,6 +62,36 @@ export async function exportMindMap(): Promise<void> {
   const title = (pd.doc.getMap('meta').get('title') as string) ?? ''
   const schema = outlineToMarkdown(yjsToOutline(pd.doc), title)
   await window.api.inkproj.exportMindMap(schema, `${title || 'mindmap'}.mind-map`)
+}
+
+/** Export the active project → a single self-contained `.html` (tree + cross-links + docs). */
+export async function exportHtml(): Promise<void> {
+  const tabId = useAppStore.getState().activeId
+  const entry = useProjectStore.getState().byTab[tabId]
+  const pd = getProjectDoc(tabId)
+  if (!entry || !pd) return
+  const title = ((pd.doc.getMap('meta').get('title') as string) ?? '') || 'Project'
+  const graph = buildGraph(yjsToOutline(pd.doc))
+
+  const docs: Record<string, HtmlDoc> = {}
+  for (const node of graph.nodes) {
+    const refs = (Array.isArray(node.data.docs) ? node.data.docs : []).filter(
+      (r) => !r.external && r.path
+    )
+    const items: { title: string; content: string }[] = []
+    for (const ref of refs) {
+      try {
+        const content = await window.api.inkproj.readDoc(entry.workingDir, ref)
+        items.push({ title: ref.title ?? ref.path ?? 'Document', content })
+      } catch {
+        /* skip an unreadable doc */
+      }
+    }
+    if (items.length) docs[node.id] = { label: node.label, items }
+  }
+
+  const html = renderProjectHtml({ title, graph, linkTypes: entry.linkTypes, docs })
+  await window.api.inkproj.exportHtml(html, `${title}.html`)
 }
 
 /** Open a `.inkproj` from a known path (file association / double-click). */

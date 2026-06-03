@@ -14,6 +14,7 @@ export const uk: Dict = {
   'file.openProject': 'Відкрити проєкт…',
   'file.importMindMap': 'Імпорт mind-map…',
   'file.exportMindMap': 'Експорт mind-map…',
+  'file.exportProjectHtml': 'Експорт проєкту в HTML…',
   'file.openFolder': 'Відкрити теку…',
   'file.openQuickly': 'Швидке відкриття…',
   'file.openRecent': 'Відкрити недавнє…',
