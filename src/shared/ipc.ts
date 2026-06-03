@@ -262,6 +262,7 @@ export const IPC = {
   menuNewProject: 'menu:newProject',
   menuOpenProject: 'menu:openProject',
   menuImportMindMap: 'menu:importMindMap',
+  menuImportIntoProject: 'menu:importIntoProject',
   menuExportMindMap: 'menu:exportMindMap',
   menuExportHtmlProject: 'menu:exportHtmlProject',
   menuExportSchemaOpml: 'menu:exportSchemaOpml',

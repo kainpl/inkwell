@@ -61,7 +61,7 @@ export async function newUntitledProject(): Promise<void> {
 }
 
 /** Parse a picked file (text or binary `.mindnode`/`.xmind`) into `{ title, outline }`. */
-async function importPicked(picked: {
+export async function importPicked(picked: {
   name: string
   text?: string
   base64?: string

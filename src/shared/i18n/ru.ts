@@ -13,6 +13,7 @@ export const ru: Dict = {
   'file.newProject': 'Новый проект…',
   'file.openProject': 'Открыть проект…',
   'file.importMindMap': 'Импорт mind-map…',
+  'file.importIntoProject': 'Импорт в проект…',
   'file.exportMindMap': 'Экспорт mind-map…',
   'file.exportSchemaAs': 'Экспорт схемы как',
   'file.asOpml': 'OPML…',

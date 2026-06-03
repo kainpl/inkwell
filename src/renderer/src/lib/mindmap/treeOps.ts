@@ -1,5 +1,5 @@
 import * as Y from 'yjs'
-import type { NodeData } from '@shared/mindmap/types'
+import type { MarkdownNode, NodeData } from '@shared/mindmap/types'
 import { LOCAL_ORIGIN, genId, nodesOf } from './yjsModel'
 
 type Nodes = Y.Map<Y.Map<unknown>>
@@ -50,6 +50,36 @@ export function addChild(doc: Y.Doc, parentId: string): string {
   const id = genId()
   doc.transact(() => nodes.set(id, makeNode(parentId, nextOrder(nodes, parentId), id)), LOCAL_ORIGIN)
   return id
+}
+
+/** Recursively create Yjs nodes for an imported `MarkdownNode[]` under `parentId`
+ *  (appended after existing children, one undo step). Fresh ids are minted — imported
+ *  ids would risk colliding with the open project's — so any imported cross-links go
+ *  dangling (harmless; `buildGraph` drops edges to missing nodes). Returns the new top ids. */
+export function insertOutlineUnder(
+  doc: Y.Doc,
+  parentId: string | null,
+  items: MarkdownNode[]
+): string[] {
+  const nodes = nodesOf(doc)
+  const topIds: string[] = []
+  const addOne = (item: MarkdownNode, pId: string | null, order: number): string => {
+    const id = genId()
+    const m = new Y.Map<unknown>()
+    m.set('name', (item.name ?? '').toString())
+    m.set('parentId', pId)
+    m.set('order', order)
+    m.set('dataJson', JSON.stringify({ ...(item.data ?? {}), id }))
+    nodes.set(id, m)
+    let childOrder = 0
+    for (const child of item.children ?? []) addOne(child, id, childOrder++)
+    return id
+  }
+  doc.transact(() => {
+    let order = nextOrder(nodes, parentId)
+    for (const item of items) topIds.push(addOne(item, parentId, order++))
+  }, LOCAL_ORIGIN)
+  return topIds
 }
 
 /** Add an empty sibling after `nodeId`; returns the new node id. */

@@ -15,6 +15,7 @@ export const en: Dict = {
   'file.newProject': 'New Project…',
   'file.openProject': 'Open Project…',
   'file.importMindMap': 'Import Mind-map…',
+  'file.importIntoProject': 'Import into Project…',
   'file.exportMindMap': 'Export Mind-map…',
   'file.exportSchemaAs': 'Export Schema as',
   'file.asOpml': 'OPML…',

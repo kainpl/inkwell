@@ -22,6 +22,7 @@ export function buildMenu(win: BrowserWindow, locale: Locale): void {
         { label: t('file.newProject'), click: send(IPC.menuNewProject) },
         { label: t('file.openProject'), click: send(IPC.menuOpenProject) },
         { label: t('file.importMindMap'), click: send(IPC.menuImportMindMap) },
+        { label: t('file.importIntoProject'), click: send(IPC.menuImportIntoProject) },
         { label: t('file.exportMindMap'), click: send(IPC.menuExportMindMap) },
         {
           label: t('file.exportSchemaAs'),

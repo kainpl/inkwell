@@ -27,6 +27,7 @@ const menuChannels = [
   IPC.menuNewProject,
   IPC.menuOpenProject,
   IPC.menuImportMindMap,
+  IPC.menuImportIntoProject,
   IPC.menuExportMindMap,
   IPC.menuExportHtmlProject,
   IPC.menuExportSchemaOpml,

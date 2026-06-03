@@ -80,6 +80,7 @@ import {
   exportProjectImage,
   printProject
 } from '@renderer/lib/mindmap/projectActions'
+import { importIntoProject } from '@renderer/lib/mindmap/projectEditActions'
 
 export default function App(): JSX.Element {
   const formatBarOpen = useAppStore((s) => s.formatBarOpen)
@@ -94,6 +95,7 @@ export default function App(): JSX.Element {
       window.api.onMenu(IPC.menuNewProject, () => void newUntitledProject()),
       window.api.onMenu(IPC.menuOpenProject, () => void openProjectFromDialog()),
       window.api.onMenu(IPC.menuImportMindMap, () => void importMindMap()),
+      window.api.onMenu(IPC.menuImportIntoProject, () => void importIntoProject()),
       window.api.onMenu(IPC.menuExportMindMap, () => void exportMindMap()),
       window.api.onMenu(IPC.menuExportSchemaOpml, () => void exportSchemaAs('opml')),
       window.api.onMenu(IPC.menuExportSchemaMd, () => void exportSchemaAs('md')),

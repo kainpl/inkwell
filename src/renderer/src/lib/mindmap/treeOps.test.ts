@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import * as Y from 'yjs'
 import { outlineToYjs, yjsToOutline, nodesOf } from './yjsModel'
-import { addChild, addSibling, rename, remove, reparent, reorder } from './treeOps'
+import { addChild, addSibling, rename, remove, reparent, reorder, insertOutlineUnder } from './treeOps'
 import { markdownToOutline } from '@shared/mindmap/mindMapMarkdown'
 import type { MarkdownNode } from '@shared/mindmap/types'
 
@@ -23,6 +23,32 @@ const childNames = (doc: Y.Doc, id: string): string[] => {
   }
   return find(yjsToOutline(doc))?.children?.map((c) => c.name) ?? []
 }
+
+describe('insertOutlineUnder', () => {
+  it('merges an imported outline under a node (recursive, fresh ids)', () => {
+    const doc = seed('# R\n\n- A <!-- mindmap {"id":"a"} -->\n')
+    const top = insertOutlineUnder(doc, 'a', [
+      { name: 'X', children: [{ name: 'X1' }] },
+      { name: 'Y' }
+    ])
+    expect(top).toHaveLength(2)
+    expect(childNames(doc, 'a')).toEqual(['X', 'Y'])
+    // fresh ids (not the imported ones) so the new 'X' node carries a minted id
+    const xId = nodesOf(doc).get(top[0])
+    expect(xId?.get('name')).toBe('X')
+    // child X1 is nested under X
+    const xOutline = yjsToOutline(doc)
+    const findX = (ns: MarkdownNode[]): MarkdownNode | undefined => {
+      for (const n of ns) {
+        if (n.name === 'X') return n
+        const f = n.children ? findX(n.children) : undefined
+        if (f) return f
+      }
+      return undefined
+    }
+    expect(findX(xOutline)?.children?.map((c) => c.name)).toEqual(['X1'])
+  })
+})
 
 describe('tree edit ops', () => {
   it('addChild appends a child under a node', () => {

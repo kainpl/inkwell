@@ -2,8 +2,16 @@ import type { Doc as YDoc } from 'yjs'
 import { useAppStore } from '@renderer/store/useAppStore'
 import { useProjectStore } from '@renderer/store/useProjectStore'
 import { getProjectDoc } from './yjsRegistry'
-import { saveProject } from './projectActions'
-import { addChild, addSibling, remove as removeNode, rename, reparent, reorder } from './treeOps'
+import { saveProject, importPicked } from './projectActions'
+import {
+  addChild,
+  addSibling,
+  remove as removeNode,
+  rename,
+  reparent,
+  reorder,
+  insertOutlineUnder
+} from './treeOps'
 import { buildGraph } from './buildGraph'
 import { yjsToOutline } from './yjsModel'
 import { navigate, ancestorsOf } from './treeNav'
@@ -145,6 +153,22 @@ export function outlineDelete(id: string): string | null {
   markDirty(a.tabId)
   if (prev) useProjectStore.getState().select(prev)
   return prev
+}
+
+/** Import a map file and merge it under the selected node (or as new roots). */
+export async function importIntoProject(): Promise<void> {
+  const a = active()
+  if (!a) return
+  const picked = await window.api.inkproj.pickImportFile()
+  if (!picked) return
+  const { outline } = await importPicked(picked)
+  if (!outline.length) return
+  const parentId = selectedId(a.tabId)
+  const top = insertOutlineUnder(a.doc, parentId, outline)
+  markDirty(a.tabId)
+  const ps = useProjectStore.getState()
+  if (parentId) ps.expand(parentId)
+  if (top[0]) ps.select(top[0])
 }
 
 /** Quick-add a named child under `parentId` (no inline-rename — keeps the quick-entry focus). */
