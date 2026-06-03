@@ -21,47 +21,47 @@ the export reuses `renderMarkdownBody` (sanitized fragment). Decisions: [`backlo
 
 **Files:** create `lib/mindmap/themes.ts` (+ test); modify `projectEditActions.ts`, `EditToolbar.tsx`.
 
-- [ ] **A1** `themes.ts`: `MINDMAP_THEMES` (a few curated palettes — sunset / forest / ocean / mono, each a `{ fill, text, line }[]` cycled by depth) + pure `applyTheme(doc, key)` that walks `buildGraph(yjsToOutline(doc))` and `setNodeData` per node by `depth % palette.length`; `key === 'clear'` removes `fillColor`/`color`/`lineColor`. Test (colors by depth; clear strips).
-- [ ] **A2** `projectEditActions.applyMindmapTheme(key)` (active doc + mark dirty). `EditToolbar`: a 🎨 theme `<select>` (Clear + the palettes).
-- [ ] **A3** `typecheck`/`lint`. Commit `feat(mindmap): mind-map themes (node palettes)`.
+- [x] **A1** `themes.ts`: `MINDMAP_THEMES` (sunset / forest / ocean / mono, `{ fill, text, line }[]` cycled by depth) + pure `applyTheme(doc, key)` (by-depth `setNodeData`; `clear` strips the theme keys). 2 tests.
+- [x] **A2** `projectEditActions.applyMindmapTheme(key)`; `EditToolbar` 🎨 theme `<select>` (Clear + palettes).
+- [x] **A3** `typecheck`/`lint` clean. Commit `feat(mindmap): mind-map themes (node palettes)`.
 
 ## Phase B — rich-text label flags + per-node notes
 
 **Files:** modify `types.ts` (`bold/italic/underline`, `note`), `nodeStyleOps.ts`, `MindNode.tsx`, `OutlinePanel.tsx`, `NodeInspector.tsx`.
 
-- [ ] **B1** `NodeData`: `bold?`, `italic?`, `underline?` (label format flags, rename-safe — applied at render, not stored as HTML) and `note?: string`. `nodeStyleOps.toggleLabelFlag(doc, id, flag)` (test).
-- [ ] **B2** `MindNode` + `OutlinePanel`: render the label with `font-bold`/`italic`/`underline` per flags. `NodeInspector`: **B / I / U** toggle buttons (call `toggleLabelFlag` via a `projectEditActions` wrapper) + a **note** textarea (`setNodeData({ note })`).
-- [ ] **B3** `MindNode`: a 📝 indicator (with the note as `title`) when `data.note` is set.
-- [ ] **B4** `typecheck`/`lint`. Commit `feat(mindmap): rich-text label flags + per-node notes`.
+- [x] **B1** `NodeData.bold/italic/underline` (render-applied → rename-safe) + `note`. `nodeStyleOps.toggleLabelFlag` (tested).
+- [x] **B2** `MindNode` + `OutlinePanel` render the label with `font-bold`/`italic`/`underline`; `NodeInspector` B / I / U toggles (`toggleLabel`) + a note textarea (`setNodeData({ note })`).
+- [x] **B3** `MindNode`: a 📝 indicator (note as `title`) when `data.note` is set.
+- [x] **B4** `typecheck`/`lint` clean. Commit `feat(mindmap): rich-text label flags + per-node notes`.
 
 ## Phase C — rendered markdown in the HTML export
 
 **Files:** modify `lib/mindmap/exportHtml.ts` (+ test), `projectActions.ts`.
 
-- [ ] **C1** `HtmlExportInput.renderMd?: (md: string) => string`. When present, `renderDocBody` emits `<div class="ink-doc">${renderMd(content)}</div>` (inlining `src="assets/…"` → data URI) instead of the escaped `<pre>`; add `.ink-doc` markdown CSS (h/p/ul/code/blockquote/img/table) to `STYLE`. The `<pre>` path stays the default (existing tests unchanged). Test: `**bold**` → `<strong>`.
-- [ ] **C2** `projectActions.exportHtml` passes `renderMd: (md) => renderMarkdownBody(md, features)`.
-- [ ] **C3** `typecheck`/`lint`. Commit `feat(mindmap): rendered markdown in the HTML export`.
+- [x] **C1** `HtmlExportInput.renderMd?`; when set, `renderDocBody` emits `<div class="ink-doc">…</div>` (inlining `src="assets/…"`) + `.ink-doc` markdown CSS. The `<pre>` path stays default. Test: `**bold**` → `<strong>` + asset inlined.
+- [x] **C2** `projectActions.exportHtml` passes `renderMd: (m) => renderMarkdownBody(m, features)`.
+- [x] **C3** `typecheck`/`lint` clean. Commit `feat(mindmap): rendered markdown in the HTML export`.
 
 ## Phase D — export project to PDF / PNG + Print
 
 **Files:** modify `projectActions.ts` (extract `buildProjectHtml`), `shared/ipc.ts` (+ menu channels), `preload/index.ts` (`menuChannels`), `menu.ts`, `i18n`, `App.tsx`.
 
-- [ ] **D1** Extract `buildProjectHtml(): Promise<{ html; title } | null>` from `exportHtml` (graph + docs + assets + `renderMd`). `exportHtml` uses it; add `exportProjectPdf()` / `exportProjectImage()` / `printProject()` calling the existing `window.api.exportPdf/exportImage/printDoc` (PDF/print use `pdfOptions(pageSetup)`).
-- [ ] **D2** `menu.ts`: fold the HTML item into a File → **Export Project as** ▸ submenu (HTML / PDF / PNG / Print). New menu channels + i18n en/uk/ru + `App.tsx` wiring + `menuChannels`.
-- [ ] **D3** `typecheck`/`lint`/`build`. Commit `feat(mindmap): export project to PDF / PNG + print`.
+- [x] **D1** Extracted `buildProjectHtml()`; `exportProjectPdf` / `exportProjectImage` / `printProject` reuse the markdown editor's `window.api.exportPdf/exportImage/printDoc` (PDF/print use `pdfOptions(pageSetup)`). No new main code.
+- [x] **D2** File → **Export Project as** ▸ submenu (HTML / PDF / PNG / Print); new channels + i18n en/uk/ru + `App.tsx` + `menuChannels`.
+- [x] **D3** `typecheck`/`lint`/`build` green. Commit `feat(mindmap): export project to PDF / PNG + print`.
 
 ## Phase E — node ↔ doc deep-linking polish
 
 **Files:** modify `OutlinePanel.tsx`, the doc-pane component (`DocPane`/`DocView`), `projectEditActions.ts` (a `revealNode` helper).
 
-- [ ] **E1** Outline: the 📄 indicator becomes a button → `openDocFor(id, firstDoc)` (open the node's doc).
-- [ ] **E2** Doc pane: a header chip with the owning node's label → on click `select(nodeId)` + `centerOnNode(nodeId)` (reveal on the map). `projectEditActions.revealNode(id)`.
-- [ ] **E3** `typecheck`/`lint`/`build`. Commit `feat(mindmap): node ↔ doc deep-link polish`.
+- [x] **E1** Outline: the 📄 indicator is a button → `openDocRef(id, firstDoc)`.
+- [x] **E2** `DocBar`: a ⌖ chip with the open doc's node label → `revealNode(nodeId)` (expand ancestors + select + center).
+- [x] **E3** `typecheck`/`lint`/`build` green. Commit `feat(mindmap): node ↔ doc deep-link polish`.
 
 ## Phase F — gate + QA
 
-- [ ] **F1** `npx vitest run` green; `typecheck`/`lint`/`build` clean.
-- [ ] **F2** QA: apply/clear a theme; B/I/U + a note on a node; export HTML (rendered md) + PDF/PNG/Print; outline 📄 opens a doc; doc-pane chip reveals the node. Update `README.md` + `backlog.md`. Hand off; commit/push per OK.
+- [x] **F1** `npx vitest run` green (442; +4 across themes / nodeStyleOps / exportHtml); `typecheck`/`lint`/`build` clean.
+- [ ] **F2** QA: apply/clear a theme; B/I/U + a note on a node; export HTML (rendered md) + PDF/PNG/Print; outline 📄 opens a doc; doc-pane ⌖ reveals the node. *(handed off)*
 
 ## Self-review
 - **Additive (D1):** theme colors, label flags, notes are node `data`; exports are read-only. ✓

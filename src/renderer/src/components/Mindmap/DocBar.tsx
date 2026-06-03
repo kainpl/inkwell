@@ -10,7 +10,8 @@ import {
   internalizeOpenDoc,
   linkOpenDocAnchor,
   openDocRef,
-  openExternalDoc
+  openExternalDoc,
+  revealNode
 } from '@renderer/lib/mindmap/projectEditActions'
 import { getDocView, insertAnchorAtCaret } from '@renderer/lib/mindmap/docView'
 import { listAnchors } from '@renderer/lib/mindmap/anchors'
@@ -35,6 +36,8 @@ export default function DocBar(): JSX.Element {
     : -1
   const openExternal = project?.openDoc?.ref.external === true
   const openInternal = project?.openDoc != null && !openExternal
+  const openNodeId = project?.openDoc?.nodeId ?? null
+  const openNodeLabel = openNodeId ? graph?.nodes.find((n) => n.id === openNodeId)?.label : null
   const openAnchor = project?.openDoc?.ref.anchor ?? ''
   const anchors = openInternal ? listAnchors(getDocView()?.state.doc.toString() ?? '') : []
 
@@ -62,6 +65,15 @@ export default function DocBar(): JSX.Element {
       )}
       {dirty ? (
         <span title="Unsaved edits" className="h-1.5 w-1.5 shrink-0 rounded-full bg-accent" />
+      ) : null}
+      {openNodeId ? (
+        <button
+          className={`${BTN} shrink-0`}
+          onClick={() => revealNode(openNodeId)}
+          title="Reveal this document's node on the map"
+        >
+          ⌖ {openNodeLabel ?? 'node'}
+        </button>
       ) : null}
       {openInternal ? (
         <>

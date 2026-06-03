@@ -61,12 +61,12 @@ multi-root layout + drop-ghost · per-node junction add-child/expand control.
   (none → open → done → cancelled); strikethrough when closed. *subtree progress rollup still open. · S–M*
 - **✅ Frames / group brackets** (M9) — `data.frame` (bracket / underline) draws a translucent
   frame around a node's visible subtree (collapse-aware bbox, ViewportPortal overlay). *Protocolist `frames.tsx`. · S*
-- **★ Short per-node note** (`data.note`) — a light annotation distinct from full attached
-  docs; hover/expand to read. *MindNode "Notes"; Protocolist. · S*
-- **★ Rich-text node labels** (bold/italic/font/size) — `labelHtml` already exists in the
-  data model. *Protocolist `text-format-panel.tsx`; MindNode. · M*
-- **★ Mind-map themes** — curated + custom node-color palettes, light/dark aware (separate
-  from the app chrome theme). *MindNode; Protocolist. · M*
+- **✅ Short per-node note** (M10) — `data.note`: a note textarea in the inspector + a 📝
+  tooltip indicator on the node. *MindNode "Notes". · S*
+- **✅ Rich-text node labels** (M10) — whole-label **bold / italic / underline** flags
+  (render-applied → rename-safe), B/I/U toggles in the inspector. *inline-range rich text + font/size still open. · M*
+- **✅ Mind-map themes** (M10) — curated node palettes (sunset/forest/ocean/mono) applied by
+  depth, + Clear; a toolbar picker. *custom palettes still open. *MindNode; Protocolist. · M*
 - **★ Layout direction options** — vertical / horizontal / compact, and left+right (radial)
   branch sides (we do right-growth banded). *MindNode; Protocolist `setSubtreeSide`. · M–L*
 
@@ -74,8 +74,9 @@ multi-root layout + drop-ghost · per-node junction add-child/expand control.
 
 - **✅ Outline view** (M8) — edit the schema as an indented outline; Map/Outline/Split over the
   same Yjs model (rename, Enter/Tab/Shift+Tab/Backspace, ↑/↓). *MindNode (core); MindDoc. · M*
-- **★★ Node ↔ doc deep linking polish** — jump from an outline/doc heading to its node and
-  back; surface a node's docs inline. Builds on anchors (D6). *ours. · M*
+- **✅ Node ↔ doc deep linking polish** (M10) — outline 📄 opens a node's doc; a ⌖ chip in
+  the doc bar reveals the open doc's node on the map (expand ancestors + select + center).
+  *doc-heading → node still open. Builds on anchors (D6). *ours. · M*
 - **★ AST → projections (multi-view)** — one canonical model → mind-map / outline / table /
   slides projections; instant view switch, not export. Strategic for the converged product.
   *Protocolist MindDoc `MIND_DOC_ARCHITECTURE.md`, ADR-0033. · L*
@@ -84,10 +85,10 @@ multi-root layout + drop-ghost · per-node junction add-child/expand control.
 
 - **✅ Export OPML / Markdown / FreeMind `.mm`** (M9) — pure generators (`exportFormats.ts`),
   each re-importable through its parser; File → Export Schema as ▸. *MindNode exports all these. · S*
-- **★★ Export PDF / PNG + Print** — Electron print-to-PDF and a canvas screenshot; print the
-  map or the outline. *MindNode; Electron built-in. · S–M*
-- **★ Rendered-markdown in the HTML export** — render doc bodies as HTML (sanitized) instead
-  of `<pre>`, with inline images. *AiOffice `markdown-sanitize.ts` (rehype stack); our M4 backlog. · S*
+- **✅ Export PDF / PNG + Print** (M10) — the project HTML → PDF (printToPDF), PNG (capturePage),
+  and an in-app print preview, reusing the markdown editor's export IPC. *MindNode; Electron built-in. · S–M*
+- **✅ Rendered-markdown in the HTML export** (M10) — doc bodies render as sanitized `.ink-doc`
+  HTML (via `renderMarkdownBody`) with inlined images, instead of `<pre>`. *AiOffice `markdown-sanitize.ts`. · S*
 - **★ Interactive HTML export** — embed the AST + a tiny renderer so the exported page folds
   branches in the browser (upgrade of the static export). *Protocolist ADR-0033. · M*
 - **★ `.mindnode` writer (export)** — round-trip back to MindNode (binary protobuf).

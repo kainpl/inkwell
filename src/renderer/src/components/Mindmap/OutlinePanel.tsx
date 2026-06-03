@@ -9,7 +9,8 @@ import {
   outlineAddSiblingAfter,
   outlineIndent,
   outlineOutdent,
-  outlineDelete
+  outlineDelete,
+  openDocRef
 } from '@renderer/lib/mindmap/projectEditActions'
 
 const EMPTY: Set<string> = new Set()
@@ -106,7 +107,18 @@ export default function OutlinePanel(): JSX.Element {
               placeholder="(empty)"
               className={`min-w-0 flex-1 bg-transparent text-ink outline-none placeholder:text-faint ${fmt}`}
             />
-            {hasDoc ? <span className="shrink-0 text-faint">📄</span> : null}
+            {hasDoc ? (
+              <button
+                onClick={() => {
+                  const ref = n.data.docs?.[0]
+                  if (ref) openDocRef(id, ref)
+                }}
+                title="Open this node's document"
+                className="shrink-0 text-faint hover:text-accent"
+              >
+                📄
+              </button>
+            ) : null}
             {tags.map((t, i) => (
               <span key={i} className="shrink-0 rounded bg-line/50 px-1 text-[10px] leading-tight text-muted">
                 {t}

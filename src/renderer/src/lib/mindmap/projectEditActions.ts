@@ -6,7 +6,8 @@ import { saveProject } from './projectActions'
 import { addChild, addSibling, remove as removeNode, rename, reparent, reorder } from './treeOps'
 import { buildGraph } from './buildGraph'
 import { yjsToOutline } from './yjsModel'
-import { navigate } from './treeNav'
+import { navigate, ancestorsOf } from './treeNav'
+import { centerOnNode } from './canvasViewport'
 import { removeCrossLink } from './crossLinkOps'
 import { nodeDocs, pushDocRef, removeDocRef, replaceDocRef, setDocAnchor } from './docOps'
 import { setNodeData, addTag, cycleTask, toggleLabelFlag } from './nodeStyleOps'
@@ -265,6 +266,17 @@ export function saveActive(): Promise<void> {
 /** Open a node's doc ref in the doc pane. */
 export function openDocRef(nodeId: string, ref: DocRef): void {
   useProjectStore.getState().openDocFor(nodeId, ref)
+}
+
+/** Reveal a node on the map: expand its ancestors, select it, and center the viewport. */
+export function revealNode(id: string): void {
+  const a = active()
+  if (!a) return
+  const g = buildGraph(yjsToOutline(a.doc))
+  const ps = useProjectStore.getState()
+  for (const anc of ancestorsOf(g, id)) ps.expand(anc)
+  ps.select(id)
+  centerOnNode(id)
 }
 
 /** Attach an existing `.md` (copied into the bundle via a file dialog) to the selected node. */
