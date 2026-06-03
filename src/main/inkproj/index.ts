@@ -191,5 +191,12 @@ export function registerInkprojIpc(): void {
     gcDocs(workingDir, keep)
   )
 
+  // Cross-project link: pick another `.inkproj` (a user-driven file grant); we store
+  // only its path on the node and open it through the normal open flow on click.
+  ipcMain.handle(IPC.inkprojPickProjectFile, async (e): Promise<string | null> => {
+    const picked = await pickFile(e, 'Link a Project', INKPROJ_FILTER)
+    return picked ?? null
+  })
+
   ipcMain.handle(IPC.inkprojClose, (_e, workingDir: string) => cleanupInkproj(workingDir))
 }

@@ -241,6 +241,7 @@ const api = {
       ipcRenderer.invoke(IPC.inkprojReadAssetDataUri, workingDir, relPath),
     gcDocs: (workingDir: string, keep: string[]): Promise<string[]> =>
       ipcRenderer.invoke(IPC.inkprojGcDocs, workingDir, keep),
+    pickProjectFile: (): Promise<string | null> => ipcRenderer.invoke(IPC.inkprojPickProjectFile),
     pickExternal: (): Promise<PickedExternal | null> =>
       ipcRenderer.invoke(IPC.inkprojPickExternal),
     internalize: (workingDir: string): Promise<DocRef | null> =>

@@ -8,7 +8,9 @@ import {
   styleSelection,
   addTagToSelection,
   toggleTask,
-  toggleLabel
+  toggleLabel,
+  linkToProject,
+  removeProjectLink
 } from '@renderer/lib/mindmap/projectEditActions'
 import type { NodeData } from '@shared/mindmap/types'
 
@@ -183,6 +185,24 @@ export default function NodeInspector(): JSX.Element | null {
           placeholder="add tag ↵"
           className={`${field} w-full outline-none`}
         />
+      </div>
+
+      <div>
+        <div className="mb-1 flex flex-wrap items-center gap-1">
+          {(Array.isArray(d.extLinks) ? d.extLinks : []).map((l, i) => (
+            <button
+              key={i}
+              onClick={() => removeProjectLink(sel, i)}
+              title={`Remove link: ${l.file}`}
+              className="rounded bg-line/40 px-1 text-[11px] text-muted"
+            >
+              🔗 {l.title} ✕
+            </button>
+          ))}
+        </div>
+        <button onClick={() => void linkToProject()} className={`${field} w-full text-left hover:border-accent`}>
+          Link project…
+        </button>
       </div>
     </div>
   )

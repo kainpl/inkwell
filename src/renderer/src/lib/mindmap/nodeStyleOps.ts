@@ -81,6 +81,27 @@ export function toggleLabelFlag(
   }, LOCAL_ORIGIN)
 }
 
+/** Append a cross-`.inkproj` link (target file + display title) to a node. */
+export function addExternalLink(doc: Y.Doc, id: string, file: string, title: string): void {
+  const m = nodesOf(doc).get(id)
+  if (!m || !file) return
+  doc.transact(() => {
+    const d = readData(m)
+    const links = Array.isArray(d.extLinks) ? d.extLinks : []
+    writeData(m, { ...d, extLinks: [...links, { file, title }] })
+  }, LOCAL_ORIGIN)
+}
+
+/** Remove the cross-`.inkproj` link at `index`. */
+export function removeExternalLink(doc: Y.Doc, id: string, index: number): void {
+  const m = nodesOf(doc).get(id)
+  if (!m) return
+  doc.transact(() => {
+    const d = readData(m)
+    writeData(m, { ...d, extLinks: (d.extLinks ?? []).filter((_, i) => i !== index) })
+  }, LOCAL_ORIGIN)
+}
+
 export function addIcon(doc: Y.Doc, id: string, icon: string): void {
   const m = nodesOf(doc).get(id)
   if (!m || !icon) return

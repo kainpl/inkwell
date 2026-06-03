@@ -10,7 +10,14 @@ import { navigate, ancestorsOf } from './treeNav'
 import { centerOnNode } from './canvasViewport'
 import { removeCrossLink } from './crossLinkOps'
 import { nodeDocs, pushDocRef, removeDocRef, replaceDocRef, setDocAnchor } from './docOps'
-import { setNodeData, addTag, cycleTask, toggleLabelFlag } from './nodeStyleOps'
+import {
+  setNodeData,
+  addTag,
+  cycleTask,
+  toggleLabelFlag,
+  addExternalLink,
+  removeExternalLink
+} from './nodeStyleOps'
 import { applyTheme } from './themes'
 import { insertAtCaret } from './docView'
 import { projectDocs } from './projectDocs'
@@ -267,6 +274,27 @@ export function saveActive(): Promise<void> {
 /** Open a node's doc ref in the doc pane. */
 export function openDocRef(nodeId: string, ref: DocRef): void {
   useProjectStore.getState().openDocFor(nodeId, ref)
+}
+
+/** Link the selected node to another `.inkproj` (user picks the file; path stored). */
+export async function linkToProject(): Promise<void> {
+  const a = active()
+  if (!a) return
+  const sel = selectedId(a.tabId)
+  if (!sel) return
+  const file = await window.api.inkproj.pickProjectFile()
+  if (!file) return
+  const title = file.split(/[\\/]/).pop()?.replace(/\.inkproj$/i, '') ?? 'Project'
+  addExternalLink(a.doc, sel, file, title)
+  markDirty(a.tabId)
+}
+
+/** Remove a node's cross-`.inkproj` link at `index`. */
+export function removeProjectLink(nodeId: string, index: number): void {
+  const a = active()
+  if (!a) return
+  removeExternalLink(a.doc, nodeId, index)
+  markDirty(a.tabId)
 }
 
 /** Reveal a node on the map: expand its ancestors, select it, and center the viewport. */

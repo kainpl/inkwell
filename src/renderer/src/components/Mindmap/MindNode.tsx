@@ -7,6 +7,7 @@ import {
   addChildTo,
   toggleTask
 } from '@renderer/lib/mindmap/projectEditActions'
+import { openProjectFromPath } from '@renderer/lib/mindmap/projectActions'
 import type { RfNodeData } from '@renderer/lib/mindmap/rfModel'
 
 /** Node outline shape → border-radius class (border + shadow preserved). */
@@ -52,6 +53,7 @@ export default function MindNode({ id, data }: NodeProps): JSX.Element {
   const labelStrike = taskStatus === 'done' || taskStatus === 'cancelled'
   const fmt = `${d.bold ? 'font-bold ' : ''}${d.italic ? 'italic ' : ''}${d.underline ? 'underline ' : ''}`
   const note = typeof d.note === 'string' && d.note.trim() ? d.note : null
+  const extLinks = Array.isArray(d.extLinks) ? d.extLinks : []
 
   // Polygon shapes can't keep a border/shadow (clip-path removes them), so they
   // get a px-5 gutter + two stacked clipped layers for the outline; radius shapes
@@ -153,6 +155,24 @@ export default function MindNode({ id, data }: NodeProps): JSX.Element {
           </span>
         ) : null}
       </div>
+      {extLinks.length ? (
+        <div className="mt-0.5 flex flex-wrap gap-0.5">
+          {extLinks.map((l, i) => (
+            <button
+              key={i}
+              onPointerDown={(e) => e.stopPropagation()}
+              onClick={(e) => {
+                e.stopPropagation()
+                void openProjectFromPath(l.file)
+              }}
+              title={`Open project: ${l.file}`}
+              className="rounded bg-line/50 px-1 text-[10px] leading-tight text-muted hover:text-accent"
+            >
+              🔗 {l.title}
+            </button>
+          ))}
+        </div>
+      ) : null}
       {tags.length ? (
         <div className="mt-0.5 flex flex-wrap gap-0.5">
           {tags.map((t, i) => (

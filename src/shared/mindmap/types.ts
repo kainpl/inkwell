@@ -18,6 +18,8 @@ export interface NodeData {
   id?: string
   /** Typed cross-link edges originating from this node. */
   links?: CrossLink[]
+  /** Links to other `.inkproj` files (opened via a user grant; path stored, not read). */
+  extLinks?: { file: string; title: string }[]
   /** Attached documents (whole doc or an anchor inside one). */
   docs?: DocRef[]
   /** Sanitized inline rich caption (HTML). */
