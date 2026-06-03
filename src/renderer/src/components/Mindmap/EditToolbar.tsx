@@ -32,6 +32,8 @@ export default function EditToolbar(): JSX.Element {
   const setViewMode = useProjectStore((s) => s.setViewMode)
   const setDirection = useProjectStore((s) => s.setDirection)
   const direction = project?.direction ?? 'right'
+  const setLayoutEngine = useProjectStore((s) => s.setLayoutEngine)
+  const engine = project?.layoutEngine ?? 'banded'
   const sel = project?.selectedId ?? null
   const hasSel = sel != null
   const focused = project?.focusId != null
@@ -83,6 +85,22 @@ export default function EditToolbar(): JSX.Element {
           title="Radial (two-sided)"
         >
           ⇆
+        </button>
+      </div>
+      <div className="mr-1 flex overflow-hidden rounded border border-line" title="Layout engine">
+        <button
+          onClick={() => setLayoutEngine('banded')}
+          className={`px-2 py-0.5 text-[12px] ${engine === 'banded' ? 'bg-accent text-paper' : 'text-muted hover:text-ink'}`}
+          title="Banded layout (built-in)"
+        >
+          Banded
+        </button>
+        <button
+          onClick={() => setLayoutEngine('elk')}
+          className={`px-2 py-0.5 text-[12px] ${engine === 'elk' ? 'bg-accent text-paper' : 'text-muted hover:text-ink'}`}
+          title="ELK auto-layout (alternative engine)"
+        >
+          ELK
         </button>
       </div>
       <span className="mx-1 h-4 w-px bg-line" />
