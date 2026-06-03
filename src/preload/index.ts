@@ -24,7 +24,10 @@ import type { DocRef, InkprojSavePayload, OpenedInkproj, PickedExternal } from '
 const menuChannels = [
   IPC.menuNewFile,
   IPC.menuOpenFile,
+  IPC.menuNewProject,
   IPC.menuOpenProject,
+  IPC.menuImportMindMap,
+  IPC.menuExportMindMap,
   IPC.menuOpenFolder,
   IPC.menuSave,
   IPC.menuSaveAs,
@@ -204,6 +207,10 @@ const api = {
   inkproj: {
     open: (path: string): Promise<OpenedInkproj> => ipcRenderer.invoke(IPC.inkprojOpen, path),
     openDialog: (): Promise<OpenedInkproj | null> => ipcRenderer.invoke(IPC.inkprojOpenDialog),
+    createDialog: (): Promise<OpenedInkproj | null> => ipcRenderer.invoke(IPC.inkprojCreateDialog),
+    importDialog: (): Promise<OpenedInkproj | null> => ipcRenderer.invoke(IPC.inkprojImportDialog),
+    exportMindMap: (schemaText: string, suggestedName: string): Promise<string | null> =>
+      ipcRenderer.invoke(IPC.inkprojExportMindMap, schemaText, suggestedName),
     readDoc: (workingDir: string, ref: DocRef): Promise<string> =>
       ipcRenderer.invoke(IPC.inkprojReadDoc, workingDir, ref),
     save: (workingDir: string, payload: InkprojSavePayload, srcPath: string): Promise<void> =>

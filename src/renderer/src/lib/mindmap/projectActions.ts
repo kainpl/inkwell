@@ -39,6 +39,29 @@ export async function openProjectFromDialog(): Promise<void> {
   if (opened) enterProject(opened)
 }
 
+/** Create a fresh `.inkproj` (pick its path) → open it as a project tab. */
+export async function newProject(): Promise<void> {
+  const opened = await window.api.inkproj.createDialog()
+  if (opened) enterProject(opened)
+}
+
+/** Import a standalone `.mind-map` → a new `.inkproj` → open it (D11). */
+export async function importMindMap(): Promise<void> {
+  const opened = await window.api.inkproj.importDialog()
+  if (opened) enterProject(opened)
+}
+
+/** Export the active project's live schema → a standalone `.mind-map` (D11). */
+export async function exportMindMap(): Promise<void> {
+  const tabId = useAppStore.getState().activeId
+  const entry = useProjectStore.getState().byTab[tabId]
+  const pd = getProjectDoc(tabId)
+  if (!entry || !pd) return
+  const title = (pd.doc.getMap('meta').get('title') as string) ?? ''
+  const schema = outlineToMarkdown(yjsToOutline(pd.doc), title)
+  await window.api.inkproj.exportMindMap(schema, `${title || 'mindmap'}.mind-map`)
+}
+
 /** Open a `.inkproj` from a known path (file association / double-click). */
 export async function openProjectFromPath(path: string): Promise<void> {
   enterProject(await window.api.inkproj.open(path))

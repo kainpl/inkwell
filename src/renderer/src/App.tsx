@@ -67,7 +67,13 @@ import SpellDownload from '@renderer/components/SpellDownload'
 import PromptModal from '@renderer/components/PromptModal'
 import ConfirmUnsavedModal from '@renderer/components/ConfirmUnsavedModal'
 import ProjectView from '@renderer/components/Mindmap/ProjectView'
-import { openProjectFromDialog, openProjectFromPath } from '@renderer/lib/mindmap/projectActions'
+import {
+  newProject,
+  openProjectFromDialog,
+  openProjectFromPath,
+  importMindMap,
+  exportMindMap
+} from '@renderer/lib/mindmap/projectActions'
 
 export default function App(): JSX.Element {
   const formatBarOpen = useAppStore((s) => s.formatBarOpen)
@@ -79,7 +85,10 @@ export default function App(): JSX.Element {
     const unsubs = [
       window.api.onMenu(IPC.menuNewFile, () => void newDocument()),
       window.api.onMenu(IPC.menuOpenFile, () => void openFileFromDialog()),
+      window.api.onMenu(IPC.menuNewProject, () => void newProject()),
       window.api.onMenu(IPC.menuOpenProject, () => void openProjectFromDialog()),
+      window.api.onMenu(IPC.menuImportMindMap, () => void importMindMap()),
+      window.api.onMenu(IPC.menuExportMindMap, () => void exportMindMap()),
       window.api.onMenu(IPC.menuOpenFolder, () => void openFolderFromDialog()),
       window.api.onMenu(IPC.menuSave, () => void saveCurrent()),
       window.api.onMenu(IPC.menuSaveAs, () => {

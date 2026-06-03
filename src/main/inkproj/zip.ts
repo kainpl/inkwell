@@ -184,6 +184,38 @@ export async function saveInkproj(
   await rename(tmp, srcPath)
 }
 
+/**
+ * Create a fresh `.inkproj` at `srcPath` (default manifest + a one-root schema +
+ * empty `docs/`), register its working dir, and return it opened. Used by New
+ * project and Import (which passes the imported `.mind-map` text as the schema).
+ */
+export async function createInkproj(
+  srcPath: string,
+  schemaText: string,
+  title: string,
+  baseDir: string = DEFAULT_BASE
+): Promise<OpenedInkproj> {
+  await mkdir(baseDir, { recursive: true })
+  const workingDir = await mkdtemp(join(baseDir, 'p-'))
+  const manifest: InkprojManifest = {
+    format: 'inkproj',
+    formatVersion: 1,
+    app: 'Inkwell',
+    title,
+    schema: 'schema.mind-map',
+    createdAt: new Date().toISOString()
+  }
+  await writeFile(join(workingDir, 'manifest.json'), JSON.stringify(manifest, null, 2), 'utf8')
+  await writeFile(join(workingDir, 'schema.mind-map'), schemaText, 'utf8')
+  await mkdir(join(workingDir, 'docs'), { recursive: true })
+
+  const zip = new JSZip()
+  for await (const f of walkFiles(workingDir)) zip.file(f.rel, await readFile(f.abs))
+  await writeFile(srcPath, await zip.generateAsync({ type: 'nodebuffer' }))
+  PROJECTS.set(workingDir, srcPath)
+  return { workingDir, manifest, schema: schemaText, srcPath }
+}
+
 /** Remove a working directory (best-effort). */
 export async function cleanupInkproj(workingDir: string): Promise<void> {
   PROJECTS.delete(workingDir)

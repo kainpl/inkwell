@@ -4,7 +4,7 @@ import JSZip from 'jszip'
 import { mkdtemp, writeFile, rm } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { openInkproj, readDocFile, saveInkproj, attachDoc, cleanupInkproj } from './zip'
+import { openInkproj, readDocFile, saveInkproj, attachDoc, createInkproj, cleanupInkproj } from './zip'
 
 async function makeFixture(): Promise<string> {
   const zip = new JSZip()
@@ -100,6 +100,18 @@ describe('inkproj zip', () => {
     const ref = await attachDoc(opened.workingDir, ext)
     expect(ref.path.startsWith('docs/')).toBe(true)
     expect(await readDocFile(opened.workingDir, { path: ref.path })).toContain('# Imported')
+  })
+
+  it('createInkproj writes a fresh bundle that re-opens (New project / Import)', async () => {
+    const dir = await mkdtemp(join(tmpdir(), 'inknew-'))
+    const dest = join(dir, 'Fresh.inkproj')
+    const created = await createInkproj(dest, '# Hello\n\n- Idea\n', 'Hello')
+    dirs.push(created.workingDir, dir)
+    expect(created.srcPath).toBe(dest)
+    const reopened = await openInkproj(dest)
+    dirs.push(reopened.workingDir)
+    expect(reopened.manifest.title).toBe('Hello')
+    expect(reopened.schema).toContain('# Hello')
   })
 
   it('rejects save with a mismatched srcPath', async () => {

@@ -213,6 +213,9 @@ export const IPC = {
   // inkproj mind-map / schema project files (extract + read; never writes in M1)
   inkprojOpen: 'inkproj:open',
   inkprojOpenDialog: 'inkproj:openDialog',
+  inkprojCreateDialog: 'inkproj:createDialog',
+  inkprojImportDialog: 'inkproj:importDialog',
+  inkprojExportMindMap: 'inkproj:exportMindMap',
   inkprojReadDoc: 'inkproj:readDoc',
   inkprojSave: 'inkproj:save',
   inkprojAttachDoc: 'inkproj:attachDoc',
@@ -247,7 +250,10 @@ export const IPC = {
   // main -> renderer (send/on)
   menuNewFile: 'menu:newFile',
   menuOpenFile: 'menu:openFile',
+  menuNewProject: 'menu:newProject',
   menuOpenProject: 'menu:openProject',
+  menuImportMindMap: 'menu:importMindMap',
+  menuExportMindMap: 'menu:exportMindMap',
   menuOpenFolder: 'menu:openFolder',
   menuSave: 'menu:save',
   menuSaveAs: 'menu:saveAs',
