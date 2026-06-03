@@ -35,7 +35,7 @@ const EXPORT_TEXT_FILTERS: Record<string, { name: string; extensions: string[] }
 const IMPORT_FILTER = [
   {
     name: 'Mind map',
-    extensions: ['mind-map', 'mind-doc', 'mindnode', 'mm', 'opml', 'md', 'markdown', 'txt', 'json']
+    extensions: ['mind-map', 'mind-doc', 'mindnode', 'xmind', 'mm', 'opml', 'md', 'markdown', 'txt', 'json']
   }
 ]
 const DEFAULT_SCHEMA = '# Untitled\n'
@@ -110,8 +110,9 @@ export function registerInkprojIpc(): void {
       const src = await pickFile(e, 'Import Mind Map', IMPORT_FILTER)
       if (!src) return null
       const name = basename(src)
-      // .mindnode is a binary ZIP → return bytes for the renderer's protobuf reader.
-      if (name.toLowerCase().endsWith('.mindnode')) {
+      // .mindnode / .xmind are binary ZIPs → return bytes for the renderer's readers.
+      const lower = name.toLowerCase()
+      if (lower.endsWith('.mindnode') || lower.endsWith('.xmind')) {
         return { name, base64: (await readFile(src)).toString('base64') }
       }
       return { name, text: await readFile(src, 'utf8') }

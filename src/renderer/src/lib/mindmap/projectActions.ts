@@ -10,8 +10,9 @@ import { buildGraph } from './buildGraph'
 import { renderProjectHtml, type HtmlDoc } from './exportHtml'
 import { renderMarkdownBody } from '@renderer/lib/exportRender'
 import { pdfOptions } from '@renderer/lib/pageSetup'
-import { importAny } from './importFormats'
+import { importAny, type ImportResult } from './importFormats'
 import { importMindnode } from './importMindnode'
+import { importXmind } from './importXmind'
 import { toOpml, toPlainMarkdown, toFreeMind } from './exportFormats'
 import { withRetry } from './retry'
 import { projectVersionId } from './projectVersionId'
@@ -59,14 +60,27 @@ export async function newUntitledProject(): Promise<void> {
   enterProject(await window.api.inkproj.createUntitled())
 }
 
-/** Import a mind map from many formats (.mind-map/.mind-doc/.mm/.opml/.md/.txt/.json)
+/** Parse a picked file (text or binary `.mindnode`/`.xmind`) into `{ title, outline }`. */
+async function importPicked(picked: {
+  name: string
+  text?: string
+  base64?: string
+}): Promise<ImportResult> {
+  if (picked.base64) {
+    const bytes = Uint8Array.from(atob(picked.base64), (c) => c.charCodeAt(0))
+    return picked.name.toLowerCase().endsWith('.xmind')
+      ? importXmind(bytes)
+      : importMindnode(bytes)
+  }
+  return importAny(picked.name, picked.text ?? '')
+}
+
+/** Import a mind map from many formats (.mind-map/.mind-doc/.mm/.opml/.md/.txt/.json/.xmind/.mindnode)
  *  → convert to our schema → new `.inkproj` → open it (D11). */
 export async function importMindMap(): Promise<void> {
   const picked = await window.api.inkproj.pickImportFile()
   if (!picked) return
-  const { title, outline } = picked.base64
-    ? await importMindnode(Uint8Array.from(atob(picked.base64), (c) => c.charCodeAt(0)))
-    : importAny(picked.name, picked.text ?? '')
+  const { title, outline } = await importPicked(picked)
   const schema = outlineToMarkdown(outline, title)
   const opened = await window.api.inkproj.createFromImport(schema, title || 'Imported')
   if (opened) enterProject(opened)
