@@ -34,6 +34,33 @@ export function removeTag(doc: Y.Doc, id: string, tag: string): void {
   }, LOCAL_ORIGIN)
 }
 
+/** Task state machine: none → open → done → cancelled → none. */
+const NEXT_TASK: Record<string, string> = {
+  none: 'open',
+  open: 'done',
+  done: 'cancelled',
+  cancelled: 'none'
+}
+
+/** Cycle a node's task status by one click (clears `task`/`taskStatus` at 'none'). */
+export function cycleTask(doc: Y.Doc, id: string): void {
+  const m = nodesOf(doc).get(id)
+  if (!m) return
+  doc.transact(() => {
+    const d = readData(m)
+    const cur = d.task ? d.taskStatus ?? 'open' : 'none'
+    const next = NEXT_TASK[cur] ?? 'open'
+    if (next === 'none') {
+      const rest: NodeData = { ...d }
+      delete rest.task
+      delete rest.taskStatus
+      writeData(m, rest)
+    } else {
+      writeData(m, { ...d, task: true, taskStatus: next as 'open' | 'done' | 'cancelled' })
+    }
+  }, LOCAL_ORIGIN)
+}
+
 export function addIcon(doc: Y.Doc, id: string, icon: string): void {
   const m = nodesOf(doc).get(id)
   if (!m || !icon) return

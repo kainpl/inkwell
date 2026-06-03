@@ -1,15 +1,27 @@
 import { Handle, Position, type NodeProps } from '@xyflow/react'
 import { useAppStore } from '@renderer/store/useAppStore'
 import { useProjectStore } from '@renderer/store/useProjectStore'
-import { commitRename, cancelRename, addChildTo } from '@renderer/lib/mindmap/projectEditActions'
+import {
+  commitRename,
+  cancelRename,
+  addChildTo,
+  toggleTask
+} from '@renderer/lib/mindmap/projectEditActions'
 import type { RfNodeData } from '@renderer/lib/mindmap/rfModel'
 
-/** Node outline shape → border-radius class. */
+/** Node outline shape → border-radius class (border + shadow preserved). */
 const SHAPE_RADIUS: Record<string, string> = {
   rectangle: 'rounded-none',
   pill: 'rounded-full',
   ellipse: 'rounded-[50%] px-4',
-  rounded: 'rounded-md'
+  rounded: 'rounded-md',
+  cloud: 'rounded-[1.4rem]'
+}
+
+/** Polygon shapes via clip-path — drawn as two stacked clipped layers (outline + fill). */
+const SHAPE_CLIP: Record<string, string> = {
+  hexagon: 'polygon(14% 0%, 86% 0%, 100% 50%, 86% 100%, 14% 100%, 0% 50%)',
+  octagon: 'polygon(30% 0%, 70% 0%, 100% 30%, 100% 70%, 70% 100%, 30% 100%, 0% 70%, 0% 30%)'
 }
 
 /** Custom React Flow node for the schema canvas (inline-editable in project tabs). */
@@ -30,23 +42,47 @@ export default function MindNode({ id, data }: NodeProps): JSX.Element {
   const hasDoc = Array.isArray(d.docs) && d.docs.length > 0
   const icons = Array.isArray(d.icon) ? d.icon : []
   const tags = Array.isArray(d.tag) ? d.tag : []
-  const shapeClass = SHAPE_RADIUS[typeof d.shape === 'string' ? d.shape : 'rounded'] ?? 'rounded-md'
+  const shape = typeof d.shape === 'string' ? d.shape : 'rounded'
+  const shapeClass = SHAPE_RADIUS[shape] ?? 'rounded-md'
+  const clip = SHAPE_CLIP[shape]
+  const ringColor = nd.selected ? 'rgb(var(--accent))' : borderColor ?? 'rgb(var(--line))'
+  const taskStatus = d.task ? (typeof d.taskStatus === 'string' ? d.taskStatus : 'open') : null
+  const taskMark = taskStatus === 'done' ? '☑' : taskStatus === 'cancelled' ? '⊘' : '☐'
+  const labelStrike = taskStatus === 'done' || taskStatus === 'cancelled'
+
+  // Polygon shapes can't keep a border/shadow (clip-path removes them), so they
+  // get a px-5 gutter + two stacked clipped layers for the outline; radius shapes
+  // keep the plain bordered box.
+  const boxClass = clip
+    ? `relative isolate max-w-[230px] px-5 py-1 text-[13px] transition-opacity ${nd.dimmed ? 'opacity-30' : ''}`
+    : `relative max-w-[230px] border border-line bg-paper px-2 py-1 text-[13px] shadow-sm transition-opacity ${shapeClass} ${nd.selected ? 'ring-2 ring-accent ' : ''}${nd.dimmed ? 'opacity-30' : ''}`
+  const boxStyle = clip
+    ? { color: textColor, clipPath: clip }
+    : { background: fill, color: textColor, borderColor }
 
   return (
-    <div
-      className={
-        `group relative max-w-[230px] border border-line bg-paper px-2 py-1 text-[13px] shadow-sm transition-opacity ${shapeClass} ` +
-        (nd.selected ? 'ring-2 ring-accent ' : '') +
-        (nd.dimmed ? 'opacity-30' : '')
-      }
-      style={{ background: fill, color: textColor, borderColor }}
-    >
-      <Handle
-        type="target"
-        position={Position.Left}
-        className="!h-2 !w-2 !border-paper !bg-accent opacity-0 transition-opacity group-hover:opacity-100"
-      />
-      <div className="flex items-center gap-1">
+    <div className="group relative">
+      <div className={boxClass} style={boxStyle}>
+        {clip ? (
+          <>
+            <span
+              aria-hidden
+              className="pointer-events-none absolute inset-0 -z-10"
+              style={{ clipPath: clip, background: ringColor }}
+            />
+            <span
+              aria-hidden
+              className="pointer-events-none absolute -z-10"
+              style={{ inset: nd.selected ? 3 : 1.5, clipPath: clip, background: fill ?? 'rgb(var(--paper))' }}
+            />
+          </>
+        ) : null}
+        <Handle
+          type="target"
+          position={Position.Left}
+          className="!h-2 !w-2 !border-paper !bg-accent opacity-0 transition-opacity group-hover:opacity-100"
+        />
+        <div className="flex items-center gap-1">
         {nd.hasChildren && !nd.collapsed ? (
           <button
             onClick={(e) => {
@@ -59,7 +95,19 @@ export default function MindNode({ id, data }: NodeProps): JSX.Element {
             ▾
           </button>
         ) : null}
-        {d.task ? <span className="shrink-0">{d.taskStatus === 'done' ? '☑' : '☐'}</span> : null}
+        {taskStatus ? (
+          <button
+            onPointerDown={(e) => e.stopPropagation()}
+            onClick={(e) => {
+              e.stopPropagation()
+              toggleTask(id)
+            }}
+            title={`Task: ${taskStatus} — click to cycle`}
+            className="shrink-0 leading-none hover:text-accent"
+          >
+            {taskMark}
+          </button>
+        ) : null}
         {icons.map((ic, i) => (
           <span key={i} className="shrink-0">
             {ic}
@@ -81,7 +129,7 @@ export default function MindNode({ id, data }: NodeProps): JSX.Element {
           />
         ) : (
           <span
-            className="min-w-0 truncate"
+            className={`min-w-0 truncate ${labelStrike ? 'line-through opacity-60' : ''}`}
             title={nd.label}
             onDoubleClick={(e) => {
               e.stopPropagation()
@@ -116,14 +164,16 @@ export default function MindNode({ id, data }: NodeProps): JSX.Element {
           ))}
         </div>
       ) : null}
-      <Handle
-        type="source"
-        position={Position.Right}
-        className="!h-2 !w-2 !border-paper !bg-accent opacity-0 transition-opacity group-hover:opacity-100"
-      />
+        <Handle
+          type="source"
+          position={Position.Right}
+          className="!h-2 !w-2 !border-paper !bg-accent opacity-0 transition-opacity group-hover:opacity-100"
+        />
+      </div>
       {/* Right-edge "tail" control at the branch junction: expand when collapsed
           children are hidden, else add a child to this node. A short stub line
-          connects it to the node so it doesn't look like it's floating. */}
+          connects it to the node so it doesn't look like it's floating. Kept at
+          wrapper level so clip-path shapes (hexagon/octagon) don't hide it. */}
       <span className="absolute right-0 top-1/2 h-px w-3 -translate-y-1/2 translate-x-full bg-line" />
       <button
         onPointerDown={(e) => e.stopPropagation()}

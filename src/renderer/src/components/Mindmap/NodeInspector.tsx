@@ -4,10 +4,10 @@ import { useActiveProject } from '@renderer/store/useProjectStore'
 import { useProjectGraph } from '@renderer/lib/mindmap/useProjectGraph'
 import { getProjectDoc } from '@renderer/lib/mindmap/yjsRegistry'
 import { removeTag, addIcon, removeIcon } from '@renderer/lib/mindmap/nodeStyleOps'
-import { styleSelection, addTagToSelection } from '@renderer/lib/mindmap/projectEditActions'
+import { styleSelection, addTagToSelection, toggleTask } from '@renderer/lib/mindmap/projectEditActions'
 import type { NodeData } from '@shared/mindmap/types'
 
-const SHAPES = ['rounded', 'rectangle', 'pill', 'ellipse']
+const SHAPES = ['rounded', 'rectangle', 'pill', 'ellipse', 'cloud', 'hexagon', 'octagon']
 
 /** Floating inspector for the selected node: colors, shape, icons, tags. */
 export default function NodeInspector(): JSX.Element | null {
@@ -76,6 +76,17 @@ export default function NodeInspector(): JSX.Element | null {
             </option>
           ))}
         </select>
+      </div>
+
+      <div className="flex items-center gap-2">
+        <span className="w-9 shrink-0 text-[11px] text-faint">Task</span>
+        <button
+          onClick={() => toggleTask(sel)}
+          title="Cycle task status (none → open → done → cancelled)"
+          className={`${field} flex-1 text-left capitalize hover:border-accent`}
+        >
+          {d.task ? (typeof d.taskStatus === 'string' ? d.taskStatus : 'open') : 'none'} ↻
+        </button>
       </div>
 
       <div>

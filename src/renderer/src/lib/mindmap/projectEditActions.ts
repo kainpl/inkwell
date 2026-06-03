@@ -9,7 +9,7 @@ import { yjsToOutline } from './yjsModel'
 import { navigate } from './treeNav'
 import { removeCrossLink } from './crossLinkOps'
 import { nodeDocs, pushDocRef, removeDocRef, replaceDocRef, setDocAnchor } from './docOps'
-import { setNodeData, addTag } from './nodeStyleOps'
+import { setNodeData, addTag, cycleTask } from './nodeStyleOps'
 import { insertAtCaret } from './docView'
 import type { DocRef, NodeData } from '@shared/mindmap/types'
 
@@ -55,6 +55,14 @@ export function addChildTo(nodeId: string): void {
   const ps = useProjectStore.getState()
   ps.expand(nodeId)
   ps.beginEdit(id)
+}
+
+/** Cycle a node's task status (none → open → done → cancelled → none). */
+export function toggleTask(nodeId: string): void {
+  const a = active()
+  if (!a) return
+  cycleTask(a.doc, nodeId)
+  markDirty(a.tabId)
 }
 
 // ── Outline-view edits (reuse the tree ops over the shared Yjs model) ──
