@@ -1,7 +1,7 @@
 import { Handle, Position, type NodeProps } from '@xyflow/react'
 import { useAppStore } from '@renderer/store/useAppStore'
 import { useProjectStore } from '@renderer/store/useProjectStore'
-import { commitRename, cancelRename } from '@renderer/lib/mindmap/projectEditActions'
+import { commitRename, cancelRename, addChildTo } from '@renderer/lib/mindmap/projectEditActions'
 import type { RfNodeData } from '@renderer/lib/mindmap/rfModel'
 
 /** Node outline shape → border-radius class. */
@@ -33,7 +33,7 @@ export default function MindNode({ id, data }: NodeProps): JSX.Element {
   return (
     <div
       className={
-        `group max-w-[230px] border border-line bg-paper px-2 py-1 text-[13px] shadow-sm ${shapeClass} ` +
+        `group relative max-w-[230px] border border-line bg-paper px-2 py-1 text-[13px] shadow-sm ${shapeClass} ` +
         (nd.selected ? 'ring-2 ring-accent' : '')
       }
       style={{ background: fill, color: textColor, borderColor }}
@@ -44,16 +44,16 @@ export default function MindNode({ id, data }: NodeProps): JSX.Element {
         className="!h-2 !w-2 !border-paper !bg-accent opacity-0 transition-opacity group-hover:opacity-100"
       />
       <div className="flex items-center gap-1">
-        {nd.hasChildren ? (
+        {nd.hasChildren && !nd.collapsed ? (
           <button
             onClick={(e) => {
               e.stopPropagation()
               toggleCollapse(id)
             }}
             className="shrink-0 text-faint hover:text-ink"
-            aria-label={nd.collapsed ? 'Expand' : 'Collapse'}
+            aria-label="Collapse"
           >
-            {nd.collapsed ? '▸' : '▾'}
+            ▾
           </button>
         ) : null}
         {d.task ? <span className="shrink-0">{d.taskStatus === 'done' ? '☑' : '☐'}</span> : null}
@@ -108,6 +108,22 @@ export default function MindNode({ id, data }: NodeProps): JSX.Element {
         position={Position.Right}
         className="!h-2 !w-2 !border-paper !bg-accent opacity-0 transition-opacity group-hover:opacity-100"
       />
+      {/* Right-edge "tail" control at the branch junction: expand when collapsed
+          children are hidden, else add a child to this node. A short stub line
+          connects it to the node so it doesn't look like it's floating. */}
+      <span className="absolute right-0 top-1/2 h-px w-3 -translate-y-1/2 translate-x-full bg-line" />
+      <button
+        onPointerDown={(e) => e.stopPropagation()}
+        onClick={(e) => {
+          e.stopPropagation()
+          if (nd.hasChildren && nd.collapsed) toggleCollapse(id)
+          else addChildTo(id)
+        }}
+        title={nd.hasChildren && nd.collapsed ? 'Expand' : 'Add child'}
+        className="absolute right-0 top-1/2 z-10 flex h-4 w-4 -translate-y-1/2 translate-x-[150%] items-center justify-center rounded-full border border-line bg-paper text-[11px] leading-none text-faint shadow-sm hover:border-accent hover:text-accent"
+      >
+        {nd.hasChildren && nd.collapsed ? '▸' : '+'}
+      </button>
     </div>
   )
 }

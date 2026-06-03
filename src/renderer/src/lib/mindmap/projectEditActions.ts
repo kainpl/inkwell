@@ -33,6 +33,17 @@ export function addChildToSelected(): void {
   ps.beginEdit(id)
 }
 
+/** Add an empty child to a specific node (expand it, select + edit the new child). */
+export function addChildTo(nodeId: string): void {
+  const a = active()
+  if (!a) return
+  const id = addChild(a.doc, nodeId)
+  markDirty(a.tabId)
+  const ps = useProjectStore.getState()
+  ps.expand(nodeId)
+  ps.beginEdit(id)
+}
+
 /** Add an empty sibling after the selected node; select + edit it. */
 export function addSiblingToSelected(): void {
   const a = active()
