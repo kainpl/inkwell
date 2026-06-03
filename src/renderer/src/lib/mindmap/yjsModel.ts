@@ -27,20 +27,36 @@ function writeNode(
   nodes.set(id, m)
 }
 
+/** Write an outline's nodes into the (flat) nodes map — shared by seed + replace. */
+function seedOutline(nodes: Nodes, outline: MarkdownNode[]): void {
+  const walk = (node: MarkdownNode, parentId: string | null, order: number): void => {
+    const data = (node.data ?? {}) as NodeData
+    const id = typeof data.id === 'string' && data.id ? data.id : genId()
+    writeNode(nodes, id, node.name ?? '', parentId, order, { ...data, id })
+    ;(node.children ?? []).forEach((child, i) => walk(child, id, i))
+  }
+  outline.forEach((root, i) => walk(root, null, i))
+}
+
 /** Seed a fresh doc from a parsed outline. Tree is stored flat as
  *  `parentId` + `order` per node (cheap reparent/reorder under a CRDT). */
 export function outlineToYjs(doc: Y.Doc, outline: MarkdownNode[], title = ''): void {
   const nodes = nodesOf(doc)
   doc.transact(() => {
     doc.getMap('meta').set('title', title)
-    const walk = (node: MarkdownNode, parentId: string | null, order: number): void => {
-      const data = (node.data ?? {}) as NodeData
-      const id = typeof data.id === 'string' && data.id ? data.id : genId()
-      writeNode(nodes, id, node.name ?? '', parentId, order, { ...data, id })
-      ;(node.children ?? []).forEach((child, i) => walk(child, id, i))
-    }
-    outline.forEach((root, i) => walk(root, null, i))
+    seedOutline(nodes, outline)
   })
+}
+
+/** Replace the whole doc (clear + re-seed) from an outline, in ONE `LOCAL_ORIGIN`
+ *  transaction so it's a single undo step. Used by edit-history in-place rollback. */
+export function replaceOutline(doc: Y.Doc, outline: MarkdownNode[], title = ''): void {
+  const nodes = nodesOf(doc)
+  doc.transact(() => {
+    for (const id of [...nodes.keys()]) nodes.delete(id)
+    doc.getMap('meta').set('title', title)
+    seedOutline(nodes, outline)
+  }, LOCAL_ORIGIN)
 }
 
 /** Rebuild the outline tree from the doc (children sorted by `order`). */

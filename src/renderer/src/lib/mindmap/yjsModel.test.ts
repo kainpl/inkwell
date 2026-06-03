@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import * as Y from 'yjs'
-import { outlineToYjs, yjsToOutline } from './yjsModel'
+import { outlineToYjs, yjsToOutline, replaceOutline, nodesOf } from './yjsModel'
 import { markdownToOutline } from '@shared/mindmap/mindMapMarkdown'
 
 function seed(md: string): Y.Doc {
@@ -9,6 +9,20 @@ function seed(md: string): Y.Doc {
   outlineToYjs(doc, outline, title)
   return doc
 }
+
+describe('replaceOutline', () => {
+  it('clears + re-seeds the doc from a new outline (rollback)', () => {
+    const doc = seed('# R\n\n- A <!-- mindmap {"id":"a"} -->\n- B <!-- mindmap {"id":"b"} -->\n')
+    const { outline, title } = markdownToOutline('# R2\n\n- X <!-- mindmap {"id":"x"} -->\n')
+    replaceOutline(doc, outline, title)
+    expect(doc.getMap('meta').get('title')).toBe('R2')
+    const back = yjsToOutline(doc)
+    expect(back[0].name).toBe('R2')
+    expect(back[0].children?.map((c) => c.name)).toEqual(['X'])
+    // old nodes gone (only R2 + X remain)
+    expect(nodesOf(doc).size).toBe(2)
+  })
+})
 
 describe('yjs model', () => {
   it('round-trips outline -> Y.Doc -> outline (structure, names, data)', () => {

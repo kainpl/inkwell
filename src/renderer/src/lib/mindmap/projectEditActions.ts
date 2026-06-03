@@ -13,7 +13,8 @@ import {
   insertOutlineUnder
 } from './treeOps'
 import { buildGraph } from './buildGraph'
-import { yjsToOutline } from './yjsModel'
+import { yjsToOutline, replaceOutline } from './yjsModel'
+import { markdownToOutline } from '@shared/mindmap/mindMapMarkdown'
 import { navigate, ancestorsOf } from './treeNav'
 import { centerOnNode } from './canvasViewport'
 import { removeCrossLink } from './crossLinkOps'
@@ -336,6 +337,18 @@ export function removeProjectLink(nodeId: string, index: number): void {
   if (!a) return
   removeExternalLink(a.doc, nodeId, index)
   markDirty(a.tabId)
+}
+
+/** Roll the active map back to a schema snapshot, in place (one undo step). */
+export function rollbackToSchema(schema: string): void {
+  const a = active()
+  if (!a) return
+  const { outline, title } = markdownToOutline(schema)
+  replaceOutline(a.doc, outline, title)
+  markDirty(a.tabId)
+  const ps = useProjectStore.getState()
+  ps.clearDoc()
+  ps.select(null)
 }
 
 /** Reveal a node on the map: expand its ancestors, select it, and center the viewport. */
