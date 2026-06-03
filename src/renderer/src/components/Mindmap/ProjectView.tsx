@@ -8,6 +8,7 @@ import NodeInspector from './NodeInspector'
 import HotkeysHelp from './HotkeysHelp'
 import OutlinePanel from './OutlinePanel'
 import TablePanel from './TablePanel'
+import SlidesPanel from './SlidesPanel'
 import DocsPanel from './DocsPanel'
 import VersionsPanel from './VersionsPanel'
 import { useAppStore } from '@renderer/store/useAppStore'
@@ -198,6 +199,11 @@ export default function ProjectView(): JSX.Element {
           {viewMode === 'table' ? (
             <div className="min-w-0 flex-1 overflow-hidden">
               <TablePanel />
+            </div>
+          ) : null}
+          {viewMode === 'slides' ? (
+            <div className="min-w-0 flex-1 overflow-hidden">
+              <SlidesPanel />
             </div>
           ) : null}
           {viewMode === 'map' || viewMode === 'split' ? (

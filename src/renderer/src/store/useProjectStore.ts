@@ -48,7 +48,7 @@ export interface ProjectEntry {
   /** When set, nodes outside this node's focus set (it + ancestors + descendants) are dimmed. */
   focusId: string | null
   /** Which view the left column shows: mind-map, outline, table, or split. */
-  viewMode: 'map' | 'outline' | 'table' | 'split'
+  viewMode: 'map' | 'outline' | 'table' | 'slides' | 'split'
   /** Map growth direction: `right` = horizontal, `down` = vertical, `radial` = two-sided. */
   direction: 'right' | 'down' | 'radial'
   /** Node count at the last successful save — the shrink-guard's baseline (0 until first save). */
@@ -118,7 +118,7 @@ interface ProjectsState {
   /** Set / clear the focused node. */
   setFocus: (id: string | null) => void
   /** Switch the left-column view (map / outline / table / split). */
-  setViewMode: (mode: 'map' | 'outline' | 'table' | 'split') => void
+  setViewMode: (mode: 'map' | 'outline' | 'table' | 'slides' | 'split') => void
   /** Set the map growth direction (horizontal / vertical / radial). */
   setDirection: (dir: 'right' | 'down' | 'radial') => void
   /** Record the node count persisted by the last save (shrink-guard baseline). */

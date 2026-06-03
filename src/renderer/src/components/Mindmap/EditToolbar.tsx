@@ -40,7 +40,10 @@ export default function EditToolbar(): JSX.Element {
   const [palette, setPalette] = useState<ThemeColor[]>(() => MINDMAP_THEMES.ocean.map((c) => ({ ...c })))
   const setTier = (i: number, key: keyof ThemeColor, value: string): void =>
     setPalette((p) => p.map((c, j) => (j === i ? { ...c, [key]: value } : c)))
-  const VIEW_BTN = (mode: 'map' | 'outline' | 'table' | 'split', label: string): JSX.Element => (
+  const VIEW_BTN = (
+    mode: 'map' | 'outline' | 'table' | 'slides' | 'split',
+    label: string
+  ): JSX.Element => (
     <button
       onClick={() => setViewMode(mode)}
       className={`px-2 py-0.5 text-[12px] ${viewMode === mode ? 'bg-accent text-paper' : 'text-muted hover:text-ink'}`}
@@ -55,6 +58,7 @@ export default function EditToolbar(): JSX.Element {
         {VIEW_BTN('map', 'Map')}
         {VIEW_BTN('outline', 'Outline')}
         {VIEW_BTN('table', 'Table')}
+        {VIEW_BTN('slides', 'Slides')}
         {VIEW_BTN('split', 'Split')}
       </div>
       <div className="mr-1 flex overflow-hidden rounded border border-line" title="Map growth direction">
