@@ -109,22 +109,24 @@ multi-root layout + drop-ghost · per-node junction add-child/expand control.
 
 ## E. Project format, persistence & resilience
 
+> **§E fully shipped (M11–M13).**
+
 - **✅ Autosave for project tabs** (M11) — debounced save like the md editor, gated on the
-  global autoSave flag + the active dirty project tab. *ours (M2a deferred). · S–M*
-- **◐ Save-resilience** (M11) — a **shrink-guard** skips an autosave that would overwrite a
-  non-trivial map with a stub. *retry-with-backoff + surfaced failures still open. *Protocolist ADR-0052. · M*
-- **★ Project-level instructions/notes in `manifest.json`** — per-project notes / schema
-  rules / templates surfaced on open. *AiOffice project-instructions pattern. · S*
-- **★ Project history / versions** — snapshots + restore (reuse the md editor's version
-  infra). *AiOffice workflow tables; ours. · M*
-- **★ Orphaned-doc GC** — on save, drop `docs/` files no node references (detach leaves them
-  today). *ours (M2b deferred). · S*
-- **★ Cross-`.inkproj` links** — `data.links[].file` links a node to a node in another
-  project file. *ours (D4 reserved). · M*
-- **★ Untitled "New project"** without an up-front path (save-as on first save). *ours. · S*
-- **★ Canvas image thumbnails** — show a node's attached image on the canvas (needs an
-  in-bundle file protocol / IPC, since the renderer can't read the working dir directly).
-  *ours (M5-C deferred); MindNode. · M*
+  global autoSave flag + the active dirty project tab.
+- **✅ Save-resilience** (M11 shrink-guard + M13 retry/surface) — a **shrink-guard** skips an
+  autosave that would overwrite a non-trivial map with a stub; **retry-with-backoff** + a
+  **save-failure banner** finish it. *Protocolist ADR-0052.*
+- **✅ Project notes in `manifest.json`** (M13) — a free-text notes field edited in the Docs
+  panel, surfaced (a dot on the Docs button) on open.
+- **✅ Project history / versions** (M13) — schema snapshots on save (reuses the md editor's
+  version store); a History panel restores a snapshot as a new tab.
+- **✅ Orphaned-doc GC** (M13) — a manual "Clean up unused" in the Docs panel removes `docs/`
+  files no node references (via `projectDocs`).
+- **✅ Cross-`.inkproj` links** (M13) — `data.extLinks` link a node to other project files
+  (a chip opens them; `.inkproj`-only for safety).
+- **✅ Untitled "New project"** (M13) — create without a path; save-as on the first save.
+- **✅ Canvas image thumbnails** (M13) — a node `data.image` (an `assets/…` path) renders on
+  the canvas via a cached data-URI loader; Set/Clear in the inspector. *MindNode.*
 
 ## F. Collaboration & AI  *(large / strategic — later)*
 
