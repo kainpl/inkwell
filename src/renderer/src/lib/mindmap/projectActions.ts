@@ -8,6 +8,7 @@ import { nodesOf, yjsToOutline } from './yjsModel'
 import { mergeLinkTypes } from './linkTypes'
 import { buildGraph } from './buildGraph'
 import { renderProjectHtml, type HtmlDoc } from './exportHtml'
+import { renderMarkdownBody } from '@renderer/lib/exportRender'
 import { importAny } from './importFormats'
 import { importMindnode } from './importMindnode'
 import { toOpml, toPlainMarkdown, toFreeMind } from './exportFormats'
@@ -132,7 +133,15 @@ export async function exportHtml(): Promise<void> {
     }
   }
 
-  const html = renderProjectHtml({ title, graph, linkTypes: entry.linkTypes, docs, assets })
+  const features = useAppStore.getState().markdownFeatures
+  const html = renderProjectHtml({
+    title,
+    graph,
+    linkTypes: entry.linkTypes,
+    docs,
+    assets,
+    renderMd: (m) => renderMarkdownBody(m, features)
+  })
   await window.api.inkproj.exportHtml(html, `${title}.html`)
 }
 

@@ -13,6 +13,9 @@ export interface HtmlExportInput {
   docs: Record<string, HtmlDoc>
   /** Bundle asset path (`assets/…`) → base64 data URI, inlined into doc images. */
   assets?: Record<string, string>
+  /** Render a doc body's Markdown to a **sanitized** HTML fragment. When given,
+   *  doc bodies render as HTML (`.ink-doc`) instead of an escaped `<pre>`. */
+  renderMd?: (markdown: string) => string
 }
 
 const esc = (s: string): string =>
@@ -36,23 +39,46 @@ li{margin:5px 0}
 details{margin:3px 0;border:1px solid var(--line);border-radius:6px;padding:4px 8px;background:#fafbfc}
 summary{cursor:pointer;color:var(--muted);font-size:13px}
 pre{white-space:pre-wrap;word-break:break-word;margin:8px 0 2px;font:13px/1.5 ui-monospace,Consolas,monospace}
+.ink-doc{font-size:14px;margin:8px 0 2px}
+.ink-doc>:first-child{margin-top:0}
+.ink-doc h1,.ink-doc h2,.ink-doc h3,.ink-doc h4{margin:10px 0 4px;font-size:1em;font-weight:600}
+.ink-doc p{margin:6px 0}
+.ink-doc ul,.ink-doc ol{margin:6px 0;padding-left:20px}
+.ink-doc code{background:#eef1f5;border-radius:4px;padding:0 4px;font:13px/1.4 ui-monospace,Consolas,monospace}
+.ink-doc pre{background:#f6f8fa;padding:8px;border-radius:6px;overflow:auto}
+.ink-doc pre code{background:none;padding:0}
+.ink-doc blockquote{margin:6px 0;padding-left:10px;border-left:3px solid var(--line);color:var(--muted)}
+.ink-doc img{max-width:100%}
+.ink-doc table{border-collapse:collapse;margin:6px 0}
+.ink-doc th,.ink-doc td{border:1px solid var(--line);padding:3px 7px}
+.ink-doc a{color:#2563af}
 footer{max-width:920px;margin:12px auto 0;color:var(--muted);font-size:12px;text-align:center}`
 
 /** Pure: render an engine-agnostic project graph as a single self-contained HTML page. */
 export function renderProjectHtml(input: HtmlExportInput): string {
-  const { title, graph, linkTypes, docs, assets } = input
+  const { title, graph, linkTypes, docs, assets, renderMd } = input
   const byId = new Map<string, GraphNode>(graph.nodes.map((n) => [n.id, n]))
   const labelOf = (id: string): string => byId.get(id)?.label ?? id
 
-  // Escape, then inline `![alt](assets/…)` refs as <img> when the asset is bundled.
+  // With a Markdown renderer: render to sanitized HTML, then inline bundled
+  // `src="assets/…"` images. Otherwise: escape into a <pre>, inlining `![](assets/…)`.
   const renderDocBody = (content: string): string => {
+    if (renderMd) {
+      let html = renderMd(content)
+      if (assets) {
+        html = html.replace(/src="(assets\/[^"]+)"/g, (m, p: string) =>
+          assets[p] ? `src="${assets[p]}"` : m
+        )
+      }
+      return `<div class="ink-doc">${html}</div>`
+    }
     let html = esc(content)
     if (assets) {
       html = html.replace(/!\[[^\]]*\]\((assets\/[^)\s]+)\)/g, (m, p: string) =>
         assets[p] ? `<img src="${assets[p]}" alt="" style="max-width:100%;display:block;margin:6px 0">` : m
       )
     }
-    return html
+    return `<pre>${html}</pre>`
   }
 
   const crossOf = (id: string): string => {
@@ -71,7 +97,7 @@ export function renderProjectHtml(input: HtmlExportInput): string {
     if (!d || !d.items.length) return ''
     const secs = d.items.map(
       (it, i) =>
-        `<details id="doc-${esc(id)}-${i}"><summary>${esc(it.title || 'Document')}</summary><pre>${renderDocBody(it.content)}</pre></details>`
+        `<details id="doc-${esc(id)}-${i}"><summary>${esc(it.title || 'Document')}</summary>${renderDocBody(it.content)}</details>`
     )
     return `<div class="docs">${secs.join('')}</div>`
   }

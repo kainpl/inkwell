@@ -40,4 +40,22 @@ describe('renderProjectHtml', () => {
     expect(html).toContain('<img src="data:image/png;base64,AAAA"')
     expect(html).toContain('![y](assets/missing.png)') // unbundled ref stays literal
   })
+
+  it('renders doc bodies as HTML (.ink-doc) when a renderMd is supplied, inlining assets', () => {
+    const graph = buildGraph(markdownToOutline(md).outline)
+    const renderMd = (m: string): string =>
+      m.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>').replace(/!\[[^\]]*\]\(([^)]+)\)/g, '<img src="$1">')
+    const html = renderProjectHtml({
+      title: 'T',
+      graph,
+      linkTypes: mergeLinkTypes(),
+      docs: { a: { label: 'A', items: [{ title: 'D', content: '**bold** ![p](assets/x.png)' }] } },
+      assets: { 'assets/x.png': 'data:image/png;base64,AAAA' },
+      renderMd
+    })
+    expect(html).toContain('<div class="ink-doc">')
+    expect(html).toContain('<strong>bold</strong>') // markdown rendered, not escaped
+    expect(html).toContain('<img src="data:image/png;base64,AAAA">') // asset inlined via src
+    expect(html).not.toContain('<pre>**bold**') // not the escaped fallback
+  })
 })
