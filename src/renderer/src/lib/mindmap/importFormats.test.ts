@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { describe, it, expect } from 'vitest'
-import { importAny } from './importFormats'
+import { importAny, splitSubtitle } from './importFormats'
 
 describe('importAny', () => {
   it('parses .mind-doc as our native format (alias of .mind-map)', () => {
@@ -46,5 +46,24 @@ describe('importAny', () => {
     expect(r.title).toBe('J')
     expect(r.outline[0].name).toBe('N')
     expect(r.outline[0].children?.[0].name).toBe('M')
+  })
+})
+
+describe('splitSubtitle', () => {
+  it('moves the rest of a multi-line name into data.note (recursive)', () => {
+    const r = splitSubtitle([{ name: 'Title\nSub line', children: [{ name: 'Child\nc-sub' }] }])
+    expect(r[0].name).toBe('Title')
+    expect(r[0].data?.note).toBe('Sub line')
+    expect(r[0].children?.[0].name).toBe('Child')
+    expect(r[0].children?.[0].data?.note).toBe('c-sub')
+  })
+  it('preserves an existing note', () => {
+    const r = splitSubtitle([{ name: 'T\nS', data: { note: 'old' } }])
+    expect(r[0].data?.note).toBe('S\nold')
+  })
+  it('leaves single-line names untouched', () => {
+    const r = splitSubtitle([{ name: 'Just one' }])
+    expect(r[0].name).toBe('Just one')
+    expect(r[0].data).toBeUndefined()
   })
 })

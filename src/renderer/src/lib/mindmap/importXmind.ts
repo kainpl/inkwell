@@ -1,6 +1,6 @@
 import JSZip from 'jszip'
 import type { MarkdownNode } from '@shared/mindmap/types'
-import { cleanImportedOutline, type ImportResult } from './importFormats'
+import { cleanImportedOutline, splitSubtitle, type ImportResult } from './importFormats'
 
 /**
  * Import a real `.xmind` (a ZIP, not the legacy `.mm`). Prefers `content.json`
@@ -48,7 +48,7 @@ function parseXmindJson(text: string): ImportResult {
   const sheet = asObj(Array.isArray(data) ? data[0] : data)
   const root = sheet.rootTopic
   if (!root) throw new Error('Unsupported .xmind (no rootTopic)')
-  const outline = cleanImportedOutline([convJsonTopic(asObj(root))])
+  const outline = cleanImportedOutline(splitSubtitle([convJsonTopic(asObj(root))]))
   return { title: outline[0]?.name || asStr(sheet.title) || 'Mind Map', outline }
 }
 
@@ -73,6 +73,6 @@ function parseXmindXml(xml: string): ImportResult {
   const sheet = doc.querySelector('sheet')
   const root = sheet ? directChild(sheet, 'topic') : null
   if (!root) throw new Error('Unsupported .xmind (no root topic)')
-  const outline = cleanImportedOutline([convXmlTopic(root)])
+  const outline = cleanImportedOutline(splitSubtitle([convXmlTopic(root)]))
   return { title: outline[0]?.name || 'Mind Map', outline }
 }

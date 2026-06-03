@@ -1,6 +1,6 @@
 import JSZip from 'jszip'
 import type { MarkdownNode } from '@shared/mindmap/types'
-import { cleanImportedOutline, type ImportResult } from './importFormats'
+import { cleanImportedOutline, splitSubtitle, type ImportResult } from './importFormats'
 
 /**
  * Minimal MindNode `.mindnode` (v2 / `Contents.data` protobuf) importer: extracts
@@ -148,7 +148,7 @@ export function mindnodeContentsToOutline(contents: Uint8Array): ImportResult {
       .map((k) => build(k.id))
     return { name: (texts[id] ?? '').trim(), children }
   }
-  const outline = rootId ? cleanImportedOutline([build(rootId)]) : []
+  const outline = rootId ? cleanImportedOutline(splitSubtitle([build(rootId)])) : []
   return { title: outline[0]?.name || 'MindNode', outline }
 }
 

@@ -51,8 +51,30 @@ export function importAny(name: string, text: string): ImportResult {
       result = parseMarkdown(text, name)
       break
   }
+  if (ext !== 'mind-map') result.outline = splitSubtitle(result.outline)
   result.outline = cleanImportedOutline(result.outline)
   return result
+}
+
+/**
+ * Two-tier node text: split a node's first newline into the title (`name`) + a subtitle
+ * (`data.note`, preserving any existing note). Applied to **foreign** imports so a
+ * multi-line title isn't flattened; native `.mind-map` keeps multi-line names verbatim.
+ */
+export function splitSubtitle(outline: MarkdownNode[]): MarkdownNode[] {
+  const walk = (n: MarkdownNode): MarkdownNode => {
+    const name = n.name ?? ''
+    const nl = name.indexOf('\n')
+    let next = n
+    if (nl >= 0) {
+      const rest = name.slice(nl + 1).trim()
+      const existing = typeof n.data?.note === 'string' ? n.data.note : ''
+      const note = [rest, existing].filter(Boolean).join('\n')
+      next = { ...n, name: name.slice(0, nl).trim(), data: note ? { ...n.data, note } : n.data }
+    }
+    return next.children ? { ...next, children: next.children.map(walk) } : next
+  }
+  return outline.map(walk)
 }
 
 /** Prune empty leaves + collapse depth≥1 subtrees. Shared by all importers. */
