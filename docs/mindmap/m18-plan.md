@@ -76,7 +76,7 @@ CRDT history is noted as a future alternative — overkill for single-user.)
 ## Phase E — gate + QA
 
 - [x] **E1** `npx vitest run` green; `typecheck`/`lint`/`build` clean.
-- [ ] **E2** QA (live): edit a saved project, wait → new history snapshots appear; select one → the diff vs current is right; **Restore here** reverts the map in place (and Ctrl-Z undoes it); **Open** still makes a new tab; untitled shows "save to start history". *(handed off for live QA)*
+- [x] **E2** QA (live) accepted. README + backlog updated (§F edit-history ✅). Committed + pushed.
 
 ## Self-review
 - **Reuses:** the M13 version store + `projectVersionId` + `VersionsPanel`, `markdownToOutline`/`buildGraph`, the `startProjectAutoSave` pattern, `outlineToYjs` seeding. ✓
