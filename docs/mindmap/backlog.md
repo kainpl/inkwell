@@ -92,20 +92,25 @@ multi-root layout + drop-ghost · per-node junction add-child/expand control.
 
 ## D. Import / export / interop
 
+> **§D fully shipped (M9–M14).**
+
 - **✅ Export OPML / Markdown / FreeMind `.mm`** (M9) — pure generators (`exportFormats.ts`),
   each re-importable through its parser; File → Export Schema as ▸. *MindNode exports all these. · S*
 - **✅ Export PDF / PNG + Print** (M10) — the project HTML → PDF (printToPDF), PNG (capturePage),
   and an in-app print preview, reusing the markdown editor's export IPC. *MindNode; Electron built-in. · S–M*
 - **✅ Rendered-markdown in the HTML export** (M10) — doc bodies render as sanitized `.ink-doc`
   HTML (via `renderMarkdownBody`) with inlined images, instead of `<pre>`. *AiOffice `markdown-sanitize.ts`. · S*
-- **★ Interactive HTML export** — embed the AST + a tiny renderer so the exported page folds
-  branches in the browser (upgrade of the static export). *Protocolist ADR-0033. · M*
-- **★ `.mindnode` writer (export)** — round-trip back to MindNode (binary protobuf).
-  *Protocolist `mindnode-v2-writer.ts`. · L (niche)*
-- **★ `.xmind` (real XMind ZIP, not legacy `.mm`)** import. *ours. · M*
-- **★ Import *into* an open project** (merge a map under a node) vs always new. *ours. · M*
-- **★ Subtitle / two-tier node text** on import — keep MindNode's title/subtitle instead of
-  flattening multi-line titles. *Protocolist `MINDNODE_CONTENT_TYPES.md`. · S*
+- **✅ Interactive HTML export** (M14) — an opt-in inline script folds/unfolds branches in
+  the browser (the static export stays default, no scripts). *Protocolist ADR-0033.*
+- **✅ `.mindnode` writer (export)** (M14) — `outlineToMindnodeContents` (inverse of the
+  reader's protobuf walk) → a `.mindnode` ZIP. **Round-trips through Inkwell; MindNode-app
+  compatibility is unverified** (no app here to test). *Protocolist `mindnode-v2-writer.ts`.*
+- **✅ `.xmind` import** (M14) — real XMind ZIP: `content.json` (Zen) / `content.xml` (XMind 8),
+  `notes` → `data.note`. *ours.*
+- **✅ Import *into* an open project** (M14) — merge an imported map under the selected node
+  (or as new roots) via `treeOps.insertOutlineUnder`. *ours.*
+- **✅ Subtitle / two-tier node text** (M14) — `splitSubtitle` moves a multi-line title's
+  remainder into `data.note` on foreign imports. *Protocolist `MINDNODE_CONTENT_TYPES.md`.*
 
 ## E. Project format, persistence & resilience
 
