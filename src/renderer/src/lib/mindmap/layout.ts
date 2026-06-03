@@ -5,14 +5,15 @@ export interface Pos {
   y: number
 }
 
-/** Growth direction: `right` = horizontal (depth on X), `down` = vertical (depth on Y). */
-export type Direction = 'right' | 'down'
+/** Growth direction: `right` = horizontal (depth on X), `down` = vertical (depth on Y),
+ *  `radial` = the root's children split left/right of center (classic two-sided map). */
+export type Direction = 'right' | 'down' | 'radial'
 
 // Nodes are capped (MindNode `max-w-[230px]`, single-line `truncate`), so each cell
 // is uniform: a depth level lands in its own band and rows never overlap. The two
 // axes need different pitches: along depth we clear the node's extent on that axis,
 // across siblings we clear the other extent.
-const SEP: Record<Direction, { rank: number; cross: number; root: number }> = {
+const SEP: Record<'right' | 'down', { rank: number; cross: number; root: number }> = {
   // horizontal: columns 270 apart (≥ node width), rows 46 apart (≥ node height)
   right: { rank: 270, cross: 46, root: 46 },
   // vertical: rows 96 apart (≥ node height + gap), columns 250 apart (≥ node width)
@@ -38,32 +39,34 @@ export function computeLayout(
   direction: Direction = 'right'
 ): Map<string, Pos> {
   const pos = new Map<string, Pos>()
-  const sep = SEP[direction]
+  const sep = SEP[direction === 'radial' ? 'right' : direction]
   const roots = graph.nodes.filter((n) => n.parentId === null)
-  let cursor = 0 // running cross-axis position for the next leaf slot
 
-  // depth → the depth-axis coordinate; cross → the cross-axis coordinate.
-  const xy = (main: number, cross: number): Pos =>
-    direction === 'down' ? { x: cross, y: main } : { x: main, y: cross }
-
-  const place = (id: string, depth: number): number => {
-    const main = depth * sep.rank
-    const kids = collapsed.has(id) ? [] : (graph.childrenOf.get(id) ?? [])
-    if (kids.length === 0) {
-      const cross = cursor
-      cursor += sep.cross
+  if (direction === 'radial') {
+    placeRadial(graph, collapsed, roots[0]?.id, sep, pos)
+  } else {
+    let cursor = 0 // running cross-axis position for the next leaf slot
+    // depth → the depth-axis coordinate; cross → the cross-axis coordinate.
+    const xy = (main: number, cross: number): Pos =>
+      direction === 'down' ? { x: cross, y: main } : { x: main, y: cross }
+    const place = (id: string, depth: number): number => {
+      const main = depth * sep.rank
+      const kids = collapsed.has(id) ? [] : (graph.childrenOf.get(id) ?? [])
+      if (kids.length === 0) {
+        const cross = cursor
+        cursor += sep.cross
+        pos.set(id, xy(main, cross))
+        return cross
+      }
+      const childCross = kids.map((kid) => place(kid, depth + 1))
+      const cross = (childCross[0] + childCross[childCross.length - 1]) / 2 // center over children
       pos.set(id, xy(main, cross))
       return cross
     }
-    const childCross = kids.map((kid) => place(kid, depth + 1))
-    const cross = (childCross[0] + childCross[childCross.length - 1]) / 2 // center over children
-    pos.set(id, xy(main, cross))
-    return cross
-  }
-
-  for (const root of roots) {
-    place(root.id, 0)
-    cursor += sep.root // gap before the next root's band
+    for (const root of roots) {
+      place(root.id, 0)
+      cursor += sep.root // gap before the next root's band
+    }
   }
 
   // Manual pins override the computed slot.
@@ -78,6 +81,44 @@ export function computeLayout(
   }
 
   return pos
+}
+
+/** Radial layout: the root's children split into a right (depth on +x) and a left
+ *  (depth on −x) half, each banded with its own cross cursor (both from 0 → symmetric),
+ *  the root centered between them. Only the first root is used. */
+function placeRadial(
+  graph: GraphModel,
+  collapsed: Set<string>,
+  rootId: string | undefined,
+  sep: { rank: number; cross: number; root: number },
+  pos: Map<string, Pos>
+): void {
+  if (!rootId) return
+  const kids = collapsed.has(rootId) ? [] : (graph.childrenOf.get(rootId) ?? [])
+  const mid = Math.ceil(kids.length / 2)
+  let rCursor = 0
+  let lCursor = 0
+  const place = (id: string, depth: number, sign: 1 | -1): number => {
+    const x = sign * depth * sep.rank
+    const ks = collapsed.has(id) ? [] : (graph.childrenOf.get(id) ?? [])
+    if (ks.length === 0) {
+      const cross = sign > 0 ? rCursor : lCursor
+      if (sign > 0) rCursor += sep.cross
+      else lCursor += sep.cross
+      pos.set(id, { x, y: cross })
+      return cross
+    }
+    const cs = ks.map((k) => place(k, depth + 1, sign))
+    const cross = (cs[0] + cs[cs.length - 1]) / 2
+    pos.set(id, { x, y: cross })
+    return cross
+  }
+  const crosses = [
+    ...kids.slice(0, mid).map((id) => place(id, 1, 1)),
+    ...kids.slice(mid).map((id) => place(id, 1, -1))
+  ]
+  const rootY = crosses.length ? (Math.min(...crosses) + Math.max(...crosses)) / 2 : 0
+  pos.set(rootId, { x: 0, y: rootY })
 }
 
 /**

@@ -49,8 +49,8 @@ export interface ProjectEntry {
   focusId: string | null
   /** Which view the left column shows: mind-map, outline, table, or split. */
   viewMode: 'map' | 'outline' | 'table' | 'split'
-  /** Map growth direction: `right` = horizontal, `down` = vertical. */
-  direction: 'right' | 'down'
+  /** Map growth direction: `right` = horizontal, `down` = vertical, `radial` = two-sided. */
+  direction: 'right' | 'down' | 'radial'
   /** Node count at the last successful save — the shrink-guard's baseline (0 until first save). */
   savedNodeCount: number
   /** Last save failure message (after retries), or null — shown as a banner. */
@@ -119,8 +119,8 @@ interface ProjectsState {
   setFocus: (id: string | null) => void
   /** Switch the left-column view (map / outline / table / split). */
   setViewMode: (mode: 'map' | 'outline' | 'table' | 'split') => void
-  /** Set the map growth direction (horizontal / vertical). */
-  setDirection: (dir: 'right' | 'down') => void
+  /** Set the map growth direction (horizontal / vertical / radial). */
+  setDirection: (dir: 'right' | 'down' | 'radial') => void
   /** Record the node count persisted by the last save (shrink-guard baseline). */
   setSavedNodeCount: (n: number) => void
   /** Bind an untitled project to its chosen source path (after the first save-as). */

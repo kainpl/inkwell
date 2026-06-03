@@ -28,6 +28,22 @@ describe('computeLayout', () => {
     expect(pos.get(rootId)?.y ?? 0).toBeLessThan(a?.y ?? 0)
   })
 
+  it('radial splits the root children left and right of center', () => {
+    const leaf = (id: string): MarkdownNode => ({ name: id, data: { id } })
+    const graph = buildGraph([
+      { name: 'R', data: { id: 'r' }, children: [leaf('a'), leaf('b'), leaf('c'), leaf('d')] }
+    ])
+    const pos = computeLayout(graph, new Set(), 'radial')
+    expect(pos.get('r')?.x).toBe(0)
+    // first half (a, b) grows right (x > 0); second half (c, d) grows left (x < 0)
+    expect(pos.get('a')!.x).toBeGreaterThan(0)
+    expect(pos.get('b')!.x).toBeGreaterThan(0)
+    expect(pos.get('c')!.x).toBeLessThan(0)
+    expect(pos.get('d')!.x).toBeLessThan(0)
+    // both sides start from the same cross origin (symmetric)
+    expect(pos.get('a')!.y).toBe(pos.get('c')!.y)
+  })
+
   it('honors an absolute pin (customLeft/customTop)', () => {
     const g = graphOf('# R\n\n- A <!-- mindmap {"id":"a","customLeft":111,"customTop":222} -->\n')
     expect(computeLayout(g).get('a')).toEqual({ x: 111, y: 222 })

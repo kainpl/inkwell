@@ -72,6 +72,13 @@ export default function EditToolbar(): JSX.Element {
         >
           ↓
         </button>
+        <button
+          onClick={() => setDirection('radial')}
+          className={`px-2 py-0.5 text-[12px] ${direction === 'radial' ? 'bg-accent text-paper' : 'text-muted hover:text-ink'}`}
+          title="Radial (two-sided)"
+        >
+          ⇆
+        </button>
       </div>
       <span className="mx-1 h-4 w-px bg-line" />
       <button className={BTN} disabled={!hasSel} onClick={addChildToSelected} title="Add child (Tab)">

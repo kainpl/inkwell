@@ -35,10 +35,29 @@ export default function MindNode({ id, data }: NodeProps): JSX.Element {
   const activeId = useAppStore((s) => s.activeId)
   const editing = useProjectStore((s) => s.byTab[activeId]?.editingId === id)
   const highlightTag = useProjectStore((s) => s.byTab[activeId]?.highlightTag ?? null)
-  const vertical = useProjectStore((s) => s.byTab[activeId]?.direction === 'down')
+  const direction = useProjectStore((s) => s.byTab[activeId]?.direction ?? 'right')
   const workingDir = useProjectStore((s) => s.byTab[activeId]?.workingDir ?? null)
   const nd = data as RfNodeData
   const d = nd.raw.data
+  const vertical = direction === 'down'
+  const radial = direction === 'radial'
+  // Radial: handles + tail flip to the node's side of the root; vertical: top/bottom.
+  const targetPos = radial
+    ? nd.side === 'left'
+      ? Position.Right
+      : Position.Left
+    : vertical
+      ? Position.Top
+      : Position.Left
+  const sourcePos = radial
+    ? nd.side === 'left'
+      ? Position.Left
+      : Position.Right
+    : vertical
+      ? Position.Bottom
+      : Position.Right
+  const tailSide: 'left' | 'right' | 'bottom' =
+    radial && nd.side === 'left' ? 'left' : vertical ? 'bottom' : 'right'
   const imageUri = useAssetDataUri(workingDir, typeof d.image === 'string' ? d.image : undefined)
   const fill = typeof d.fillColor === 'string' ? d.fillColor : undefined
   const textColor = typeof d.color === 'string' ? d.color : undefined
@@ -97,7 +116,7 @@ export default function MindNode({ id, data }: NodeProps): JSX.Element {
         ) : null}
         <Handle
           type="target"
-          position={vertical ? Position.Top : Position.Left}
+          position={targetPos}
           className="!h-2 !w-2 !border-paper !bg-accent opacity-0 transition-opacity group-hover:opacity-100"
         />
         {imageUri ? (
@@ -229,7 +248,7 @@ export default function MindNode({ id, data }: NodeProps): JSX.Element {
       ) : null}
         <Handle
           type="source"
-          position={vertical ? Position.Bottom : Position.Right}
+          position={sourcePos}
           className="!h-2 !w-2 !border-paper !bg-accent opacity-0 transition-opacity group-hover:opacity-100"
         />
       </div>
@@ -239,9 +258,11 @@ export default function MindNode({ id, data }: NodeProps): JSX.Element {
           level so clip-path shapes (hexagon/octagon) don't hide it. */}
       <span
         className={`absolute bg-line ${
-          vertical
+          tailSide === 'bottom'
             ? 'bottom-0 left-1/2 h-3 w-px -translate-x-1/2 translate-y-full'
-            : 'right-0 top-1/2 h-px w-3 -translate-y-1/2 translate-x-full'
+            : tailSide === 'left'
+              ? 'left-0 top-1/2 h-px w-3 -translate-y-1/2 -translate-x-full'
+              : 'right-0 top-1/2 h-px w-3 -translate-y-1/2 translate-x-full'
         }`}
       />
       <button
@@ -253,12 +274,20 @@ export default function MindNode({ id, data }: NodeProps): JSX.Element {
         }}
         title={nd.hasChildren && nd.collapsed ? 'Expand' : 'Add child'}
         className={`absolute z-10 flex h-4 w-4 items-center justify-center rounded-full border border-line bg-paper text-[11px] leading-none text-faint shadow-sm hover:border-accent hover:text-accent ${
-          vertical
+          tailSide === 'bottom'
             ? 'bottom-0 left-1/2 -translate-x-1/2 translate-y-[150%]'
-            : 'right-0 top-1/2 -translate-y-1/2 translate-x-[150%]'
+            : tailSide === 'left'
+              ? 'left-0 top-1/2 -translate-y-1/2 -translate-x-[150%]'
+              : 'right-0 top-1/2 -translate-y-1/2 translate-x-[150%]'
         }`}
       >
-        {nd.hasChildren && nd.collapsed ? (vertical ? '▾' : '▸') : '+'}
+        {nd.hasChildren && nd.collapsed
+          ? tailSide === 'bottom'
+            ? '▾'
+            : tailSide === 'left'
+              ? '◂'
+              : '▸'
+          : '+'}
       </button>
     </div>
   )

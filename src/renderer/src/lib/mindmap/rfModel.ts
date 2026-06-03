@@ -14,6 +14,8 @@ export interface RfNodeData {
   dimmed: boolean
   /** Subtree task progress (badge on parents). */
   rollup: Rollup
+  /** Which side of the root this node sits on (for radial handle placement). */
+  side: 'left' | 'right'
   [k: string]: unknown
 }
 export type RfNode = Node<RfNodeData, 'mind'>
@@ -61,6 +63,8 @@ export function buildRfModel(
   const hidden = hiddenSet(graph, collapsed)
   const visible = (id: string): boolean => !hidden.has(id)
   const rollups = taskRollups(graph)
+  const rootNode = graph.nodes.find((n) => n.parentId === null)
+  const rootX = rootNode ? layout.get(rootNode.id)?.x ?? 0 : 0
   const isDimmed = (n: GraphNode): boolean => {
     if (highlightTag && !(Array.isArray(n.data.tag) && n.data.tag.includes(highlightTag))) return true
     if (focusSet && !focusSet.has(n.id)) return true
@@ -80,7 +84,8 @@ export function buildRfModel(
         collapsed: collapsed.has(n.id),
         selected: n.id === selectedId || multi.has(n.id),
         dimmed: isDimmed(n),
-        rollup: rollups.get(n.id) ?? { done: 0, total: 0 }
+        rollup: rollups.get(n.id) ?? { done: 0, total: 0 },
+        side: (layout.get(n.id)?.x ?? 0) < rootX ? 'left' : 'right'
       }
     }))
 
