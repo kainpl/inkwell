@@ -24,6 +24,7 @@ export const en: Dict = {
   'file.exportProjectHtml': 'Export Project as HTML…',
   'file.exportProjectAs': 'Export Project as',
   'file.asHtml': 'HTML…',
+  'file.asInteractiveHtml': 'Interactive HTML…',
   'file.asPdf': 'PDF…',
   'file.asPng': 'PNG image…',
   'file.printProject': 'Print…',

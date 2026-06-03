@@ -78,7 +78,8 @@ import {
   exportHtml as exportProjectHtml,
   exportProjectPdf,
   exportProjectImage,
-  printProject
+  printProject,
+  exportInteractiveHtml
 } from '@renderer/lib/mindmap/projectActions'
 import { importIntoProject } from '@renderer/lib/mindmap/projectEditActions'
 
@@ -103,6 +104,7 @@ export default function App(): JSX.Element {
       window.api.onMenu(IPC.menuExportHtmlProject, () => void exportProjectHtml()),
       window.api.onMenu(IPC.menuExportProjectPdf, () => void exportProjectPdf()),
       window.api.onMenu(IPC.menuExportProjectImage, () => void exportProjectImage()),
+      window.api.onMenu(IPC.menuExportProjectInteractive, () => void exportInteractiveHtml()),
       window.api.onMenu(IPC.menuPrintProject, () => void printProject()),
       window.api.onMenu(IPC.menuOpenFolder, () => void openFolderFromDialog()),
       window.api.onMenu(IPC.menuSave, () => void saveCurrent()),

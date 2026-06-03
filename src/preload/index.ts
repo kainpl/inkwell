@@ -35,6 +35,7 @@ const menuChannels = [
   IPC.menuExportSchemaMm,
   IPC.menuExportProjectPdf,
   IPC.menuExportProjectImage,
+  IPC.menuExportProjectInteractive,
   IPC.menuPrintProject,
   IPC.menuOpenFolder,
   IPC.menuSave,

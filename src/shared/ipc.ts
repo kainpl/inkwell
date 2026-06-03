@@ -270,6 +270,7 @@ export const IPC = {
   menuExportSchemaMm: 'menu:exportSchemaMm',
   menuExportProjectPdf: 'menu:exportProjectPdf',
   menuExportProjectImage: 'menu:exportProjectImage',
+  menuExportProjectInteractive: 'menu:exportProjectInteractive',
   menuPrintProject: 'menu:printProject',
   menuOpenFolder: 'menu:openFolder',
   menuSave: 'menu:save',

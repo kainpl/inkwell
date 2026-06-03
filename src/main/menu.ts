@@ -36,6 +36,7 @@ export function buildMenu(win: BrowserWindow, locale: Locale): void {
           label: t('file.exportProjectAs'),
           submenu: [
             { label: t('file.asHtml'), click: send(IPC.menuExportHtmlProject) },
+            { label: t('file.asInteractiveHtml'), click: send(IPC.menuExportProjectInteractive) },
             { label: t('file.asPdf'), click: send(IPC.menuExportProjectPdf) },
             { label: t('file.asPng'), click: send(IPC.menuExportProjectImage) },
             { label: t('file.printProject'), click: send(IPC.menuPrintProject) }

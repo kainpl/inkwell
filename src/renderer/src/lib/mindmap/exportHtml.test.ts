@@ -41,6 +41,21 @@ describe('renderProjectHtml', () => {
     expect(html).toContain('![y](assets/missing.png)') // unbundled ref stays literal
   })
 
+  it('interactive export embeds a toggle script + collapse CSS + carets', () => {
+    const graph = buildGraph(markdownToOutline(md).outline)
+    const html = renderProjectHtml({
+      title: 'T',
+      graph,
+      linkTypes: mergeLinkTypes(),
+      docs: {},
+      interactive: true
+    })
+    expect(html).toContain('<script>')
+    expect(html).toContain('classList.toggle')
+    expect(html).toContain('li.collapsed>ul{display:none}')
+    expect(html).toContain('class="caret"')
+  })
+
   it('renders doc bodies as HTML (.ink-doc) when a renderMd is supplied, inlining assets', () => {
     const graph = buildGraph(markdownToOutline(md).outline)
     const renderMd = (m: string): string =>

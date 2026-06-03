@@ -22,6 +22,7 @@ export const uk: Dict = {
   'file.exportProjectHtml': 'Експорт проєкту в HTML…',
   'file.exportProjectAs': 'Експорт проєкту як',
   'file.asHtml': 'HTML…',
+  'file.asInteractiveHtml': 'Інтерактивний HTML…',
   'file.asPdf': 'PDF…',
   'file.asPng': 'Зображення PNG…',
   'file.printProject': 'Друк…',

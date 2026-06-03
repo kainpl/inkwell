@@ -16,6 +16,8 @@ export interface HtmlExportInput {
   /** Render a doc body's Markdown to a **sanitized** HTML fragment. When given,
    *  doc bodies render as HTML (`.ink-doc`) instead of an escaped `<pre>`. */
   renderMd?: (markdown: string) => string
+  /** Embed a tiny inline script so branches fold/unfold in the browser (opt-in). */
+  interactive?: boolean
 }
 
 const esc = (s: string): string =>
@@ -52,11 +54,17 @@ pre{white-space:pre-wrap;word-break:break-word;margin:8px 0 2px;font:13px/1.5 ui
 .ink-doc table{border-collapse:collapse;margin:6px 0}
 .ink-doc th,.ink-doc td{border:1px solid var(--line);padding:3px 7px}
 .ink-doc a{color:#2563af}
+.caret{cursor:pointer;user-select:none;color:var(--muted);font-size:11px;display:inline-block;width:12px;transition:transform .1s}
+li.collapsed>ul{display:none}
+li.collapsed>.caret{transform:rotate(-90deg)}
 footer{max-width:920px;margin:12px auto 0;color:var(--muted);font-size:12px;text-align:center}`
+
+/** Inline (green-zone, readable) toggle script for the interactive export. */
+const TOGGLE_JS = `document.querySelectorAll('.caret').forEach(function(c){c.addEventListener('click',function(e){e.stopPropagation();c.closest('li').classList.toggle('collapsed')})})`
 
 /** Pure: render an engine-agnostic project graph as a single self-contained HTML page. */
 export function renderProjectHtml(input: HtmlExportInput): string {
-  const { title, graph, linkTypes, docs, assets, renderMd } = input
+  const { title, graph, linkTypes, docs, assets, renderMd, interactive } = input
   const byId = new Map<string, GraphNode>(graph.nodes.map((n) => [n.id, n]))
   const labelOf = (id: string): string => byId.get(id)?.label ?? id
 
@@ -124,7 +132,9 @@ export function renderProjectHtml(input: HtmlExportInput): string {
     if (!n) return ''
     const children = graph.childrenOf.get(id) ?? []
     const kids = children.length ? `<ul>${children.map(renderNode).join('')}</ul>` : ''
-    return `<li>${chip(n)}${crossOf(id)}${docsOf(id)}${kids}</li>`
+    const foldable = interactive && children.length > 0
+    const caret = foldable ? '<span class="caret">▾</span> ' : ''
+    return `<li${foldable ? ' class="has-children"' : ''}>${caret}${chip(n)}${crossOf(id)}${docsOf(id)}${kids}</li>`
   }
 
   const roots = graph.nodes.filter((n) => n.parentId === null).map((n) => n.id)
@@ -135,5 +145,5 @@ export function renderProjectHtml(input: HtmlExportInput): string {
 <title>${esc(title)}</title>
 <style>${STYLE}</style></head>
 <body><div class="wrap"><h1>${esc(title)}</h1>${tree}</div>
-<footer>Exported from Inkwell</footer></body></html>`
+<footer>Exported from Inkwell</footer>${interactive ? `\n<script>${TOGGLE_JS}</script>` : ''}</body></html>`
 }

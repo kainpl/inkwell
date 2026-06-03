@@ -22,6 +22,7 @@ export const ru: Dict = {
   'file.exportProjectHtml': 'Экспорт проекта в HTML…',
   'file.exportProjectAs': 'Экспорт проекта как',
   'file.asHtml': 'HTML…',
+  'file.asInteractiveHtml': 'Интерактивный HTML…',
   'file.asPdf': 'PDF…',
   'file.asPng': 'Изображение PNG…',
   'file.printProject': 'Печать…',

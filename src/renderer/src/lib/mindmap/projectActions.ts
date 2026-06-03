@@ -115,7 +115,7 @@ export async function exportAs(kind: 'opml' | 'md' | 'mm'): Promise<void> {
 
 /** Build the self-contained project HTML (tree + cross-links + rendered docs + inlined
  *  assets) once; reused by Export HTML / PDF / PNG / Print. Null if no active project. */
-async function buildProjectHtml(): Promise<{ html: string; title: string } | null> {
+async function buildProjectHtml(interactive = false): Promise<{ html: string; title: string } | null> {
   const tabId = useAppStore.getState().activeId
   const entry = useProjectStore.getState().byTab[tabId]
   const pd = getProjectDoc(tabId)
@@ -163,7 +163,8 @@ async function buildProjectHtml(): Promise<{ html: string; title: string } | nul
     linkTypes: entry.linkTypes,
     docs,
     assets,
-    renderMd: (m) => renderMarkdownBody(m, features)
+    renderMd: (m) => renderMarkdownBody(m, features),
+    interactive
   })
   return { html, title }
 }
@@ -171,6 +172,12 @@ async function buildProjectHtml(): Promise<{ html: string; title: string } | nul
 /** Export the active project → a single self-contained `.html` (tree + cross-links + docs). */
 export async function exportHtml(): Promise<void> {
   const built = await buildProjectHtml()
+  if (built) await window.api.inkproj.exportHtml(built.html, `${built.title}.html`)
+}
+
+/** Export the active project → an **interactive** `.html` (branches fold in the browser). */
+export async function exportInteractiveHtml(): Promise<void> {
+  const built = await buildProjectHtml(true)
   if (built) await window.api.inkproj.exportHtml(built.html, `${built.title}.html`)
 }
 
