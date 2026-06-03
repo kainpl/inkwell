@@ -20,6 +20,7 @@ Branch: `feat/mindmap`. Started 2026‑06‑02.
 | [`m13-plan.md`](m13-plan.md) | **Milestone 13** — all of backlog §E: untitled New project · orphaned-doc GC · save-failure surfacing + retry · project notes in manifest · schema history/versions · cross-`.inkproj` links · canvas image thumbnails. **Done / shipped.** |
 | [`m14-plan.md`](m14-plan.md) | **Milestone 14** — the rest of backlog §D: `.xmind` import · import into an open project (merge) · two-tier node text on import · interactive HTML export · `.mindnode` writer (export). **Done / shipped.** |
 | [`m15-plan.md`](m15-plan.md) | **Milestone 15** — the rest of backlog §B: line/embedded shapes · task subtree progress rollup · rich-text labels (font size/family + inline markdown) · custom theme palettes · left+right radial layout. **Done / shipped.** |
+| [`m16-plan.md`](m16-plan.md) | **Milestone 16** — the small leftovers: slides projection (§C) · auto-collapse for large maps (§G). ELK auto-layout deferred (heavy dependency). |
 | [`m1-spec.md`](m1-spec.md) | **Milestone 1 spec** — the read‑only vertical slice (open `.inkproj` → render schema → click node → open doc). **Shipped.** |
 | [`m1-plan.md`](m1-plan.md) | **Milestone 1 implementation plan** — 14 task‑by‑task steps (TDD). **Done.** |
 | [`m2a-spec.md`](m2a-spec.md) | **Milestone 2a spec** — editing + save with a Yjs model (create/rename/delete/reparent, undo/redo, zip-back). |
