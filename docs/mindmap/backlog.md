@@ -67,8 +67,8 @@ multi-root layout + drop-ghost · per-node junction add-child/expand control.
   (render-applied → rename-safe), B/I/U toggles in the inspector. *inline-range rich text + font/size still open. · M*
 - **✅ Mind-map themes** (M10) — curated node palettes (sunset/forest/ocean/mono) applied by
   depth, + Clear; a toolbar picker. *custom palettes still open. *MindNode; Protocolist. · M*
-- **★ Layout direction options** — vertical / horizontal / compact, and left+right (radial)
-  branch sides (we do right-growth banded). *MindNode; Protocolist `setSubtreeSide`. · M–L*
+- **✅ Layout direction options** (M11) — **horizontal (→)** + **vertical (↓)** banded growth
+  (toolbar toggle; handles + tail adapt). *left+right radial branch sides still open. *MindNode; Protocolist `setSubtreeSide`. · M–L*
 
 ## C. Schema ⟷ Markdown bridge  *(the unification seam)*
 
@@ -77,8 +77,9 @@ multi-root layout + drop-ghost · per-node junction add-child/expand control.
 - **✅ Node ↔ doc deep linking polish** (M10) — outline 📄 opens a node's doc; a ⌖ chip in
   the doc bar reveals the open doc's node on the map (expand ancestors + select + center).
   *doc-heading → node still open. Builds on anchors (D6). *ours. · M*
-- **★ AST → projections (multi-view)** — one canonical model → mind-map / outline / table /
-  slides projections; instant view switch, not export. Strategic for the converged product.
+- **◐ AST → projections (multi-view)** — one canonical model → mind-map / outline / **table** /
+  slides projections; instant view switch, not export. **Table projection shipped (M11)**;
+  slides + a canonical-AST rebuild still open. Strategic for the converged product.
   *Protocolist MindDoc `MIND_DOC_ARCHITECTURE.md`, ADR-0033. · L*
 
 ## D. Import / export / interop
@@ -100,10 +101,10 @@ multi-root layout + drop-ghost · per-node junction add-child/expand control.
 
 ## E. Project format, persistence & resilience
 
-- **★★ Autosave for project tabs** — debounced save like the md editor (project save is
-  explicit-only today). *ours (M2a deferred). · S–M*
-- **★★ Save-resilience** — autosave retry w/ backoff + a **shrink-guard** (refuse to persist
-  a catastrophic node-count drop) + no silent failures. *Protocolist ADR-0052. · M*
+- **✅ Autosave for project tabs** (M11) — debounced save like the md editor, gated on the
+  global autoSave flag + the active dirty project tab. *ours (M2a deferred). · S–M*
+- **◐ Save-resilience** (M11) — a **shrink-guard** skips an autosave that would overwrite a
+  non-trivial map with a stub. *retry-with-backoff + surfaced failures still open. *Protocolist ADR-0052. · M*
 - **★ Project-level instructions/notes in `manifest.json`** — per-project notes / schema
   rules / templates surfaced on open. *AiOffice project-instructions pattern. · S*
 - **★ Project history / versions** — snapshots + restore (reuse the md editor's version
@@ -128,7 +129,8 @@ multi-root layout + drop-ghost · per-node junction add-child/expand control.
 
 ## G. Performance
 
-- **★ Large-map virtualization** — beyond `onlyRenderVisibleElements` + collapse. *ours; Protocolist auto-collapse >2000 nodes. · M*
+- **◐ Large-map virtualization** (M11) — `onlyRenderVisibleElements` enabled (+ collapse).
+  *auto-collapse beyond N nodes still open. *ours; Protocolist auto-collapse >2000 nodes. · M*
 - **★ ELK auto-layout** as an alternative engine for huge/auto-arranged maps (we have the
   banded layout). *Protocolist `layout-elk.ts`. · L*
 

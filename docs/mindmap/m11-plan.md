@@ -24,41 +24,41 @@ the store; commit per green group; one QA.
 
 **Files:** create `lib/mindmap/saveGuard.ts` (+ test), `lib/mindmap/projectAutoSave.ts`; modify `useProjectStore.ts` (`savedNodeCount` + `setSavedNodeCount`), `projectActions.ts` (update count on save), `App.tsx` (start it).
 
-- [ ] **A1** `saveGuard.isCatastrophicShrink(prev, next)`: `prev >= 10 && next < prev*0.5 && prev-next >= 10`. Test (normal deletes pass; a wipe is flagged; tiny docs exempt).
-- [ ] **A2** `useProjectStore`: `savedNodeCount` (init 0) + `setSavedNodeCount(n)`. `saveProject` sets it to `nodesOf(doc).size` on success.
-- [ ] **A3** `projectAutoSave.startProjectAutoSave(delay, save)`: subscribe to `useAppStore`; when `autoSave` && the active tab is a dirty project, debounce → if `isCatastrophicShrink(savedNodeCount, currentCount)` skip + `log`, else `saveProject(tabId)`. `App.tsx` starts it (like `startAutoSave`).
-- [ ] **A4** `typecheck`/`lint`. Commit `feat(mindmap): project autosave + shrink-guard`.
+- [x] **A1** `saveGuard.isCatastrophicShrink(prev, next)` (`prev≥10 && next<prev*0.5 && prev−next≥10`). 5 tests.
+- [x] **A2** `useProjectStore.savedNodeCount` (init 0) + `setSavedNodeCount`; `saveProject` sets it to `nodesOf(doc).size`.
+- [x] **A3** `startProjectAutoSave` (active dirty project, debounced, shrink-guard skip + warn); started in `App.tsx`.
+- [x] **A4** `typecheck`/`lint` clean. Commit `feat(mindmap): project autosave + shrink-guard`.
 
 ## Phase B — table view (AST projection)
 
 **Files:** create `components/Mindmap/TablePanel.tsx`; modify `useProjectStore.ts` (`viewMode` += `'table'`), `EditToolbar.tsx` (Table segment), `ProjectView.tsx` (render by mode).
 
-- [ ] **B1** `viewMode` union gains `'table'`; `EditToolbar` adds a **Table** segment.
-- [ ] **B2** `TablePanel`: a flat table over `visibleInOrder(graph, collapsed)` — columns: depth-indented **label** (input → `renameNode`), **Task** (button → `toggleTask`), **Tags**, **Note** (truncated). Row click selects + `centerOnNode`. Reuses the outline's edit ops.
-- [ ] **B3** `ProjectView`: render the left column explicitly per mode (map / outline / table / split = outline|map). 
-- [ ] **B4** `typecheck`/`lint`. Commit `feat(mindmap): table view (AST projection)`.
+- [x] **B1** `viewMode` += `'table'`; `EditToolbar` Table segment.
+- [x] **B2** `TablePanel`: flat rows over `visibleInOrder` — indented label input (`renameNode`), Task (`toggleTask`), Tags, Note; row click selects + `centerOnNode`.
+- [x] **B3** `ProjectView` renders the left column explicitly per mode (map / outline / table / split).
+- [x] **B4** `typecheck`/`lint` clean. Commit `feat(mindmap): table view (AST projection)`.
 
 ## Phase C — layout direction (right / down)
 
 **Files:** modify `lib/mindmap/layout.ts` (+ test), `useProjectStore.ts` (`direction` + `setDirection`), `Canvas.tsx` (pass direction), `MindNode.tsx` (handles + tail by direction), `EditToolbar.tsx` (direction toggle).
 
-- [ ] **C1** `computeLayout(graph, collapsed, direction='right')`: depth on the X axis (`right`) or Y axis (`down`); axis-specific `RANK`/`NODE`/`ROOT` separations (`down`: wider cross pitch ≈ node width, shorter rank pitch). Default `right` ⇒ existing tests unchanged. Test: `down` siblings share Y, differ X.
-- [ ] **C2** `useProjectStore`: `direction: 'right' | 'down'` (init `right`) + `setDirection`. `Canvas` reads it and passes it to `computeLayout`.
-- [ ] **C3** `MindNode`: read `direction`; `right` → target=Left/source=Right + tail on the right edge; `down` → target=Top/source=Bottom + tail on the bottom edge. (Edges auto-route from handle positions.)
-- [ ] **C4** `EditToolbar`: a direction toggle (→ horizontal / ↓ vertical).
-- [ ] **C5** `typecheck`/`lint`/`build`. Commit `feat(mindmap): layout direction (horizontal / vertical)`.
+- [x] **C1** `computeLayout(graph, collapsed, direction='right')`: depth on X (`right`) or Y (`down`); axis-specific `SEP` (`down`: cross pitch ≈ node width, shorter rank). Default `right` ⇒ existing tests unchanged. Test: `down` siblings share Y, differ X.
+- [x] **C2** `useProjectStore.direction` (init `right`) + `setDirection`; `Canvas` passes it to `computeLayout`.
+- [x] **C3** `MindNode` reads direction → handles + tail on Left/Right (`right`) or Top/Bottom (`down`); edges auto-route.
+- [x] **C4** `EditToolbar`: a → / ↓ direction toggle.
+- [x] **C5** `typecheck`/`lint`/`build` green. Commit `feat(mindmap): layout direction (horizontal / vertical)`.
 
 ## Phase D — canvas virtualization
 
 **Files:** modify `Canvas.tsx`.
 
-- [ ] **D1** Add `onlyRenderVisibleElements` to `<ReactFlow>` (only in-viewport nodes mount); a brief code note on the collapse + render-visible perf story.
-- [ ] **D2** `typecheck`/`lint`/`build`. Commit `perf(mindmap): only render visible canvas elements`.
+- [x] **D1** `onlyRenderVisibleElements` on `<ReactFlow>` (only in-viewport nodes mount).
+- [x] **D2** `typecheck`/`lint`/`build` green. Commit `perf(mindmap): only render visible canvas elements`.
 
 ## Phase E — gate + QA
 
-- [ ] **E1** `npx vitest run` green; `typecheck`/`lint`/`build` clean.
-- [ ] **E2** QA: autosave (toggle on, edit, watch it save; delete most nodes → autosave skips, explicit Save still works); Table view edits + selects; direction → / ↓ relayouts with correct handles/edges; large map stays smooth. Update `README.md` + `backlog.md`. Hand off; commit/push per OK.
+- [x] **E1** `npx vitest run` green (448; +6 across saveGuard / layout); `typecheck`/`lint`/`build` clean.
+- [ ] **E2** QA: autosave (toggle on, edit, watch it save; delete most nodes → autosave skips, explicit Save still works); Table view edits + selects; direction → / ↓ relayouts with correct handles/edges; large map stays smooth. *(handed off)*
 
 ## Self-review
 - **Additive:** direction + viewMode are store flags; autosave reuses the global toggle; the shrink-guard only blocks *auto*-saves (explicit Save always proceeds). ✓

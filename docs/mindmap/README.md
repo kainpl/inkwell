@@ -15,7 +15,7 @@ Branch: `feat/mindmap`. Started 2026‑06‑02.
 | [`m8-plan.md`](m8-plan.md) | **Milestone 8** — Outline view (schema⟷markdown bridge, block C): Map/Outline/Split, edit the schema as an indented outline over the same Yjs model. **Done / shipped.** |
 | [`m9-plan.md`](m9-plan.md) | **Milestone 9** — schema visuals + exports (blocks B & D): export OPML/Markdown/FreeMind · interactive tasks · more node shapes (cloud/hexagon/octagon) · subtree frames. **Done / shipped.** |
 | [`m10-plan.md`](m10-plan.md) | **Milestone 10** — themes · rich-text label flags · per-node notes · rendered-markdown HTML export · project PDF/PNG/Print · node↔doc deep-link polish (blocks B/C/D/E). **Done / shipped.** |
-| [`m11-plan.md`](m11-plan.md) | **Milestone 11** — layout direction (horizontal/vertical) · table view (AST projection) · project autosave + shrink-guard · canvas virtualization (blocks B/C/E/G). |
+| [`m11-plan.md`](m11-plan.md) | **Milestone 11** — layout direction (horizontal/vertical) · table view (AST projection) · project autosave + shrink-guard · canvas virtualization (blocks B/C/E/G). **Code-complete** (pending QA). |
 | [`m1-spec.md`](m1-spec.md) | **Milestone 1 spec** — the read‑only vertical slice (open `.inkproj` → render schema → click node → open doc). **Shipped.** |
 | [`m1-plan.md`](m1-plan.md) | **Milestone 1 implementation plan** — 14 task‑by‑task steps (TDD). **Done.** |
 | [`m2a-spec.md`](m2a-spec.md) | **Milestone 2a spec** — editing + save with a Yjs model (create/rename/delete/reparent, undo/redo, zip-back). |
