@@ -10,6 +10,15 @@ export const getDocView = (): EditorView | null => current
 let counter = 0
 const shortId = (): string => `a${(counter++).toString(36)}${Date.now().toString(36).slice(-3)}`
 
+/** Insert text at the caret (and move the caret past it). The update listener buffers it. */
+export function insertAtCaret(text: string): void {
+  const view = current
+  if (!view) return
+  const pos = view.state.selection.main.head
+  view.dispatch({ changes: { from: pos, insert: text }, selection: { anchor: pos + text.length } })
+  view.focus()
+}
+
 /**
  * Insert an explicit anchor at the caret: `{#id}` appended to a heading line,
  * else a trailing `^id` block id. The doc's update listener buffers the edit.

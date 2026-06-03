@@ -11,6 +11,8 @@ export interface HtmlExportInput {
   linkTypes: Record<string, LinkType>
   /** nodeId → its attached docs (internal only). */
   docs: Record<string, HtmlDoc>
+  /** Bundle asset path (`assets/…`) → base64 data URI, inlined into doc images. */
+  assets?: Record<string, string>
 }
 
 const esc = (s: string): string =>
@@ -38,9 +40,20 @@ footer{max-width:920px;margin:12px auto 0;color:var(--muted);font-size:12px;text
 
 /** Pure: render an engine-agnostic project graph as a single self-contained HTML page. */
 export function renderProjectHtml(input: HtmlExportInput): string {
-  const { title, graph, linkTypes, docs } = input
+  const { title, graph, linkTypes, docs, assets } = input
   const byId = new Map<string, GraphNode>(graph.nodes.map((n) => [n.id, n]))
   const labelOf = (id: string): string => byId.get(id)?.label ?? id
+
+  // Escape, then inline `![alt](assets/…)` refs as <img> when the asset is bundled.
+  const renderDocBody = (content: string): string => {
+    let html = esc(content)
+    if (assets) {
+      html = html.replace(/!\[[^\]]*\]\((assets\/[^)\s]+)\)/g, (m, p: string) =>
+        assets[p] ? `<img src="${assets[p]}" alt="" style="max-width:100%;display:block;margin:6px 0">` : m
+      )
+    }
+    return html
+  }
 
   const crossOf = (id: string): string => {
     const links = graph.edges.filter((e) => e.kind === 'cross' && e.source === id)
@@ -58,7 +71,7 @@ export function renderProjectHtml(input: HtmlExportInput): string {
     if (!d || !d.items.length) return ''
     const secs = d.items.map(
       (it, i) =>
-        `<details id="doc-${esc(id)}-${i}"><summary>${esc(it.title || 'Document')}</summary><pre>${esc(it.content)}</pre></details>`
+        `<details id="doc-${esc(id)}-${i}"><summary>${esc(it.title || 'Document')}</summary><pre>${renderDocBody(it.content)}</pre></details>`
     )
     return `<div class="docs">${secs.join('')}</div>`
   }

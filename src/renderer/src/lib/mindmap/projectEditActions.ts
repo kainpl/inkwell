@@ -6,6 +6,7 @@ import { saveProject } from './projectActions'
 import { addChild, addSibling, remove as removeNode, rename } from './treeOps'
 import { removeCrossLink } from './crossLinkOps'
 import { nodeDocs, pushDocRef, removeDocRef, replaceDocRef, setDocAnchor } from './docOps'
+import { insertAtCaret } from './docView'
 import type { DocRef } from '@shared/mindmap/types'
 
 /** The active project tab's id + Y.Doc, or null if the active tab isn't a project. */
@@ -209,6 +210,15 @@ export async function internalizeOpenDoc(): Promise<void> {
   replaceDocRef(a.doc, od.nodeId, index, internal)
   markDirty(a.tabId)
   useProjectStore.getState().openDocFor(od.nodeId, internal)
+}
+
+/** Copy a user-picked image into the bundle's `assets/` and insert a markdown ref
+ *  at the doc caret (the HTML export inlines it). */
+export async function attachImageToOpenDoc(): Promise<void> {
+  const entry = useProjectStore.getState().byTab[useAppStore.getState().activeId]
+  if (!entry) return
+  const path = await window.api.inkproj.attachAsset(entry.workingDir)
+  if (path) insertAtCaret(`![](${path})`)
 }
 
 /** Detach the doc ref at `index` from a node (the bundled file stays). */

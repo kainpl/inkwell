@@ -223,6 +223,10 @@ const api = {
       ipcRenderer.invoke(IPC.inkprojSave, workingDir, payload, srcPath),
     attachDoc: (workingDir: string): Promise<DocRef | null> =>
       ipcRenderer.invoke(IPC.inkprojAttachDoc, workingDir),
+    attachAsset: (workingDir: string): Promise<string | null> =>
+      ipcRenderer.invoke(IPC.inkprojAttachAsset, workingDir),
+    readAssetDataUri: (workingDir: string, relPath: string): Promise<string> =>
+      ipcRenderer.invoke(IPC.inkprojReadAssetDataUri, workingDir, relPath),
     pickExternal: (): Promise<PickedExternal | null> =>
       ipcRenderer.invoke(IPC.inkprojPickExternal),
     internalize: (workingDir: string): Promise<DocRef | null> =>

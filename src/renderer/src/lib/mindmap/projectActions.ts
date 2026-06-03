@@ -96,7 +96,23 @@ export async function exportHtml(): Promise<void> {
     if (items.length) docs[node.id] = { label: node.label, items }
   }
 
-  const html = renderProjectHtml({ title, graph, linkTypes: entry.linkTypes, docs })
+  // Inline any `assets/…` images referenced in the docs (base64 → self-contained).
+  const assetPaths = new Set<string>()
+  for (const d of Object.values(docs)) {
+    for (const it of d.items) {
+      for (const m of it.content.matchAll(/!\[[^\]]*\]\((assets\/[^)\s]+)\)/g)) assetPaths.add(m[1])
+    }
+  }
+  const assets: Record<string, string> = {}
+  for (const p of assetPaths) {
+    try {
+      assets[p] = await window.api.inkproj.readAssetDataUri(entry.workingDir, p)
+    } catch {
+      /* skip a missing/oversized asset */
+    }
+  }
+
+  const html = renderProjectHtml({ title, graph, linkTypes: entry.linkTypes, docs, assets })
   await window.api.inkproj.exportHtml(html, `${title}.html`)
 }
 

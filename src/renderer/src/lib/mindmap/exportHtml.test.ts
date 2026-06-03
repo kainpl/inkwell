@@ -27,4 +27,17 @@ describe('renderProjectHtml', () => {
     expect(html).toContain('#abc') // node fill color
     expect(html).not.toContain('<script') // no scripts (self-contained, safe)
   })
+
+  it('inlines bundled assets/ images as <img> and leaves unknown refs as text', () => {
+    const graph = buildGraph(markdownToOutline(md).outline)
+    const html = renderProjectHtml({
+      title: 'T',
+      graph,
+      linkTypes: mergeLinkTypes(),
+      docs: { a: { label: 'A', items: [{ title: 'D', content: '![pic](assets/x.png) ![y](assets/missing.png)' }] } },
+      assets: { 'assets/x.png': 'data:image/png;base64,AAAA' }
+    })
+    expect(html).toContain('<img src="data:image/png;base64,AAAA"')
+    expect(html).toContain('![y](assets/missing.png)') // unbundled ref stays literal
+  })
 })

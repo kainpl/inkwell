@@ -13,11 +13,14 @@ import {
   readDocFile,
   saveInkproj,
   attachDoc,
+  attachAsset,
+  readAssetDataUri,
   createInkproj,
   cleanupInkproj
 } from './zip'
 
 const MD_FILTER = [{ name: 'Markdown', extensions: ['md', 'markdown', 'mdx', 'txt'] }]
+const IMAGE_FILTER = [{ name: 'Image', extensions: ['png', 'jpg', 'jpeg', 'gif', 'webp', 'svg'] }]
 const INKPROJ_FILTER = [{ name: 'Inkwell Project', extensions: ['inkproj'] }]
 const MINDMAP_FILTER = [{ name: 'Mind-map', extensions: ['mind-map', 'md', 'markdown'] }]
 const HTML_FILTER = [{ name: 'HTML', extensions: ['html', 'htm'] }]
@@ -137,6 +140,14 @@ export function registerInkprojIpc(): void {
     const picked = await pickFile(e, 'Internalize Document')
     return picked ? attachDoc(workingDir, picked) : null
   })
+
+  ipcMain.handle(IPC.inkprojAttachAsset, async (e, workingDir: string): Promise<string | null> => {
+    const picked = await pickFile(e, 'Attach Image', IMAGE_FILTER)
+    return picked ? attachAsset(workingDir, picked) : null
+  })
+  ipcMain.handle(IPC.inkprojReadAssetDataUri, (_e, workingDir: string, relPath: string) =>
+    readAssetDataUri(workingDir, relPath)
+  )
 
   ipcMain.handle(IPC.inkprojClose, (_e, workingDir: string) => cleanupInkproj(workingDir))
 }

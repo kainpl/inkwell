@@ -106,12 +106,17 @@ export async function readDocFile(workingDir: string, ref: DocRef): Promise<stri
 
 const exists = (p: string): Promise<boolean> => access(p).then(() => true, () => false)
 
-/** A free `docs/<name>.md` path under `workingDir` (suffixes `-1`, `-2`, … on clash). */
-async function uniqueDocPath(workingDir: string, filename: string): Promise<string> {
-  const ext = extname(filename) || '.md'
-  const stem = basename(filename, extname(filename)) || 'doc'
-  let rel = `docs/${stem}${ext}`
-  for (let i = 1; await exists(join(workingDir, rel)); i++) rel = `docs/${stem}-${i}${ext}`
+/** A free `<dir>/<name><ext>` bundle path under `workingDir` (suffixes on clash). */
+async function uniqueBundlePath(
+  workingDir: string,
+  dir: string,
+  filename: string,
+  fallbackExt: string
+): Promise<string> {
+  const ext = extname(filename) || fallbackExt
+  const stem = basename(filename, extname(filename)) || 'file'
+  let rel = `${dir}/${stem}${ext}`
+  for (let i = 1; await exists(join(workingDir, rel)); i++) rel = `${dir}/${stem}-${i}${ext}`
   return rel
 }
 
@@ -125,12 +130,42 @@ export async function attachDoc(
   srcPath: string
 ): Promise<{ path: string; title: string }> {
   if (!PROJECTS.has(workingDir)) throw new Error('unknown workingDir')
-  const rel = await uniqueDocPath(workingDir, basename(srcPath))
+  const rel = await uniqueBundlePath(workingDir, 'docs', basename(srcPath), '.md')
   const dest = await safeJoin(workingDir, rel)
   if (!dest) throw new Error(`unsafe doc path: ${rel}`)
   await mkdir(dirname(dest), { recursive: true })
   await copyFile(srcPath, dest)
   return { path: rel, title: basename(srcPath, extname(srcPath)) }
+}
+
+const IMAGE_MIME: Record<string, string> = {
+  '.png': 'image/png',
+  '.jpg': 'image/jpeg',
+  '.jpeg': 'image/jpeg',
+  '.gif': 'image/gif',
+  '.webp': 'image/webp',
+  '.svg': 'image/svg+xml'
+}
+
+/** Copy a user-picked image into the bundle's `assets/`; return its in-bundle path. */
+export async function attachAsset(workingDir: string, srcPath: string): Promise<string> {
+  if (!PROJECTS.has(workingDir)) throw new Error('unknown workingDir')
+  const rel = await uniqueBundlePath(workingDir, 'assets', basename(srcPath), '.png')
+  const dest = await safeJoin(workingDir, rel)
+  if (!dest) throw new Error(`unsafe asset path: ${rel}`)
+  await mkdir(dirname(dest), { recursive: true })
+  await copyFile(srcPath, dest)
+  return rel
+}
+
+/** Read a bundle image as a base64 `data:` URI (in-bundle, image MIME only). */
+export async function readAssetDataUri(workingDir: string, relPath: string): Promise<string> {
+  if (!PROJECTS.has(workingDir)) throw new Error('unknown workingDir')
+  const mime = IMAGE_MIME[extname(relPath).toLowerCase()]
+  if (!mime) throw new Error(`unsupported asset type: ${relPath}`)
+  const dest = await safeResolve(workingDir, relPath)
+  if (!dest) throw new Error(`unsafe asset path: ${relPath}`)
+  return `data:${mime};base64,${(await readFile(dest)).toString('base64')}`
 }
 
 async function* walkFiles(dir: string, base = dir): AsyncGenerator<{ abs: string; rel: string }> {

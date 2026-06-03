@@ -4,6 +4,7 @@ import { useProjectGraph } from '@renderer/lib/mindmap/useProjectGraph'
 import {
   attachDocToSelected,
   attachExternalToSelected,
+  attachImageToOpenDoc,
   createDocForSelected,
   detachDoc,
   internalizeOpenDoc,
@@ -66,6 +67,13 @@ export default function DocBar(): JSX.Element {
         <>
           <button className={BTN} onClick={() => insertAnchorAtCaret()} title="Insert an anchor at the caret">
             ⚓
+          </button>
+          <button
+            className={BTN}
+            onClick={() => void attachImageToOpenDoc()}
+            title="Attach an image (into assets/) at the caret"
+          >
+            🖼
           </button>
           <select
             value={openAnchor}
