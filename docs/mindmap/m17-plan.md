@@ -40,18 +40,18 @@ elk output: same, with x/y on each child  →  fromElkGraph → Map<id,{x,y}>  �
 
 **Files:** `package.json` (add `elkjs`); create `lib/mindmap/layoutElk.ts` (+ test); modify `lib/mindmap/layout.ts` (export `applyPins`, `visibleNodeIds`).
 
-- [ ] **A1** `npm install elkjs`; confirm `import ELK from 'elkjs/lib/elk.bundled.js'` resolves (the self-contained build — no web worker; works in the renderer and in vitest/node).
-- [ ] **A2** `layout.ts`: extract the manual-pin loop into `export function applyPins(graph, pos)` (used by `computeLayout` and ELK); export a small `visibleNodeIds(graph, collapsed)` (ids whose ancestors aren't collapsed) so ELK lays out only what's shown.
-- [ ] **A3** `layoutElk.ts` pure adapters:
+- [x] **A1** `npm install elkjs` (0.11.1); `import ELK from 'elkjs/lib/elk.bundled.js'` resolves + runs (verified mrtree in node).
+- [x] **A2** `layout.ts`: extracted `applyPins(graph, pos)` (shared) + `visibleNodeIds(graph, collapsed)`.
+- [x] **A3** `layoutElk.ts` pure adapters:
   - `toElkGraph(graph, collapsed, direction)` → `{ id:'root', layoutOptions, children, edges }`:
     - `children` = `visibleNodeIds` → `{ id, width: NODE_W, height: NODE_H }`.
     - `edges` = tree edges (`graph.edges` where `kind==='tree'`) with **both** endpoints visible → `{ id, sources:[source], targets:[target] }`.
     - `layoutOptions` by direction: `right`/`down` → `'org.eclipse.elk.mrtree'` + `'elk.direction': 'RIGHT'|'DOWN'`; `radial` → `'org.eclipse.elk.radial'`. Plus spacing (`'elk.spacing.nodeNode'`).
   - `fromElkGraph(result)` → `Map<id,{x,y}>` from `result.children[i].x/.y`.
-  - Tests (pure): `toElkGraph` includes only visible nodes + visible tree edges, picks the algorithm/direction per `direction`; `fromElkGraph` maps x/y.
-- [ ] **A4** `computeElkLayout(graph, collapsed, direction)`: `const g = toElkGraph(...); const r = await elk.layout(g); const pos = fromElkGraph(r); applyPins(graph, pos); return pos`. (`const elk = new ELK()` module-level.)
-- [ ] **A5** One **integration test** (real ELK): a 3-node tree → `computeElkLayout` → all nodes get finite, distinct positions; a pinned node honors its pin. (elkjs runs in vitest; allow a generous timeout.)
-- [ ] **A6** `typecheck`/`lint`. Commit `feat(mindmap): ELK layout engine (elkjs + pure adapters)`.
+  - [x] Tests (pure): visible-only nodes + tree edges; algorithm/direction per `direction`; `fromElkGraph` maps x/y.
+- [x] **A4** `computeElkLayout` (async, `applyPins`-aware; module-level `elk`).
+- [x] **A5** Real-ELK integration tests: finite distinct positions; a pin is honored. (6 tests total, fast.)
+- [x] **A6** `typecheck`/`lint`/layout-test green. Commit `feat(mindmap): ELK layout engine (elkjs + pure adapters)`.
 
 ## Phase B — store flag + async Canvas integration
 
