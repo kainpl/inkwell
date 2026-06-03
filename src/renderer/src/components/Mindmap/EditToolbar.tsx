@@ -1,15 +1,17 @@
+import { useState } from 'react'
 import { useAppStore } from '@renderer/store/useAppStore'
 import { useActiveProject, useProjectStore } from '@renderer/store/useProjectStore'
 import {
   addChildToSelected,
   addSiblingToSelected,
   applyMindmapTheme,
+  applyCustomTheme,
   deleteSelection,
   redoActive,
   saveActive,
   undoActive
 } from '@renderer/lib/mindmap/projectEditActions'
-import { THEME_KEYS } from '@renderer/lib/mindmap/themes'
+import { THEME_KEYS, MINDMAP_THEMES, type ThemeColor } from '@renderer/lib/mindmap/themes'
 
 const BTN =
   'rounded px-2 py-1 text-[13px] text-ink enabled:hover:bg-line/40 disabled:opacity-40 disabled:cursor-default'
@@ -34,6 +36,10 @@ export default function EditToolbar(): JSX.Element {
   const focused = project?.focusId != null
   const quickOn = project?.quickOpen ?? false
   const viewMode = project?.viewMode ?? 'map'
+  const [customOpen, setCustomOpen] = useState(false)
+  const [palette, setPalette] = useState<ThemeColor[]>(() => MINDMAP_THEMES.ocean.map((c) => ({ ...c })))
+  const setTier = (i: number, key: keyof ThemeColor, value: string): void =>
+    setPalette((p) => p.map((c, j) => (j === i ? { ...c, [key]: value } : c)))
   const VIEW_BTN = (mode: 'map' | 'outline' | 'table' | 'split', label: string): JSX.Element => (
     <button
       onClick={() => setViewMode(mode)}
@@ -111,23 +117,64 @@ export default function EditToolbar(): JSX.Element {
       >
         Focus
       </button>
-      <select
-        value=""
-        onChange={(e) => {
-          if (e.target.value) applyMindmapTheme(e.target.value)
-        }}
-        title="Recolor the whole map from a palette"
-        className="rounded border border-line bg-paper px-1 py-1 text-[12px] text-ink"
-      >
-        <option value="" disabled>
-          🎨 Theme
-        </option>
-        {THEME_KEYS.map((k) => (
-          <option key={k} value={k}>
-            {k === 'clear' ? 'Clear colors' : k.charAt(0).toUpperCase() + k.slice(1)}
+      <div className="relative">
+        <select
+          value=""
+          onChange={(e) => {
+            const v = e.target.value
+            if (v === 'custom') setCustomOpen(true)
+            else if (v) applyMindmapTheme(v)
+          }}
+          title="Recolor the whole map from a palette"
+          className="rounded border border-line bg-paper px-1 py-1 text-[12px] text-ink"
+        >
+          <option value="" disabled>
+            🎨 Theme
           </option>
-        ))}
-      </select>
+          {THEME_KEYS.map((k) => (
+            <option key={k} value={k}>
+              {k === 'clear' ? 'Clear colors' : k.charAt(0).toUpperCase() + k.slice(1)}
+            </option>
+          ))}
+          <option value="custom">Custom…</option>
+        </select>
+        {customOpen ? (
+          <div className="absolute left-0 top-full z-30 mt-1 w-64 rounded-md border border-line bg-paper p-2 shadow-lg">
+            <div className="mb-1 text-[11px] uppercase tracking-wide text-faint">
+              Custom palette (by depth)
+            </div>
+            {palette.map((c, i) => (
+              <div key={i} className="mb-1 flex items-center gap-2 text-[11px]">
+                <span className="w-10 text-faint">tier {i + 1}</span>
+                {(['fill', 'text', 'line'] as const).map((k) => (
+                  <label key={k} className="flex items-center gap-0.5" title={k}>
+                    <input
+                      type="color"
+                      value={c[k]}
+                      onChange={(e) => setTier(i, k, e.target.value)}
+                      className="h-5 w-6 rounded border border-line"
+                    />
+                  </label>
+                ))}
+              </div>
+            ))}
+            <div className="mt-2 flex justify-end gap-2">
+              <button onClick={() => setCustomOpen(false)} className="text-[12px] text-faint hover:text-ink">
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  applyCustomTheme(palette)
+                  setCustomOpen(false)
+                }}
+                className="rounded border border-line px-2 py-0.5 text-[12px] hover:border-accent hover:text-accent"
+              >
+                Apply
+              </button>
+            </div>
+          </div>
+        ) : null}
+      </div>
       <span className="mx-1 h-4 w-px bg-line" />
       <button className={BTN} onClick={undoActive} title="Undo (Ctrl+Z)">
         Undo

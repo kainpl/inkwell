@@ -26,7 +26,7 @@ import {
   addExternalLink,
   removeExternalLink
 } from './nodeStyleOps'
-import { applyTheme } from './themes'
+import { applyTheme, type ThemeColor } from './themes'
 import { insertAtCaret } from './docView'
 import { projectDocs } from './projectDocs'
 import type { DocRef, NodeData } from '@shared/mindmap/types'
@@ -96,6 +96,14 @@ export function applyMindmapTheme(key: string): void {
   const a = active()
   if (!a) return
   applyTheme(a.doc, key)
+  markDirty(a.tabId)
+}
+
+/** Recolor the whole map from a user-defined palette (by depth). */
+export function applyCustomTheme(palette: ThemeColor[]): void {
+  const a = active()
+  if (!a) return
+  applyTheme(a.doc, 'custom', palette)
   markDirty(a.tabId)
 }
 

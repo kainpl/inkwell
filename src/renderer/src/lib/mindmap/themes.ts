@@ -42,7 +42,7 @@ export const THEME_KEYS = ['clear', ...Object.keys(MINDMAP_THEMES)]
  * theme colors (`undefined` is dropped on JSON-serialize, so the key is removed).
  * Synchronous loop ⇒ the per-node edits group into one undo step (captureTimeout).
  */
-export function applyTheme(doc: Y.Doc, key: string): void {
+export function applyTheme(doc: Y.Doc, key: string, custom?: ThemeColor[]): void {
   const graph = buildGraph(yjsToOutline(doc))
   if (key === 'clear') {
     for (const n of graph.nodes) {
@@ -50,8 +50,8 @@ export function applyTheme(doc: Y.Doc, key: string): void {
     }
     return
   }
-  const palette = MINDMAP_THEMES[key]
-  if (!palette) return
+  const palette = key === 'custom' ? custom : MINDMAP_THEMES[key]
+  if (!palette || !palette.length) return
   for (const n of graph.nodes) {
     const c = palette[n.depth % palette.length]
     setNodeData(doc, n.id, { fillColor: c.fill, color: c.text, lineColor: c.line })
