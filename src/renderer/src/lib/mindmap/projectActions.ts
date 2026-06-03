@@ -7,6 +7,7 @@ import { createProjectDoc, destroyProjectDoc, getProjectDoc } from './yjsRegistr
 import { nodesOf, yjsToOutline } from './yjsModel'
 import { mergeLinkTypes } from './linkTypes'
 import { buildGraph } from './buildGraph'
+import { autoCollapse } from './autoCollapse'
 import { renderProjectHtml, type HtmlDoc } from './exportHtml'
 import { renderMarkdownBody } from '@renderer/lib/exportRender'
 import { pdfOptions } from '@renderer/lib/pageSetup'
@@ -35,12 +36,18 @@ function enterProject(opened: OpenedInkproj): void {
   const name = docTitle.trim() || 'Project'
   const tabId = useAppStore.getState().openProjectTab(name)
   const { doc } = createProjectDoc(tabId, outline, docTitle, opened.srcPath)
+  // Honor saved collapse data; otherwise auto-collapse a very large map so it opens navigable.
+  let collapsed = initialCollapsed(doc)
+  if (collapsed.size === 0) {
+    const graph = buildGraph(yjsToOutline(doc))
+    if (graph.nodes.length > 400) collapsed = autoCollapse(graph, 200)
+  }
   useProjectStore.getState().setProjectForTab(tabId, {
     workingDir: opened.workingDir,
     manifest: opened.manifest,
     linkTypes: mergeLinkTypes(opened.manifest.linkTypes),
     srcPath: opened.srcPath,
-    collapsed: initialCollapsed(doc)
+    collapsed
   })
 }
 

@@ -27,6 +27,7 @@ import {
   removeExternalLink
 } from './nodeStyleOps'
 import { applyTheme, type ThemeColor } from './themes'
+import { autoCollapse } from './autoCollapse'
 import { insertAtCaret } from './docView'
 import { projectDocs } from './projectDocs'
 import type { DocRef, NodeData } from '@shared/mindmap/types'
@@ -97,6 +98,14 @@ export function applyMindmapTheme(key: string): void {
   if (!a) return
   applyTheme(a.doc, key)
   markDirty(a.tabId)
+}
+
+/** Collapse a large map to the deepest level that fits `maxVisible` visible nodes. */
+export function fitMap(maxVisible = 150): void {
+  const a = active()
+  if (!a) return
+  const graph = buildGraph(yjsToOutline(a.doc))
+  useProjectStore.getState().setCollapsed(autoCollapse(graph, maxVisible))
 }
 
 /** Recolor the whole map from a user-defined palette (by depth). */

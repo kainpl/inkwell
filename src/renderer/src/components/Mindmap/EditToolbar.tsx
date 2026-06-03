@@ -7,6 +7,7 @@ import {
   applyMindmapTheme,
   applyCustomTheme,
   deleteSelection,
+  fitMap,
   redoActive,
   saveActive,
   undoActive
@@ -105,6 +106,9 @@ export default function EditToolbar(): JSX.Element {
       </button>
       <button className={BTN} disabled={!hasSel} onClick={deleteSelection} title="Delete (Del)">
         Delete
+      </button>
+      <button className={BTN} onClick={() => fitMap()} title="Collapse a large map to fit">
+        ⤢ Fit
       </button>
       <button
         className={`${BTN} ${docsOn ? 'text-accent' : ''}`}
