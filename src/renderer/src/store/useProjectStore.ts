@@ -31,6 +31,8 @@ export interface ProjectEntry {
   dirtyDocs: Record<string, string>
   /** External doc `src` → content the user granted this session (transient, never saved). */
   externalDocs: Record<string, string>
+  /** Whether the canvas search box is open. */
+  searchOpen: boolean
 }
 
 interface ProjectsState {
@@ -71,6 +73,9 @@ interface ProjectsState {
   clearDirtyDocs: () => void
   /** Cache a user-granted external doc's content (transient; no dirty). */
   setExternalDoc: (src: string, content: string) => void
+  /** Toggle / set the canvas search box. */
+  toggleSearch: () => void
+  setSearchOpen: (open: boolean) => void
 }
 
 /** Immutably update the active tab's entry (no-op if the active tab isn't a project). */
@@ -104,7 +109,8 @@ export const useProjectStore = create<ProjectsState>((set) => ({
           selectedLink: null,
           openDoc: null,
           dirtyDocs: {},
-          externalDocs: {}
+          externalDocs: {},
+          searchOpen: false
         }
       }
     })),
@@ -194,7 +200,10 @@ export const useProjectStore = create<ProjectsState>((set) => ({
     ),
 
   setExternalDoc: (src, content) =>
-    set((s) => patchActive(s, (e) => ({ ...e, externalDocs: { ...e.externalDocs, [src]: content } })))
+    set((s) => patchActive(s, (e) => ({ ...e, externalDocs: { ...e.externalDocs, [src]: content } }))),
+
+  toggleSearch: () => set((s) => patchActive(s, (e) => ({ ...e, searchOpen: !e.searchOpen }))),
+  setSearchOpen: (open) => set((s) => patchActive(s, (e) => ({ ...e, searchOpen: open })))
 }))
 
 /** The active tab's project entry, or null. Subscribes to both stores so it

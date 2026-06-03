@@ -32,6 +32,7 @@ import { resolveDrop, type DropTarget } from '@renderer/lib/mindmap/resolveDrop'
 import type { LinkType } from '@shared/mindmap/types'
 import MindNode from './MindNode'
 import { TreeEdge, CrosslinkEdge } from './edges'
+import SearchPanel from './SearchPanel'
 
 const nodeTypes: NodeTypes = { mind: MindNode }
 const edgeTypes: EdgeTypes = { tree: TreeEdge, crosslink: CrosslinkEdge }
@@ -197,6 +198,7 @@ export default function Canvas(): JSX.Element {
       <Background />
       <Controls showInteractive={false} />
       <MiniMap pannable zoomable />
+      <SearchPanel graph={graph} layout={layout} />
       {dropHint ? (
         <ViewportPortal>
           <DropGhost hint={dropHint} layout={layout} />

@@ -35,7 +35,10 @@ export default function ProjectView(): JSX.Element {
       const mod = e.ctrlKey || e.metaKey
       if (mod) {
         const k = e.key.toLowerCase()
-        if (k === 'z') {
+        if (k === 'f' && e.shiftKey) {
+          e.preventDefault()
+          useProjectStore.getState().toggleSearch()
+        } else if (k === 'z') {
           e.preventDefault()
           if (e.shiftKey) redoActive()
           else undoActive()
