@@ -135,8 +135,12 @@ multi-root layout + drop-ghost · per-node junction add-child/expand control.
 - **★ Multiplayer** — a networking provider over the local Yjs doc (P2P / self-hosted, never
   a cloud relay). Yjs model is already in place (D9). *ours; Protocolist yjs-relay; MindNode live-collab. · L*
 - **★ Peer presence** — remote cursors + selection boxes via Yjs awareness. *Protocolist `peer-presence.tsx`. · M (needs multiplayer)*
-- **★ AI assist** — command bar ("merge similar branches", "rename root"), expand/brainstorm
-  a node, mind-map → article, summarize. Needs an LLM integration. *Protocolist `ai-command-bar.tsx`; MindNode on-device AI. · M–L*
+- **⏸ AI assist** — *deferred / parked (2026-06).* Expand/Summarize a node + (later) a command
+  bar, mind-map → article. **Design + auth research done, nothing built** — see [`m19-plan.md`](m19-plan.md).
+  Key finding: a third-party app **can't** ride the user's Claude.ai subscription (Agent SDK/CLI need an
+  `ANTHROPIC_API_KEY`; subscription forbidden for third-party products per Anthropic terms) → **Ollama
+  (local) is the only free/sanctioned provider**. BYOK design (Anthropic-API / OpenAI-compatible /
+  Ollama) ready when AI returns. *Protocolist `ai-command-bar.tsx`. · M–L*
 - **✅ Edit-history panel** (M18, local) — granular schema snapshots (between saves) + a
   `diffGraphs` change summary + **in-place rollback** (`replaceOutline`, undoable) alongside
   M13's open-as-new. *built on M13's version store, no backend.* *Protocolist `collab-history-panel.tsx`.*
