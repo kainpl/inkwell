@@ -7,6 +7,7 @@ import EdgeInspector from './EdgeInspector'
 import NodeInspector from './NodeInspector'
 import HotkeysHelp from './HotkeysHelp'
 import OutlinePanel from './OutlinePanel'
+import TablePanel from './TablePanel'
 import { useAppStore } from '@renderer/store/useAppStore'
 import { useProjectStore } from '@renderer/store/useProjectStore'
 import { useProjectGraph } from '@renderer/lib/mindmap/useProjectGraph'
@@ -174,12 +175,17 @@ export default function ProjectView(): JSX.Element {
       <EditToolbar />
       <div className="flex min-h-0 flex-1">
         <div className="flex min-w-0 flex-1">
-          {viewMode !== 'map' ? (
+          {viewMode === 'outline' || viewMode === 'split' ? (
             <div className={viewMode === 'split' ? 'w-1/2 shrink-0 overflow-hidden border-r border-line' : 'min-w-0 flex-1'}>
               <OutlinePanel />
             </div>
           ) : null}
-          {viewMode !== 'outline' ? (
+          {viewMode === 'table' ? (
+            <div className="min-w-0 flex-1 overflow-hidden">
+              <TablePanel />
+            </div>
+          ) : null}
+          {viewMode === 'map' || viewMode === 'split' ? (
             <div className="relative min-w-0 flex-1">
               <Canvas />
               <EdgeInspector />

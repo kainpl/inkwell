@@ -27,7 +27,7 @@ export default function EditToolbar(): JSX.Element {
   const focused = project?.focusId != null
   const quickOn = project?.quickOpen ?? false
   const viewMode = project?.viewMode ?? 'map'
-  const VIEW_BTN = (mode: 'map' | 'outline' | 'split', label: string): JSX.Element => (
+  const VIEW_BTN = (mode: 'map' | 'outline' | 'table' | 'split', label: string): JSX.Element => (
     <button
       onClick={() => setViewMode(mode)}
       className={`px-2 py-0.5 text-[12px] ${viewMode === mode ? 'bg-accent text-paper' : 'text-muted hover:text-ink'}`}
@@ -41,6 +41,7 @@ export default function EditToolbar(): JSX.Element {
       <div className="mr-1 flex overflow-hidden rounded border border-line">
         {VIEW_BTN('map', 'Map')}
         {VIEW_BTN('outline', 'Outline')}
+        {VIEW_BTN('table', 'Table')}
         {VIEW_BTN('split', 'Split')}
       </div>
       <span className="mx-1 h-4 w-px bg-line" />
