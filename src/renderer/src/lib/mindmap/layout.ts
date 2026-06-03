@@ -69,7 +69,13 @@ export function computeLayout(
     }
   }
 
-  // Manual pins override the computed slot.
+  applyPins(graph, pos)
+  return pos
+}
+
+/** Manual pins override the engine's slot: `customLeft/customTop` (absolute) or
+ *  `offsetX/offsetY` (delta). Shared by the banded and ELK engines. */
+export function applyPins(graph: GraphModel, pos: Map<string, Pos>): void {
   for (const node of graph.nodes) {
     const auto = pos.get(node.id) ?? { x: 0, y: 0 }
     const d = node.data
@@ -79,8 +85,20 @@ export function computeLayout(
       pos.set(node.id, { x: auto.x + (d.offsetX ?? 0), y: auto.y + (d.offsetY ?? 0) })
     }
   }
+}
 
-  return pos
+/** Ids of nodes that are shown (no collapsed ancestor) — a collapsed node is itself
+ *  visible; only its descendants are hidden. The set ELK / banded should lay out. */
+export function visibleNodeIds(graph: GraphModel, collapsed: Set<string>): string[] {
+  const hidden = new Set<string>()
+  const hide = (id: string): void => {
+    for (const c of graph.childrenOf.get(id) ?? []) {
+      hidden.add(c)
+      hide(c)
+    }
+  }
+  for (const id of collapsed) hide(id)
+  return graph.nodes.filter((n) => !hidden.has(n.id)).map((n) => n.id)
 }
 
 /** Radial layout: the root's children split into a right (depth on +x) and a left

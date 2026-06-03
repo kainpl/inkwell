@@ -19,6 +19,7 @@ import { useAppStore } from '@renderer/store/useAppStore'
 import { useProjectStore, useActiveProject } from '@renderer/store/useProjectStore'
 import { useProjectGraph } from '@renderer/lib/mindmap/useProjectGraph'
 import { computeLayout, subtreeBounds, type Pos } from '@renderer/lib/mindmap/layout'
+import { computeElkLayout } from '@renderer/lib/mindmap/layoutElk'
 import {
   buildRfModel,
   type RfNode,
@@ -177,13 +178,27 @@ export default function Canvas(): JSX.Element {
   const highlightTag = project?.highlightTag ?? null
   const focusId = project?.focusId ?? null
   const direction = project?.direction ?? 'right'
+  const engine = project?.layoutEngine ?? 'banded'
 
-  // Positions depend on the tree shape, collapse (collapsed subtrees reserve no
-  // space), and the growth direction.
-  const layout = useMemo(
+  // The banded layout is synchronous (and the fallback shown while ELK computes).
+  const banded = useMemo(
     () => (graph ? computeLayout(graph, collapsed, direction) : new Map<string, Pos>()),
     [graph, collapsed, direction]
   )
+  // ELK is async: compute off the render path, prefer it once ready (no flicker —
+  // banded shows meanwhile); a cancel flag drops stale results after a fast change.
+  const [elkLayout, setElkLayout] = useState<Map<string, Pos> | null>(null)
+  useEffect(() => {
+    if (engine !== 'elk' || !graph) return
+    let cancelled = false
+    void computeElkLayout(graph, collapsed, direction).then((m) => {
+      if (!cancelled) setElkLayout(m)
+    })
+    return () => {
+      cancelled = true
+    }
+  }, [engine, graph, collapsed, direction])
+  const layout = engine === 'elk' && elkLayout ? elkLayout : banded
   const focus = useMemo(
     () => (graph && focusId ? focusSet(graph, focusId) : null),
     [graph, focusId]
