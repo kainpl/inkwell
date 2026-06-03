@@ -53,22 +53,19 @@ multi-root layout + drop-ghost · per-node junction add-child/expand control.
   during drag are still open. *Protocolist `hotkeys-help.tsx`. · S*
 - **✅ Breadcrumb of the selected node's path** (M7-E). *Protocolist `tree-nav.navigate`. · S*
 
-## B. Schema editor — nodes & visuals
+## B. Schema editor — nodes & visuals  *(fully shipped, M9–M15)*
 
-- **✅ More node shapes** (M9) — added cloud (border-radius) + hexagon/octagon (clip-path,
-  two-layer outline) to rounded/rectangle/pill/ellipse. *line / embedded still open. · S*
-- **✅ Interactive tasks** (M9) — click the node checkbox to cycle `taskStatus`
-  (none → open → done → cancelled); strikethrough when closed. *subtree progress rollup still open. · S–M*
-- **✅ Frames / group brackets** (M9) — `data.frame` (bracket / underline) draws a translucent
-  frame around a node's visible subtree (collapse-aware bbox, ViewportPortal overlay). *Protocolist `frames.tsx`. · S*
-- **✅ Short per-node note** (M10) — `data.note`: a note textarea in the inspector + a 📝
-  tooltip indicator on the node. *MindNode "Notes". · S*
-- **✅ Rich-text node labels** (M10) — whole-label **bold / italic / underline** flags
-  (render-applied → rename-safe), B/I/U toggles in the inspector. *inline-range rich text + font/size still open. · M*
-- **✅ Mind-map themes** (M10) — curated node palettes (sunset/forest/ocean/mono) applied by
-  depth, + Clear; a toolbar picker. *custom palettes still open. *MindNode; Protocolist. · M*
-- **✅ Layout direction options** (M11) — **horizontal (→)** + **vertical (↓)** banded growth
-  (toolbar toggle; handles + tail adapt). *left+right radial branch sides still open. *MindNode; Protocolist `setSubtreeSide`. · M–L*
+- **✅ More node shapes** (M9 + M15) — rounded/rectangle/pill/ellipse + cloud + hexagon/octagon
+  (clip-path) + **line / embedded** (bare, M15). *MindNode; Protocolist.*
+- **✅ Interactive tasks** (M9 + M15) — click the checkbox to cycle `taskStatus`; **subtree
+  progress rollup** (a `done/total` badge on parents, M15). *Protocolist `mind-node.tsx`.*
+- **✅ Frames / group brackets** (M9) — `data.frame` (bracket / underline) around a visible subtree. *Protocolist `frames.tsx`.*
+- **✅ Short per-node note** (M10) — `data.note` (inspector textarea + 📝 indicator). *MindNode "Notes".*
+- **✅ Rich-text node labels** (M10 + M15) — whole-label B/I/U flags + **inline-markdown
+  segments** + **font size / family** (M15). *Protocolist `text-format-panel.tsx`.*
+- **✅ Mind-map themes** (M10 + M15) — curated palettes + Clear + a **custom palette editor** (M15). *MindNode; Protocolist.*
+- **✅ Layout direction** (M11 + M15) — **horizontal (→)** + **vertical (↓)** + **left+right
+  radial (⇆)** banded growth; handles + tail adapt per side. *MindNode; Protocolist `setSubtreeSide`.*
 
 ## C. Schema ⟷ Markdown bridge  *(the unification seam)*
 
