@@ -18,7 +18,7 @@ Branch: `feat/mindmap`. Started 2026‑06‑02.
 | [`m2b-plan.md`](m2b-plan.md) | **Milestone 2b implementation plan** — Phase A (A1–A6) + Phase B (B1–B5), TDD. **Done / shipped.** |
 | [`m2c-plan.md`](m2c-plan.md) | **Milestone 2c plan + design** — node styling · anchors UI · sibling reorder · external docs (Phases C1–C5). **Done / shipped.** |
 | [`m3-plan.md`](m3-plan.md) | **Milestone 3 plan + design** — project lifecycle: New project · Import `.mind-map` · Export `.mind-map` (D10/D11 interop). **Done / shipped.** |
-| [`m4-plan.md`](m4-plan.md) | **Milestone 4 plan + design** — export the active project to a single self-contained `.html` (shareable read-only artifact). |
+| [`m4-plan.md`](m4-plan.md) | **Milestone 4 plan + design** — export the active project to a single self-contained `.html` (shareable read-only artifact). **Code complete** (green gate); pending QA. |
 
 ## Source repos (read‑only, gitignored, under `temp/ref/`)
 
@@ -45,3 +45,5 @@ Research complete; **vision locked (D1–D13)**; **M1 shipped** on `feat/mindmap
 **M2c shipped** on `feat/mindmap` — four backlog slices: **node styling** (color/shape/icons/tags via a Node Inspector), **anchors UI** (insert `{#id}`/`^id` + node→anchor linking, D6), **sibling reordering** by drag, and **external docs** (attach/open/internalize with user-granted reads only, D7). Green gate passed (vitest 410, typecheck, lint, build); manual QA accepted; pushed to origin.
 
 **M3 code-complete** on `feat/mindmap` — **project lifecycle**: **New Project** (pick a path → fresh `.inkproj` → open), **Import** a standalone `.mind-map` → new `.inkproj`, and **Export** the active schema → standalone `.mind-map` (D10/D11 interop). New/Import create a real file then reuse the open flow; Export reuses `outlineToMarkdown`. File-menu items wired across en/uk/ru. Green gate passed (vitest 411, typecheck, lint, build); manual QA accepted; pushed to origin.
+
+**M4 code-complete** on `feat/mindmap` — **Export Project as HTML**: a pure generator turns the graph into a single self-contained `.html` (nested-outline tree with styled node chips, typed cross-links, and collapsible doc sections; click a node → jump to its doc). Inline CSS, no scripts, all text escaped; reuses `buildGraph`. Green gate passed (vitest 412, typecheck, lint, build). **Pending:** manual QA (plan §M4.3).
