@@ -23,6 +23,14 @@ export function buildMenu(win: BrowserWindow, locale: Locale): void {
         { label: t('file.openProject'), click: send(IPC.menuOpenProject) },
         { label: t('file.importMindMap'), click: send(IPC.menuImportMindMap) },
         { label: t('file.exportMindMap'), click: send(IPC.menuExportMindMap) },
+        {
+          label: t('file.exportSchemaAs'),
+          submenu: [
+            { label: t('file.asOpml'), click: send(IPC.menuExportSchemaOpml) },
+            { label: t('file.asMarkdown'), click: send(IPC.menuExportSchemaMd) },
+            { label: t('file.asFreeMind'), click: send(IPC.menuExportSchemaMm) }
+          ]
+        },
         { label: t('file.exportProjectHtml'), click: send(IPC.menuExportHtmlProject) },
         { label: t('file.openFolder'), accelerator: 'CmdOrCtrl+Shift+O', click: send(IPC.menuOpenFolder) },
         { label: t('file.openQuickly'), accelerator: 'CmdOrCtrl+P', click: send(IPC.menuOpenQuickly) },

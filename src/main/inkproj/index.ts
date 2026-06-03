@@ -24,6 +24,11 @@ const IMAGE_FILTER = [{ name: 'Image', extensions: ['png', 'jpg', 'jpeg', 'gif',
 const INKPROJ_FILTER = [{ name: 'Inkwell Project', extensions: ['inkproj'] }]
 const MINDMAP_FILTER = [{ name: 'Mind-map', extensions: ['mind-map', 'md', 'markdown'] }]
 const HTML_FILTER = [{ name: 'HTML', extensions: ['html', 'htm'] }]
+const EXPORT_TEXT_FILTERS: Record<string, { name: string; extensions: string[] }[]> = {
+  '.opml': [{ name: 'OPML', extensions: ['opml'] }],
+  '.md': [{ name: 'Markdown', extensions: ['md', 'markdown'] }],
+  '.mm': [{ name: 'FreeMind', extensions: ['mm'] }]
+}
 const IMPORT_FILTER = [
   {
     name: 'Mind map',
@@ -117,6 +122,17 @@ export function registerInkprojIpc(): void {
     const dest = await pickSave(e, 'Export as HTML', suggestedName, HTML_FILTER)
     if (!dest) return null
     await writeFile(dest, html, 'utf8')
+    return dest
+  })
+
+  // Generic text export (OPML / Markdown / FreeMind …) — the renderer builds the
+  // text; the save filter is inferred from the suggested name's extension.
+  ipcMain.handle(IPC.inkprojExportText, async (e, text: string, suggestedName: string) => {
+    const ext = extname(suggestedName).toLowerCase()
+    const filters = EXPORT_TEXT_FILTERS[ext] ?? [{ name: 'All Files', extensions: ['*'] }]
+    const dest = await pickSave(e, 'Export', suggestedName, filters)
+    if (!dest) return null
+    await writeFile(dest, text, 'utf8')
     return dest
   })
 

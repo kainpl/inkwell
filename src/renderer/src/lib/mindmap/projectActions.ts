@@ -10,6 +10,7 @@ import { buildGraph } from './buildGraph'
 import { renderProjectHtml, type HtmlDoc } from './exportHtml'
 import { importAny } from './importFormats'
 import { importMindnode } from './importMindnode'
+import { toOpml, toPlainMarkdown, toFreeMind } from './exportFormats'
 
 /** Ids whose subtree should start collapsed (`data.expand === false`). */
 function initialCollapsed(doc: YDoc): Set<string> {
@@ -71,6 +72,22 @@ export async function exportMindMap(): Promise<void> {
   const title = (pd.doc.getMap('meta').get('title') as string) ?? ''
   const schema = outlineToMarkdown(yjsToOutline(pd.doc), title)
   await window.api.inkproj.exportMindMap(schema, `${title || 'mindmap'}.mind-map`)
+}
+
+/** Export the active project's live schema → OPML / plain Markdown / FreeMind `.mm`. */
+export async function exportAs(kind: 'opml' | 'md' | 'mm'): Promise<void> {
+  const tabId = useAppStore.getState().activeId
+  const pd = getProjectDoc(tabId)
+  if (!pd) return
+  const title = ((pd.doc.getMap('meta').get('title') as string) ?? '') || 'mindmap'
+  const outline = yjsToOutline(pd.doc)
+  const { text, name } =
+    kind === 'opml'
+      ? { text: toOpml(title, outline), name: `${title}.opml` }
+      : kind === 'mm'
+        ? { text: toFreeMind(title, outline), name: `${title}.mm` }
+        : { text: toPlainMarkdown(outline, title), name: `${title}.md` }
+  await window.api.inkproj.exportText(text, name)
 }
 
 /** Export the active project → a single self-contained `.html` (tree + cross-links + docs). */

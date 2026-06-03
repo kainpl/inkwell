@@ -73,6 +73,7 @@ import {
   openProjectFromPath,
   importMindMap,
   exportMindMap,
+  exportAs as exportSchemaAs,
   exportHtml as exportProjectHtml
 } from '@renderer/lib/mindmap/projectActions'
 
@@ -90,6 +91,9 @@ export default function App(): JSX.Element {
       window.api.onMenu(IPC.menuOpenProject, () => void openProjectFromDialog()),
       window.api.onMenu(IPC.menuImportMindMap, () => void importMindMap()),
       window.api.onMenu(IPC.menuExportMindMap, () => void exportMindMap()),
+      window.api.onMenu(IPC.menuExportSchemaOpml, () => void exportSchemaAs('opml')),
+      window.api.onMenu(IPC.menuExportSchemaMd, () => void exportSchemaAs('md')),
+      window.api.onMenu(IPC.menuExportSchemaMm, () => void exportSchemaAs('mm')),
       window.api.onMenu(IPC.menuExportHtmlProject, () => void exportProjectHtml()),
       window.api.onMenu(IPC.menuOpenFolder, () => void openFolderFromDialog()),
       window.api.onMenu(IPC.menuSave, () => void saveCurrent()),

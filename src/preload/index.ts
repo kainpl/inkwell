@@ -29,6 +29,9 @@ const menuChannels = [
   IPC.menuImportMindMap,
   IPC.menuExportMindMap,
   IPC.menuExportHtmlProject,
+  IPC.menuExportSchemaOpml,
+  IPC.menuExportSchemaMd,
+  IPC.menuExportSchemaMm,
   IPC.menuOpenFolder,
   IPC.menuSave,
   IPC.menuSaveAs,
@@ -217,6 +220,8 @@ const api = {
       ipcRenderer.invoke(IPC.inkprojExportMindMap, schemaText, suggestedName),
     exportHtml: (html: string, suggestedName: string): Promise<string | null> =>
       ipcRenderer.invoke(IPC.inkprojExportHtml, html, suggestedName),
+    exportText: (text: string, suggestedName: string): Promise<string | null> =>
+      ipcRenderer.invoke(IPC.inkprojExportText, text, suggestedName),
     readDoc: (workingDir: string, ref: DocRef): Promise<string> =>
       ipcRenderer.invoke(IPC.inkprojReadDoc, workingDir, ref),
     save: (workingDir: string, payload: InkprojSavePayload, srcPath: string): Promise<void> =>
