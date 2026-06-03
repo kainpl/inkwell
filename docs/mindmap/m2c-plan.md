@@ -73,9 +73,9 @@
 # Phase C5 — combined gate + QA
 
 - [x] **C5.1** `npx vitest run` green (410 pass; known `Editor.tab.test.tsx` jsdom error remains); `typecheck`/`lint`/`build` clean.
-- [ ] **C5.2** One big manual QA on `sample.inkproj` across all four. *(handed off)*
-- [x] **C5.3** Update `docs/mindmap/README.md` → M2c code-complete (pending QA).
-- [ ] **C5.4** Hand off for the one combined QA; commit/merge per the user's OK. *(handed off)*
+- [x] **C5.2** One big manual QA on `sample.inkproj` across all four. **Passed.**
+- [x] **C5.3** Update `docs/mindmap/README.md` → M2c shipped.
+- [x] **C5.4** Manual QA accepted; committed + pushed to origin.
 
 ## Self-review
 - **Additive / interop (D1):** styling + anchors live in `data`/doc text; external refs in `data.docs`; custom nothing-new in the ZIP → their reader still round-trips. ✓
