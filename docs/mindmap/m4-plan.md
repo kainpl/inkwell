@@ -33,9 +33,9 @@
 ## Phase M4.3 — gate + QA
 
 - [x] **M4.3.1** `npx vitest run` green (412 pass; known `Editor.tab.test.tsx` jsdom error remains); `typecheck`/`lint`/`build` clean.
-- [ ] **M4.3.2** Manual QA: open `sample.inkproj` → File → Export as HTML → open the `.html` in a browser. *(handed off)*
-- [x] **M4.3.3** Update `docs/mindmap/README.md` → M4 code-complete (pending QA).
-- [ ] **M4.3.4** Hand off for QA; commit/push per the user's OK. *(handed off)*
+- [x] **M4.3.2** Manual QA: export `sample.inkproj` → open the `.html` in a browser. **Passed.**
+- [x] **M4.3.3** Update `docs/mindmap/README.md` → M4 shipped.
+- [x] **M4.3.4** Manual QA accepted; committed + pushed to origin.
 
 ## Self-review
 - **Reuses the engine-agnostic core:** `buildGraph` + link-type registry; no SVG/layout (nested `<ul>` always renders). ✓
