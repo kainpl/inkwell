@@ -27,6 +27,42 @@ describe('computeLayout', () => {
     expect(pinned?.x).toBe((base?.x ?? 0) + 10)
   })
 
+  it('treats collapsed nodes as leaves (hidden subtrees reserve no space)', () => {
+    const kids = (id: string, n: number): MarkdownNode => ({
+      name: id,
+      data: { id },
+      children: Array.from({ length: n }, (_, i) => ({ name: `${id}${i}`, data: { id: `${id}${i}` } }))
+    })
+    // Two siblings that both carry subtrees → their subtrees push them apart.
+    const graph = buildGraph([{ name: 'R', data: { id: 'r' }, children: [kids('a', 8), kids('b', 8)] }])
+    const gap = (pos: Map<string, { x: number; y: number }>): number =>
+      Math.abs((pos.get('b')?.y ?? 0) - (pos.get('a')?.y ?? 0))
+    const expanded = gap(computeLayout(graph))
+    const collapsed = gap(computeLayout(graph, new Set(['a', 'b'])))
+    expect(collapsed).toBeLessThan(expanded) // collapsing both packs them together
+    expect(collapsed).toBeLessThan(80) // now adjacent siblings (~NODE_SEP apart)
+  })
+
+  it('an expanded subtree brackets its leaf siblings (banded, no interleave)', () => {
+    const leaf = (id: string): MarkdownNode => ({ name: id, data: { id } })
+    const graph = buildGraph([
+      {
+        name: 'R',
+        data: { id: 'r' },
+        children: [
+          leaf('above'),
+          { name: 'S', data: { id: 's' }, children: [leaf('s1'), leaf('s2'), leaf('s3')] },
+          leaf('below')
+        ]
+      }
+    ])
+    const pos = computeLayout(graph)
+    const y = (id: string): number => pos.get(id)?.y ?? NaN
+    // 'above' sits above ALL of S's children; 'below' sits below all of them.
+    expect(y('above')).toBeLessThan(Math.min(y('s1'), y('s2'), y('s3')))
+    expect(y('below')).toBeGreaterThan(Math.max(y('s1'), y('s2'), y('s3')))
+  })
+
   it('stacks multiple roots without overlap (first root unchanged)', () => {
     const kid = (id: string): MarkdownNode => ({ name: id, data: { id } })
     const outline: MarkdownNode[] = [

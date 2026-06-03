@@ -33,7 +33,7 @@ export default function MindNode({ id, data }: NodeProps): JSX.Element {
   return (
     <div
       className={
-        `group border border-line bg-paper px-2 py-1 text-[13px] shadow-sm ${shapeClass} ` +
+        `group max-w-[230px] border border-line bg-paper px-2 py-1 text-[13px] shadow-sm ${shapeClass} ` +
         (nd.selected ? 'ring-2 ring-accent' : '')
       }
       style={{ background: fill, color: textColor, borderColor }}
@@ -78,7 +78,8 @@ export default function MindNode({ id, data }: NodeProps): JSX.Element {
           />
         ) : (
           <span
-            className="truncate"
+            className="min-w-0 truncate"
+            title={nd.label}
             onDoubleClick={(e) => {
               e.stopPropagation()
               beginEdit(id)

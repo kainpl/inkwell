@@ -1,4 +1,3 @@
-import { hierarchy, tree } from 'd3-hierarchy'
 import type { GraphModel } from '@shared/mindmap/types'
 
 export interface Pos {
@@ -6,47 +5,50 @@ export interface Pos {
   y: number
 }
 
-/** Cross-axis gap between siblings. */
-const NODE_SEP = 60
-/** Depth-axis gap between levels. */
-const RANK_SEP = 200
-/** Cross-axis gap between separate root subtrees (so multiple roots don't overlap). */
-const ROOT_GAP = 80
+// Nodes are capped (MindNode `max-w-[230px]`, single-line `truncate`), so each cell
+// is uniform: a depth level lands in its own column and rows never overlap.
+/** Cross-axis (vertical) row pitch — ≥ a single-line node's height + gap. */
+const NODE_SEP = 46
+/** Depth-axis (horizontal) column pitch — ≥ the max node width (230) + a gap. */
+const RANK_SEP = 270
+/** Cross-axis gap between separate root subtrees. */
+const ROOT_GAP = 46
 
 /**
- * Tidy-tree positions over the tree edges (RIGHT growth: x = depth axis).
- * Manual pins win: `customLeft/customTop` (absolute) or `offsetX/offsetY`
- * (delta from the computed slot). Cross-links don't affect layout.
- *
- * M1 limitation: multiple roots are each laid out from the origin and can
- * overlap — fine for the single (often synthetic) root case; multi-root
- * spacing is a later concern.
+ * **Banded** tree layout (RIGHT growth: x = depth axis). Each subtree owns a
+ * contiguous vertical band — leaves take one row each, a parent is centered over
+ * its children's band, and siblings' bands never interleave. So expanding a node
+ * grows the tree and pushes its siblings clear (above/below the whole child band),
+ * instead of d3-tidy's compact interleaving. A **collapsed** node is a leaf (its
+ * hidden subtree reserves no space). Manual pins win: `customLeft/customTop`
+ * (absolute) or `offsetX/offsetY` (delta). Cross-links don't affect layout.
  */
-export function computeLayout(graph: GraphModel): Map<string, Pos> {
+export function computeLayout(graph: GraphModel, collapsed: Set<string> = new Set()): Map<string, Pos> {
   const pos = new Map<string, Pos>()
   const roots = graph.nodes.filter((n) => n.parentId === null)
+  let cursor = 0 // running cross-axis (vertical) position for the next leaf row
 
-  // Lay out each root's subtree, then stack roots down the cross-axis so they
-  // never overlap. The first root keeps its natural (centered) coords; each
-  // later root is shifted to sit below the previous one + ROOT_GAP.
-  let yCursor: number | null = null
-  for (const root of roots) {
-    const h = hierarchy(root.id, (id) => graph.childrenOf.get(id) ?? [])
-    const laid = tree<string>().nodeSize([NODE_SEP, RANK_SEP])(h)
-    // d.x = cross-axis, d.y = depth*RANK_SEP; swap for RIGHT growth.
-    const local: { id: string; x: number; y: number }[] = []
-    let minY = Infinity
-    let maxY = -Infinity
-    laid.each((d) => {
-      local.push({ id: d.data, x: d.y, y: d.x })
-      if (d.x < minY) minY = d.x
-      if (d.x > maxY) maxY = d.x
-    })
-    const shift = yCursor === null ? 0 : yCursor - minY
-    for (const n of local) pos.set(n.id, { x: n.x, y: n.y + shift })
-    yCursor = (yCursor === null ? maxY : yCursor + (maxY - minY)) + ROOT_GAP
+  const place = (id: string, depth: number): number => {
+    const x = depth * RANK_SEP
+    const kids = collapsed.has(id) ? [] : (graph.childrenOf.get(id) ?? [])
+    if (kids.length === 0) {
+      const y = cursor
+      cursor += NODE_SEP
+      pos.set(id, { x, y })
+      return y
+    }
+    const childYs = kids.map((kid) => place(kid, depth + 1))
+    const y = (childYs[0] + childYs[childYs.length - 1]) / 2 // center over children
+    pos.set(id, { x, y })
+    return y
   }
 
+  for (const root of roots) {
+    place(root.id, 0)
+    cursor += ROOT_GAP // gap before the next root's band
+  }
+
+  // Manual pins override the computed slot.
   for (const node of graph.nodes) {
     const auto = pos.get(node.id) ?? { x: 0, y: 0 }
     const d = node.data
@@ -54,8 +56,6 @@ export function computeLayout(graph: GraphModel): Map<string, Pos> {
       pos.set(node.id, { x: d.customLeft, y: d.customTop })
     } else if (typeof d.offsetX === 'number' || typeof d.offsetY === 'number') {
       pos.set(node.id, { x: auto.x + (d.offsetX ?? 0), y: auto.y + (d.offsetY ?? 0) })
-    } else {
-      pos.set(node.id, auto)
     }
   }
 

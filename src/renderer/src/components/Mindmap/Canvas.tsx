@@ -86,8 +86,12 @@ export default function Canvas(): JSX.Element {
   const selectedId = project?.selectedId ?? null
   const selectedLinkId = project?.selectedLink?.linkId ?? null
 
-  // Positions depend only on the tree shape, not on collapse/selection.
-  const layout = useMemo(() => (graph ? computeLayout(graph) : new Map<string, Pos>()), [graph])
+  // Positions depend on the tree shape AND collapse (collapsed subtrees reserve no
+  // space — otherwise visible nodes spread out as if everything were expanded).
+  const layout = useMemo(
+    () => (graph ? computeLayout(graph, collapsed) : new Map<string, Pos>()),
+    [graph, collapsed]
+  )
   const model = useMemo(
     () =>
       graph
