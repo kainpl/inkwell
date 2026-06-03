@@ -291,6 +291,9 @@ export default function Canvas(): JSX.Element {
       fitView
       minZoom={0.2}
       maxZoom={2}
+      // Perf for large maps: only mount nodes/edges inside the viewport (collapse
+      // already prunes the model; this prunes what's off-screen of what remains).
+      onlyRenderVisibleElements
       proOptions={{ hideAttribution: true }}
     >
       <Background />
