@@ -18,6 +18,7 @@ Branch: `feat/mindmap`. Started 2026‑06‑02.
 | [`m11-plan.md`](m11-plan.md) | **Milestone 11** — layout direction (horizontal/vertical) · table view (AST projection) · project autosave + shrink-guard · canvas virtualization (blocks B/C/E/G). **Done / shipped.** |
 | [`m12-plan.md`](m12-plan.md) | **Milestone 12** — many-to-many node↔doc links: link an existing bundle doc to another node · surface docs shared across nodes · a project docs panel (block E). The tree is the core/SSOT; docs attach M:N (no canonical-AST merge). **Done / shipped.** |
 | [`m13-plan.md`](m13-plan.md) | **Milestone 13** — all of backlog §E: untitled New project · orphaned-doc GC · save-failure surfacing + retry · project notes in manifest · schema history/versions · cross-`.inkproj` links · canvas image thumbnails. **Done / shipped.** |
+| [`m14-plan.md`](m14-plan.md) | **Milestone 14** — the rest of backlog §D: `.xmind` import · import into an open project (merge) · two-tier node text on import · interactive HTML export · `.mindnode` writer (export). |
 | [`m1-spec.md`](m1-spec.md) | **Milestone 1 spec** — the read‑only vertical slice (open `.inkproj` → render schema → click node → open doc). **Shipped.** |
 | [`m1-plan.md`](m1-plan.md) | **Milestone 1 implementation plan** — 14 task‑by‑task steps (TDD). **Done.** |
 | [`m2a-spec.md`](m2a-spec.md) | **Milestone 2a spec** — editing + save with a Yjs model (create/rename/delete/reparent, undo/redo, zip-back). |
