@@ -34,15 +34,15 @@
 
 **Files:** modify `zip.ts` (`attachAsset`, `readAssetDataUri`), `index.ts`, `shared/ipc.ts`, `preload`; `exportHtml.ts` (image substitution); `projectActions.ts` (collect assets for export); a node "Attach image" action + `data.image`.
 
-- [ ] **C1** Main `inkproj:attachAsset(workingDir)` → image dialog → copy into `assets/` (unique name) → return the bundle path. `inkproj:readAssetDataUri(workingDir, path)` → base64 data URI (path-validated; image MIME only).
-- [ ] **C2** `exportHtml`: in `projectActions.exportHtml`, scan doc contents for `![alt](assets/…)`, read each via `readAssetDataUri`, pass an `assets: Record<path, dataUri>` map; `renderProjectHtml` replaces those refs with `<img>` (minimal — only `assets/*` image refs; rest stays `<pre>`). Test the substitution in `exportHtml.test`.
-- [ ] **C3** (optional) Node `data.image` + an "Attach image…" action (sets the ref); shown in the HTML export under the node. Canvas thumbnail = backlog.
-- [ ] **C4** `typecheck`/`lint`/`build`; QA: a doc with an image → exported HTML shows it inline. Commit.
+- [x] **C1** `zip.attachAsset` (copy image → `assets/`, shared `uniqueBundlePath`) + `readAssetDataUri` (in-bundle, image-MIME-only base64); IPC `inkproj:attachAsset`/`inkproj:readAssetDataUri` + preload.
+- [x] **C2** HTML export inlines `![alt](assets/…)` refs as base64 `<img>` (renderProjectHtml `assets` map; `projectActions.exportHtml` collects them); unbundled refs stay literal. Substitution tested.
+- [x] **C3** (chosen flow) DocBar 🖼 button → `attachImageToOpenDoc`: copy a picked image into `assets/` + insert `![](assets/…)` at the doc caret (`docView.insertAtCaret`). (Node `data.image`/canvas thumbnail = backlog.)
+- [x] **C4** `typecheck`/`lint`/`build` green (vitest 418). Commit `feat(mindmap): image assets…` (`f79056c`).
 
 ## Phase D — gate + QA
 
-- [ ] **D1** `npx vitest run` green; `typecheck`/`lint`/`build` clean.
-- [ ] **D2** QA across the formats built; update `README.md`; hand off; commit/push per OK.
+- [x] **D1** `npx vitest run` green (422); `typecheck`/`lint`/`build` clean. (Phases A + C; B deferred.)
+- [ ] **D2** QA imports (.mm/.opml/.mind-doc/.txt/.json) + image-in-HTML; update `README.md`; hand off. *(handed off)*
 
 ## Self-review / open points
 - **Adapt, don't reinvent:** the reference importer (2.5k lines, client-side) is the parser source we inherit (§1a) — port the subset we want, our `MarkdownNode` shape. ✓

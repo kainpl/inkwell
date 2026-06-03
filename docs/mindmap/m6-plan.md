@@ -16,9 +16,9 @@
 
 **Files:** modify `layout.ts` (+ `layout.test.ts`).
 
-- [ ] **A1 Failing test** `layout.test.ts` — a graph with two roots (each with children) → the two roots' subtree y-ranges are disjoint (max-y of root 1's subtree < min-y of root 2's), and within a root the existing single-root positions are unchanged (offset 0 for the first root).
-- [ ] **A2 Implement** in `computeLayout`: per root, collect its laid `{id→y}`; track `yCursor`; shift the whole subtree by `yCursor - subtreeMinY`; advance `yCursor` by `subtreeHeight + ROOT_GAP`. Pins (`customLeft/Top`, `offsetX/Y`) still win afterward. run → pass.
-- [ ] **A3** `typecheck`/`lint`; QA: a project with 2+ roots renders them stacked (create a sibling of the root). Commit `feat(mindmap): non-overlapping multi-root layout`.
+- [x] **A1 Failing test** `layout.test.ts` — two roots → subtree y-ranges disjoint; first root unchanged vs a solo layout.
+- [x] **A2 Implement** `computeLayout`: per root collect cross-axis extent, shift each later root below the previous + `ROOT_GAP` (first root natural). Pins still win.
+- [x] **A3** `typecheck`/`lint` green. Commit `feat(mindmap): non-overlapping multi-root layout` (`b4386a3`).
 
 ## Phase B — drop-ghost (live drag indicator)
 
@@ -26,15 +26,15 @@
 
 **Files:** create `lib/mindmap/resolveDrop.ts` (+ test); modify `Canvas.tsx` (use it in both handlers + render the overlay), `MindNode.tsx` (optional drop-target ring class).
 
-- [ ] **B1 Failing test** `resolveDrop.test.ts` — drop to the right of a node → `{kind:'child', targetId}`; drop just above/below a sibling → `{kind:'sibling', parentId, index}` with the right index; far from everything → `null`. (Pure: takes node positions + the graph, no React Flow.)
-- [ ] **B2 Implement** `resolveDrop` (lift the math from `onNodeDragStop`: nearest node, `CHILD_DX`, before/after by Y). `Canvas.onNodeDragStop` uses it (behavior unchanged). run → pass.
-- [ ] **B3** `Canvas.onNodeDrag` (throttled via a ref): compute `resolveDrop` → set `dropHint` state. Overlay (absolutely positioned in the canvas, converting flow→screen via `useReactFlow().flowToScreenPosition` or the viewport transform): a ring on the target node for `child`; a line spanning the sibling row for `sibling`. Clear `dropHint` in `onNodeDragStop`/`onNodeDragStart`.
-- [ ] **B4** `typecheck`/`lint`/`build`; QA: dragging shows the indicator; dropping does what the indicator showed. Commit `feat(mindmap): drag drop-ghost indicator`.
+- [x] **B1 Failing test** `resolveDrop.test.ts` — child / sibling(index, before) / null. Pure (positions + graph).
+- [x] **B2 Implement** `resolveDrop` (nearest node, `CHILD_DX`, before/after by Y). `Canvas.onNodeDragStop` uses it (behavior unchanged). run → pass.
+- [x] **B3** `Canvas.onNodeDrag` (throttled by hint key) → `dropHint`; overlay via **ViewportPortal** (flow coords — cleaner than flow→screen): dashed ring for `child`, accent line at the sibling slot. Cleared on drop.
+- [x] **B4** `typecheck`/`lint`/`build` green (vitest 422). Commit `feat(mindmap): drag drop-ghost indicator` (`1a8bfd2`).
 
 ## Phase C — gate + QA
 
-- [ ] **C1** `npx vitest run` green; `typecheck`/`lint`/`build` clean.
-- [ ] **C2** QA both; update `README.md`; hand off; commit/push per OK.
+- [x] **C1** `npx vitest run` green (422); `typecheck`/`lint`/`build` clean.
+- [ ] **C2** QA both; update `README.md`; hand off; commit/push per OK. *(handed off)*
 
 ## Self-review / open points
 - **Pure where it counts:** layout + `resolveDrop` are pure + unit-tested; only the overlay is interaction. ✓
