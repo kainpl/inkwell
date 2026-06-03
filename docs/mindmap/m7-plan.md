@@ -14,37 +14,37 @@
 
 **Files:** create `lib/mindmap/treeNav.ts` (+ test), `components/Mindmap/SearchPanel.tsx`; modify `useProjectStore.ts` (search state), `Canvas.tsx` (render the panel inside RF), `ProjectView.tsx` (Ctrl+Shift+F toggle).
 
-- [ ] **A1** `treeNav.ts` pure helpers + test: `searchNodes(graph, q) → string[]` (case-insensitive label substring, in tree order); `ancestorsOf(graph, id) → string[]` (root→parent chain).
-- [ ] **A2** `useProjectStore` entry: `searchOpen: boolean`; actions `toggleSearch()`, `setSearchOpen(b)`.
-- [ ] **A3** `SearchPanel` (rendered inside Canvas's `<ReactFlow>` as a `<Panel position="top-center">` when `searchOpen`): an input; live `searchNodes` over the live graph; `N/M` counter; Enter / ↓ / ↑ cycle matches; Esc closes. Revealing a match = `expand(ancestor)` for each ancestor + `select(id)` + `useReactFlow().setCenter(x+w/2, y+h/2, { zoom, duration:300 })` using the node's `layout` position.
-- [ ] **A4** `ProjectView` key handler: `Ctrl/Cmd+Shift+F` → `toggleSearch()` (guard typing targets).
-- [ ] **A5** `typecheck`/`lint`. Commit `feat(mindmap): node search + reveal`.
+- [x] **A1** `treeNav.searchNodes` + `ancestorsOf` (tested).
+- [x] **A2** `useProjectStore` `searchOpen` + `toggleSearch`/`setSearchOpen`.
+- [x] **A3** `SearchPanel` (RF `<Panel>`): filter, N/M, Enter/↑/↓ cycle, Esc; reveal = expand ancestors + select + center (`centerOnNode`).
+- [x] **A4** `Ctrl/Cmd+Shift+F` toggles search.
+- [x] **A5** Commit `feat(mindmap): node search + reveal` (`40b02f8`).
 
 ## Phase B — keyboard navigation
 
 **Files:** modify `treeNav.ts` (+ test), `ProjectView.tsx`.
 
-- [ ] **B1** `treeNav.navigate(graph, id, dir: 'up'|'down'|'left'|'right') → string|null`: up/down = prev/next visible sibling, left = parent, right = first child; honor a `collapsed` set (right on a collapsed node expands instead — return a sentinel or let the caller expand). `expandToLevel(graph, level) → Set<string>` (collapse every node deeper than `level`). Tests.
-- [ ] **B2** `ProjectView` keys (when a node is selected, not editing/typing): arrows → `navigate` + `select` (+ center, reusing the reveal helper); `1–9` → `expandToLevel(n)` (replace the collapsed set); `0` → expand all (empty set). `Home` → select+center root.
-- [ ] **B3** `typecheck`/`lint`. Commit `feat(mindmap): keyboard navigation + expand-to-level`.
+- [x] **B1** `treeNav.navigate` + `expandToLevel` (tested). Right on a collapsed node is handled by the caller (expands instead of moving).
+- [x] **B2** `ProjectView` keys: arrows navigate + center; `1–9` expand-to-level; `0` expand all; `Home` → root. `canvasViewport.centerOnNode` bridges centering out of the flow.
+- [x] **B3** Commit `feat(mindmap): keyboard navigation + expand-to-level` (`5bcf36d`).
 
 ## Phase C — multi-select + batch ops
 
 **Files:** modify `useProjectStore.ts`, `rfModel.ts`, `MindNode.tsx`, `Canvas.tsx`, `NodeInspector.tsx`, `projectEditActions.ts`.
 
-- [ ] **C1** `useProjectStore` entry: `multi: Set<string>` (extra selected nodes; `selectedId` stays the "primary"). Actions: `toggleInSelection(id)` (Shift/Cmd-click), `clearMulti()`. `select(id)` clears `multi`.
-- [ ] **C2** `rfModel.buildRfModel`: a node renders selected when `id === selectedId || multi.has(id)` (pass the set). `Canvas` `onNodeClick`: if Shift/Meta held → `toggleInSelection(node.id)`; else normal select+openDoc.
-- [ ] **C3** `projectEditActions` batch helpers over `selectedId ∪ multi`: `styleSelection(patch)`, `addTagToSelection(tag)`, `deleteSelection()`. `NodeInspector` / `EditToolbar` apply to the whole selection when `multi` is non-empty (Delete key too).
-- [ ] **C4** `typecheck`/`lint`. Commit `feat(mindmap): multi-select + batch ops`.
+- [x] **C1** `useProjectStore` `multi:Set` + `toggleInSelection` (first pick = primary); `select`/`openDocFor` clear it.
+- [x] **C2** `buildRfModel` selected = `selectedId ∪ multi`; `Canvas onNodeClick` modifier-click toggles.
+- [x] **C3** `projectEditActions` `styleSelection` / `addTagToSelection` / `deleteSelection` (one undo step); `NodeInspector` colors/shape/tag + `EditToolbar`/`ProjectView` Delete apply to the selection.
+- [x] **C4** Commit `feat(mindmap): multi-select + batch ops` (`1d35623`).
 
 ## Phase D — tag-highlight + focus mode
 
 **Files:** modify `useProjectStore.ts`, `rfModel.ts`/`MindNode.tsx`, `NodeInspector.tsx`, `ProjectView.tsx`, `treeNav.ts`.
 
-- [ ] **D1** `useProjectStore` entry: `highlightTag: string|null`, `focusId: string|null` + actions `setHighlightTag`, `setFocus`. `treeNav.focusSet(graph, id) → Set` (the node + its ancestors + descendants).
-- [ ] **D2** Dimming in `buildRfModel`: compute a `dimmed` flag per node — `highlightTag` set → dim nodes whose `data.tag` lacks it; `focusId` set → dim nodes outside `focusSet`. `MindNode` lowers opacity when `dimmed`.
-- [ ] **D3** UI: clicking a tag chip (`NodeInspector` / a node's tag) toggles `highlightTag`; a Focus toggle (toolbar button + a key, e.g. `.`) sets/clears `focusId` to the selected node. Esc clears highlight/focus.
-- [ ] **D4** `typecheck`/`lint`/`build`. Commit `feat(mindmap): tag-highlight + canvas focus mode`.
+- [x] **D1** `useProjectStore` `highlightTag` + `focusId` (+ `setHighlightTag`/`setFocus`); `treeNav.focusSet` (tested).
+- [x] **D2** `buildRfModel` `dimmed` flag (no-tag under highlight / outside focus set); `MindNode` opacity.
+- [x] **D3** Node tag chips toggle highlight (active = accent); `EditToolbar` Focus button + `.` key; Esc clears highlight + focus.
+- [x] **D4** `typecheck`/`lint`/`build` green (vitest 430). Commit `feat(mindmap): tag-highlight + canvas focus mode` (`ad0b7e3`).
 
 ## Phase E — polish (stretch)
 
@@ -54,8 +54,8 @@
 
 ## Phase F — gate + QA
 
-- [ ] **F1** `npx vitest run` green; `typecheck`/`lint`/`build` clean.
-- [ ] **F2** QA on `sample.inkproj` + an imported `.mindnode`: search reveals + centers; arrows/expand-levels; multi-select + batch; tag-highlight; focus. Update `README.md` + `backlog.md` (mark A done). Hand off; commit/push per OK.
+- [x] **F1** `npx vitest run` green (430); `typecheck`/`lint`/`build` clean. (Phases A–D; E is stretch.)
+- [ ] **F2** QA on `sample.inkproj` + an imported `.mindnode`. *(handed off)*
 
 ## Self-review
 - **Pure where it counts:** search/ancestors/navigate/expand-to-level/focusSet are pure + tested; only viewport-center + dimming are UI. ✓

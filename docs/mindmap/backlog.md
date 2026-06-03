@@ -35,18 +35,18 @@ multi-root layout + drop-ghost · per-node junction add-child/expand control.
 
 ---
 
-## A. Schema editor — navigation & interaction  *(near-term focus)*
+## A. Schema editor — navigation & interaction  *(✅ mostly shipped in M7)*
 
-- **★★★ Node search + reveal** — `Ctrl+Shift+F`: filter nodes, auto-expand ancestors of a
+- **✅ Node search + reveal** (M7-A) — `Ctrl+Shift+F`: filter nodes, auto-expand ancestors of a
   hit, center it, `N/M` counter, cycle matches. *Protocolist `search-panel.tsx`/`tree-nav.ts`; MindNode has it. · S*
-- **★★★ Keyboard navigation** — arrow keys move selection along the tree; `0–9` expand to
-  depth N (subtree-scoped when a node is selected). *Protocolist `tree-nav.ts`; MindNode. · S*
-- **★★★ Multi-select + batch ops** — Shift/Cmd-click to build a selection; apply
-  color/tag/task/delete to all. *Protocolist `keyboard-shortcuts.ts`. · M*
-- **★★ Tag-highlight mode** — click a tag → highlight every node carrying it, dim the rest
-  (we already store tags). Great on big imported maps. *MindNode; Protocolist. · S–M*
-- **★★ Focus mode on the canvas** — dim everything except the selected node + its branch
-  (we already have a focus mode for the md editor). *MindNode. · M*
+- **✅ Keyboard navigation** (M7-B) — arrow keys move selection along the tree; `1–9` expand to
+  depth N, `0` expands all; `Home` → root. *Protocolist `tree-nav.ts`; MindNode. · S*
+- **✅ Multi-select + batch ops** (M7-C) — Shift/Cmd-click to build a selection; apply
+  color/tag/delete to all. *Protocolist `keyboard-shortcuts.ts`. · M*
+- **✅ Tag-highlight mode** (M7-D) — click a tag → highlight every node carrying it, dim the rest.
+  *MindNode; Protocolist. · S–M*
+- **✅ Focus mode on the canvas** (M7-D) — dim everything except the selected node + its branch
+  (Focus button + `.`; Esc clears). *MindNode. · M*
 - **★★ Quick Entry / capture** — a fast "add ideas" box (keyboard-first) that drops nodes
   into the current node/map without the mouse. *MindNode. · M*
 - **★ Hotkeys help overlay** (`?`) + a fuller shortcut set; collapse/expand animations;
