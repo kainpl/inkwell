@@ -209,7 +209,10 @@ const api = {
     open: (path: string): Promise<OpenedInkproj> => ipcRenderer.invoke(IPC.inkprojOpen, path),
     openDialog: (): Promise<OpenedInkproj | null> => ipcRenderer.invoke(IPC.inkprojOpenDialog),
     createDialog: (): Promise<OpenedInkproj | null> => ipcRenderer.invoke(IPC.inkprojCreateDialog),
-    importDialog: (): Promise<OpenedInkproj | null> => ipcRenderer.invoke(IPC.inkprojImportDialog),
+    pickImportFile: (): Promise<{ name: string; text: string } | null> =>
+      ipcRenderer.invoke(IPC.inkprojPickImportFile),
+    createFromImport: (schemaText: string, title: string): Promise<OpenedInkproj | null> =>
+      ipcRenderer.invoke(IPC.inkprojCreateFromImport, schemaText, title),
     exportMindMap: (schemaText: string, suggestedName: string): Promise<string | null> =>
       ipcRenderer.invoke(IPC.inkprojExportMindMap, schemaText, suggestedName),
     exportHtml: (html: string, suggestedName: string): Promise<string | null> =>

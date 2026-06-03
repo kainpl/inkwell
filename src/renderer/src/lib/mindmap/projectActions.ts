@@ -8,6 +8,7 @@ import { nodesOf, yjsToOutline } from './yjsModel'
 import { mergeLinkTypes } from './linkTypes'
 import { buildGraph } from './buildGraph'
 import { renderProjectHtml, type HtmlDoc } from './exportHtml'
+import { importAny } from './importFormats'
 
 /** Ids whose subtree should start collapsed (`data.expand === false`). */
 function initialCollapsed(doc: YDoc): Set<string> {
@@ -47,9 +48,14 @@ export async function newProject(): Promise<void> {
   if (opened) enterProject(opened)
 }
 
-/** Import a standalone `.mind-map` → a new `.inkproj` → open it (D11). */
+/** Import a mind map from many formats (.mind-map/.mind-doc/.mm/.opml/.md/.txt/.json)
+ *  → convert to our schema → new `.inkproj` → open it (D11). */
 export async function importMindMap(): Promise<void> {
-  const opened = await window.api.inkproj.importDialog()
+  const picked = await window.api.inkproj.pickImportFile()
+  if (!picked) return
+  const { title, outline } = importAny(picked.name, picked.text)
+  const schema = outlineToMarkdown(outline, title)
+  const opened = await window.api.inkproj.createFromImport(schema, title || 'Imported')
   if (opened) enterProject(opened)
 }
 

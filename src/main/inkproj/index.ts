@@ -21,6 +21,12 @@ const MD_FILTER = [{ name: 'Markdown', extensions: ['md', 'markdown', 'mdx', 'tx
 const INKPROJ_FILTER = [{ name: 'Inkwell Project', extensions: ['inkproj'] }]
 const MINDMAP_FILTER = [{ name: 'Mind-map', extensions: ['mind-map', 'md', 'markdown'] }]
 const HTML_FILTER = [{ name: 'HTML', extensions: ['html', 'htm'] }]
+const IMPORT_FILTER = [
+  {
+    name: 'Mind map',
+    extensions: ['mind-map', 'mind-doc', 'mm', 'opml', 'md', 'markdown', 'txt', 'json']
+  }
+]
 const DEFAULT_SCHEMA = '# Untitled\n'
 
 /** Show an open-file dialog parented to the sender's window; return the picked path. */
@@ -71,15 +77,23 @@ export function registerInkprojIpc(): void {
     return dest ? createInkproj(dest, DEFAULT_SCHEMA, 'Untitled', base) : null
   })
 
-  // Import a standalone .mind-map → a new .inkproj (D11): read the source, then
-  // create a bundle with it as the schema.
-  ipcMain.handle(IPC.inkprojImportDialog, async (e): Promise<OpenedInkproj | null> => {
-    const src = await pickFile(e, 'Import Mind-map', MINDMAP_FILTER)
-    if (!src) return null
-    const text = await readFile(src, 'utf8')
-    const dest = await pickSave(e, 'Save Imported Project', `${basename(src, extname(src))}.inkproj`, INKPROJ_FILTER)
-    return dest ? createInkproj(dest, text, basename(src, extname(src)), base) : null
-  })
+  // Import (D11): pick a source mind-map file → return its raw text for the
+  // renderer to parse (XML/OPML need DOMParser). The renderer then calls
+  // createFromImport with the converted .mind-map schema.
+  ipcMain.handle(
+    IPC.inkprojPickImportFile,
+    async (e): Promise<{ name: string; text: string } | null> => {
+      const src = await pickFile(e, 'Import Mind Map', IMPORT_FILTER)
+      return src ? { name: basename(src), text: await readFile(src, 'utf8') } : null
+    }
+  )
+  ipcMain.handle(
+    IPC.inkprojCreateFromImport,
+    async (e, schemaText: string, title: string): Promise<OpenedInkproj | null> => {
+      const dest = await pickSave(e, 'Save Imported Project', `${title}.inkproj`, INKPROJ_FILTER)
+      return dest ? createInkproj(dest, schemaText, title, base) : null
+    }
+  )
 
   // Export the active project's schema → a standalone .mind-map (one-way share).
   ipcMain.handle(IPC.inkprojExportMindMap, async (e, schemaText: string, suggestedName: string) => {
