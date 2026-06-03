@@ -9,6 +9,8 @@ export interface RfNodeData {
   hasChildren: boolean
   collapsed: boolean
   selected: boolean
+  /** Dimmed by tag-highlight or focus mode. */
+  dimmed: boolean
   [k: string]: unknown
 }
 export type RfNode = Node<RfNodeData, 'mind'>
@@ -49,10 +51,17 @@ export function buildRfModel(
   linkTypes: Record<string, LinkType>,
   selectedId: string | null = null,
   selectedLinkId: string | null = null,
-  multi: Set<string> = new Set()
+  multi: Set<string> = new Set(),
+  highlightTag: string | null = null,
+  focusSet: Set<string> | null = null
 ): { nodes: RfNode[]; edges: RfEdge[] } {
   const hidden = hiddenSet(graph, collapsed)
   const visible = (id: string): boolean => !hidden.has(id)
+  const isDimmed = (n: GraphNode): boolean => {
+    if (highlightTag && !(Array.isArray(n.data.tag) && n.data.tag.includes(highlightTag))) return true
+    if (focusSet && !focusSet.has(n.id)) return true
+    return false
+  }
 
   const nodes: RfNode[] = graph.nodes
     .filter((n) => visible(n.id))
@@ -65,7 +74,8 @@ export function buildRfModel(
         raw: n,
         hasChildren: (graph.childrenOf.get(n.id)?.length ?? 0) > 0,
         collapsed: collapsed.has(n.id),
-        selected: n.id === selectedId || multi.has(n.id)
+        selected: n.id === selectedId || multi.has(n.id),
+        dimmed: isDimmed(n)
       }
     }))
 

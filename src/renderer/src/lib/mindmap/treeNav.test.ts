@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { searchNodes, ancestorsOf, navigate, expandToLevel } from './treeNav'
+import { searchNodes, ancestorsOf, navigate, expandToLevel, focusSet } from './treeNav'
 import { buildGraph } from './buildGraph'
 import { markdownToOutline } from '@shared/mindmap/mindMapMarkdown'
 
@@ -30,6 +30,12 @@ describe('treeNav', () => {
     expect(navigate(graph, 'b', 'left')).toBe('a') // parent
     expect(navigate(graph, 'a', 'up')).toBeNull() // no prev sibling
     expect(navigate(graph, 'g', 'right')).toBeNull() // no children
+  })
+
+  it('focusSet = node + ancestors + descendants', () => {
+    // Alpha 'a' (child of root) with child Beta 'b'.
+    expect(focusSet(graph, 'a')).toEqual(new Set([rootId, 'a', 'b']))
+    expect(focusSet(graph, 'g')).toEqual(new Set([rootId, 'g'])) // leaf → self + root
   })
 
   it('expandToLevel collapses below the given depth', () => {

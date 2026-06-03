@@ -109,6 +109,16 @@ export default function ProjectView(): JSX.Element {
           }
           break
         }
+        case '.':
+          if (sel) {
+            e.preventDefault()
+            store.setFocus(proj.focusId === sel ? null : sel)
+          }
+          break
+        case 'Escape':
+          store.setHighlightTag(null)
+          store.setFocus(null)
+          break
         case 'Tab':
           if (sel) {
             e.preventDefault()

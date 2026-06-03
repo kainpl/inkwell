@@ -35,6 +35,10 @@ export interface ProjectEntry {
   externalDocs: Record<string, string>
   /** Whether the canvas search box is open. */
   searchOpen: boolean
+  /** When set, nodes without this tag are dimmed. */
+  highlightTag: string | null
+  /** When set, nodes outside this node's focus set (it + ancestors + descendants) are dimmed. */
+  focusId: string | null
 }
 
 interface ProjectsState {
@@ -82,6 +86,10 @@ interface ProjectsState {
   /** Toggle / set the canvas search box. */
   toggleSearch: () => void
   setSearchOpen: (open: boolean) => void
+  /** Toggle the highlighted tag (passing the current one clears it). */
+  setHighlightTag: (tag: string | null) => void
+  /** Set / clear the focused node. */
+  setFocus: (id: string | null) => void
 }
 
 /** Immutably update the active tab's entry (no-op if the active tab isn't a project). */
@@ -117,7 +125,9 @@ export const useProjectStore = create<ProjectsState>((set) => ({
           openDoc: null,
           dirtyDocs: {},
           externalDocs: {},
-          searchOpen: false
+          searchOpen: false,
+          highlightTag: null,
+          focusId: null
         }
       }
     })),
@@ -230,7 +240,11 @@ export const useProjectStore = create<ProjectsState>((set) => ({
     set((s) => patchActive(s, (e) => ({ ...e, externalDocs: { ...e.externalDocs, [src]: content } }))),
 
   toggleSearch: () => set((s) => patchActive(s, (e) => ({ ...e, searchOpen: !e.searchOpen }))),
-  setSearchOpen: (open) => set((s) => patchActive(s, (e) => ({ ...e, searchOpen: open })))
+  setSearchOpen: (open) => set((s) => patchActive(s, (e) => ({ ...e, searchOpen: open }))),
+
+  setHighlightTag: (tag) =>
+    set((s) => patchActive(s, (e) => ({ ...e, highlightTag: e.highlightTag === tag ? null : tag }))),
+  setFocus: (id) => set((s) => patchActive(s, (e) => ({ ...e, focusId: id })))
 }))
 
 /** The active tab's project entry, or null. Subscribes to both stores so it

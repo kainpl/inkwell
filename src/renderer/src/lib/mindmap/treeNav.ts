@@ -46,3 +46,16 @@ export function ancestorsOf(graph: GraphModel, id: string): string[] {
   }
   return chain.reverse()
 }
+
+/** The focus set of a node: itself + all ancestors + all descendants. */
+export function focusSet(graph: GraphModel, id: string): Set<string> {
+  const set = new Set<string>([id, ...ancestorsOf(graph, id)])
+  const addDescendants = (n: string): void => {
+    for (const c of graph.childrenOf.get(n) ?? []) {
+      set.add(c)
+      addDescendants(c)
+    }
+  }
+  addDescendants(id)
+  return set
+}

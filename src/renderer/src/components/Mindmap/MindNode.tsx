@@ -16,8 +16,10 @@ const SHAPE_RADIUS: Record<string, string> = {
 export default function MindNode({ id, data }: NodeProps): JSX.Element {
   const toggleCollapse = useProjectStore((s) => s.toggleCollapse)
   const beginEdit = useProjectStore((s) => s.beginEdit)
+  const setHighlightTag = useProjectStore((s) => s.setHighlightTag)
   const activeId = useAppStore((s) => s.activeId)
   const editing = useProjectStore((s) => s.byTab[activeId]?.editingId === id)
+  const highlightTag = useProjectStore((s) => s.byTab[activeId]?.highlightTag ?? null)
   const nd = data as RfNodeData
   const d = nd.raw.data
   const fill = typeof d.fillColor === 'string' ? d.fillColor : undefined
@@ -33,8 +35,9 @@ export default function MindNode({ id, data }: NodeProps): JSX.Element {
   return (
     <div
       className={
-        `group relative max-w-[230px] border border-line bg-paper px-2 py-1 text-[13px] shadow-sm ${shapeClass} ` +
-        (nd.selected ? 'ring-2 ring-accent' : '')
+        `group relative max-w-[230px] border border-line bg-paper px-2 py-1 text-[13px] shadow-sm transition-opacity ${shapeClass} ` +
+        (nd.selected ? 'ring-2 ring-accent ' : '') +
+        (nd.dimmed ? 'opacity-30' : '')
       }
       style={{ background: fill, color: textColor, borderColor }}
     >
@@ -97,9 +100,19 @@ export default function MindNode({ id, data }: NodeProps): JSX.Element {
       {tags.length ? (
         <div className="mt-0.5 flex flex-wrap gap-0.5">
           {tags.map((t, i) => (
-            <span key={i} className="rounded bg-line/50 px-1 text-[10px] leading-tight text-muted">
+            <button
+              key={i}
+              onClick={(e) => {
+                e.stopPropagation()
+                setHighlightTag(t)
+              }}
+              title="Highlight this tag"
+              className={`rounded px-1 text-[10px] leading-tight ${
+                t === highlightTag ? 'bg-accent text-paper' : 'bg-line/50 text-muted'
+              }`}
+            >
               {t}
-            </span>
+            </button>
           ))}
         </div>
       ) : null}

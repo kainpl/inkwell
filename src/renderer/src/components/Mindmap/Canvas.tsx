@@ -31,6 +31,7 @@ import { reparent, reorder } from '@renderer/lib/mindmap/treeOps'
 import { addCrossLink } from '@renderer/lib/mindmap/crossLinkOps'
 import { resolveDrop, type DropTarget } from '@renderer/lib/mindmap/resolveDrop'
 import { setCenterNodeFn } from '@renderer/lib/mindmap/canvasViewport'
+import { focusSet } from '@renderer/lib/mindmap/treeNav'
 import type { LinkType } from '@shared/mindmap/types'
 import MindNode from './MindNode'
 import { TreeEdge, CrosslinkEdge } from './edges'
@@ -109,6 +110,8 @@ export default function Canvas(): JSX.Element {
   const selectedId = project?.selectedId ?? null
   const selectedLinkId = project?.selectedLink?.linkId ?? null
   const multi = project?.multi ?? EMPTY_MULTI
+  const highlightTag = project?.highlightTag ?? null
+  const focusId = project?.focusId ?? null
 
   // Positions depend on the tree shape AND collapse (collapsed subtrees reserve no
   // space — otherwise visible nodes spread out as if everything were expanded).
@@ -116,12 +119,16 @@ export default function Canvas(): JSX.Element {
     () => (graph ? computeLayout(graph, collapsed) : new Map<string, Pos>()),
     [graph, collapsed]
   )
+  const focus = useMemo(
+    () => (graph && focusId ? focusSet(graph, focusId) : null),
+    [graph, focusId]
+  )
   const model = useMemo(
     () =>
       graph
-        ? buildRfModel(graph, layout, collapsed ?? new Set<string>(), linkTypes, selectedId, selectedLinkId, multi)
+        ? buildRfModel(graph, layout, collapsed ?? new Set<string>(), linkTypes, selectedId, selectedLinkId, multi, highlightTag, focus)
         : { nodes: [] as RfNode[], edges: [] as RfEdge[] },
-    [graph, layout, collapsed, linkTypes, selectedId, selectedLinkId, multi]
+    [graph, layout, collapsed, linkTypes, selectedId, selectedLinkId, multi, highlightTag, focus]
   )
 
   // Local copies React Flow mutates during a drag, re-synced whenever the Yjs model

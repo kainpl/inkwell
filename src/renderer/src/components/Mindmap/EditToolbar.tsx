@@ -1,5 +1,5 @@
 import { useAppStore } from '@renderer/store/useAppStore'
-import { useActiveProject } from '@renderer/store/useProjectStore'
+import { useActiveProject, useProjectStore } from '@renderer/store/useProjectStore'
 import {
   addChildToSelected,
   addSiblingToSelected,
@@ -17,7 +17,10 @@ export default function EditToolbar(): JSX.Element {
   const project = useActiveProject()
   const activeId = useAppStore((s) => s.activeId)
   const dirty = useAppStore((s) => s.tabs.find((t) => t.id === activeId)?.dirty ?? false)
-  const hasSel = project?.selectedId != null
+  const setFocus = useProjectStore((s) => s.setFocus)
+  const sel = project?.selectedId ?? null
+  const hasSel = sel != null
+  const focused = project?.focusId != null
 
   return (
     <div className="flex items-center gap-1 border-b border-line bg-chrome px-2 py-1">
@@ -34,6 +37,14 @@ export default function EditToolbar(): JSX.Element {
       </button>
       <button className={BTN} disabled={!hasSel} onClick={deleteSelection} title="Delete (Del)">
         Delete
+      </button>
+      <button
+        className={`${BTN} ${focused ? 'text-accent' : ''}`}
+        disabled={!hasSel && !focused}
+        onClick={() => setFocus(focused ? null : sel)}
+        title="Focus the selected branch ( . ) — Esc clears"
+      >
+        Focus
       </button>
       <span className="mx-1 h-4 w-px bg-line" />
       <button className={BTN} onClick={undoActive} title="Undo (Ctrl+Z)">
