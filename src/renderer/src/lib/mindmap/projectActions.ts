@@ -9,6 +9,7 @@ import { mergeLinkTypes } from './linkTypes'
 import { buildGraph } from './buildGraph'
 import { renderProjectHtml, type HtmlDoc } from './exportHtml'
 import { importAny } from './importFormats'
+import { importMindnode } from './importMindnode'
 
 /** Ids whose subtree should start collapsed (`data.expand === false`). */
 function initialCollapsed(doc: YDoc): Set<string> {
@@ -53,7 +54,9 @@ export async function newProject(): Promise<void> {
 export async function importMindMap(): Promise<void> {
   const picked = await window.api.inkproj.pickImportFile()
   if (!picked) return
-  const { title, outline } = importAny(picked.name, picked.text)
+  const { title, outline } = picked.base64
+    ? await importMindnode(Uint8Array.from(atob(picked.base64), (c) => c.charCodeAt(0)))
+    : importAny(picked.name, picked.text ?? '')
   const schema = outlineToMarkdown(outline, title)
   const opened = await window.api.inkproj.createFromImport(schema, title || 'Imported')
   if (opened) enterProject(opened)

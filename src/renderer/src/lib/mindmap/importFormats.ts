@@ -51,9 +51,15 @@ export function importAny(name: string, text: string): ImportResult {
       result = parseMarkdown(text, name)
       break
   }
-  result.outline = cleanTree(result.outline)
-  collapseDeep(result.outline, 0)
+  result.outline = cleanImportedOutline(result.outline)
   return result
+}
+
+/** Prune empty leaves + collapse depth≥1 subtrees. Shared by all importers. */
+export function cleanImportedOutline(outline: MarkdownNode[]): MarkdownNode[] {
+  const cleaned = cleanTree(outline)
+  collapseDeep(cleaned, 0)
+  return cleaned
 }
 
 // ── helpers ───────────────────────────────────────────────────────────────

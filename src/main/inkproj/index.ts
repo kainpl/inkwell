@@ -27,7 +27,7 @@ const HTML_FILTER = [{ name: 'HTML', extensions: ['html', 'htm'] }]
 const IMPORT_FILTER = [
   {
     name: 'Mind map',
-    extensions: ['mind-map', 'mind-doc', 'mm', 'opml', 'md', 'markdown', 'txt', 'json']
+    extensions: ['mind-map', 'mind-doc', 'mindnode', 'mm', 'opml', 'md', 'markdown', 'txt', 'json']
   }
 ]
 const DEFAULT_SCHEMA = '# Untitled\n'
@@ -85,9 +85,15 @@ export function registerInkprojIpc(): void {
   // createFromImport with the converted .mind-map schema.
   ipcMain.handle(
     IPC.inkprojPickImportFile,
-    async (e): Promise<{ name: string; text: string } | null> => {
+    async (e): Promise<{ name: string; text?: string; base64?: string } | null> => {
       const src = await pickFile(e, 'Import Mind Map', IMPORT_FILTER)
-      return src ? { name: basename(src), text: await readFile(src, 'utf8') } : null
+      if (!src) return null
+      const name = basename(src)
+      // .mindnode is a binary ZIP → return bytes for the renderer's protobuf reader.
+      if (name.toLowerCase().endsWith('.mindnode')) {
+        return { name, base64: (await readFile(src)).toString('base64') }
+      }
+      return { name, text: await readFile(src, 'utf8') }
     }
   )
   ipcMain.handle(
