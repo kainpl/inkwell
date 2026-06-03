@@ -169,7 +169,8 @@ export default function MindNode({ id, data }: NodeProps): JSX.Element {
               onPointerDown={(e) => e.stopPropagation()}
               onClick={(e) => {
                 e.stopPropagation()
-                void openProjectFromPath(l.file)
+                // Only open `.inkproj` paths — a crafted document's link can't read an arbitrary file.
+                if (typeof l.file === 'string' && /\.inkproj$/i.test(l.file)) void openProjectFromPath(l.file)
               }}
               title={`Open project: ${l.file}`}
               className="rounded bg-line/50 px-1 text-[10px] leading-tight text-muted hover:text-accent"

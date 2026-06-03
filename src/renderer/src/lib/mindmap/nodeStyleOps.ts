@@ -81,10 +81,11 @@ export function toggleLabelFlag(
   }, LOCAL_ORIGIN)
 }
 
-/** Append a cross-`.inkproj` link (target file + display title) to a node. */
+/** Append a cross-`.inkproj` link (target file + display title) to a node. Only
+ *  `.inkproj` paths are stored — a crafted document can't seed an arbitrary file path. */
 export function addExternalLink(doc: Y.Doc, id: string, file: string, title: string): void {
   const m = nodesOf(doc).get(id)
-  if (!m || !file) return
+  if (!m || !file || !/\.inkproj$/i.test(file)) return
   doc.transact(() => {
     const d = readData(m)
     const links = Array.isArray(d.extLinks) ? d.extLinks : []

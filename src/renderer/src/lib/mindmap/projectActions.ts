@@ -180,8 +180,10 @@ export async function printProject(): Promise<void> {
   if (built) await window.api.printDoc(built.html, pdfOptions(useAppStore.getState().pageSetup))
 }
 
-/** Open a `.inkproj` from a known path (file association / double-click). */
+/** Open a `.inkproj` from a known path (file association / double-click / a node link).
+ *  Restricted to `.inkproj` so a document-sourced path can't read an arbitrary file. */
 export async function openProjectFromPath(path: string): Promise<void> {
+  if (!/\.inkproj$/i.test(path)) return
   enterProject(await window.api.inkproj.open(path))
 }
 
