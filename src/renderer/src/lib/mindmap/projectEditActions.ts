@@ -3,7 +3,10 @@ import { useAppStore } from '@renderer/store/useAppStore'
 import { useProjectStore } from '@renderer/store/useProjectStore'
 import { getProjectDoc } from './yjsRegistry'
 import { saveProject } from './projectActions'
-import { addChild, addSibling, remove as removeNode, rename } from './treeOps'
+import { addChild, addSibling, remove as removeNode, rename, reparent, reorder } from './treeOps'
+import { buildGraph } from './buildGraph'
+import { yjsToOutline } from './yjsModel'
+import { navigate } from './treeNav'
 import { removeCrossLink } from './crossLinkOps'
 import { nodeDocs, pushDocRef, removeDocRef, replaceDocRef, setDocAnchor } from './docOps'
 import { setNodeData, addTag } from './nodeStyleOps'
@@ -52,6 +55,62 @@ export function addChildTo(nodeId: string): void {
   const ps = useProjectStore.getState()
   ps.expand(nodeId)
   ps.beginEdit(id)
+}
+
+// ── Outline-view edits (reuse the tree ops over the shared Yjs model) ──
+
+/** Set a node's name (outline inline edit). */
+export function renameNode(id: string, text: string): void {
+  const a = active()
+  if (!a) return
+  rename(a.doc, id, text)
+  markDirty(a.tabId)
+}
+
+/** Add an empty sibling after `id`, select it; returns its id (for focus). */
+export function outlineAddSiblingAfter(id: string): string | null {
+  const a = active()
+  if (!a) return null
+  const newId = addSibling(a.doc, id)
+  markDirty(a.tabId)
+  useProjectStore.getState().select(newId)
+  return newId
+}
+
+/** Indent: make `id` a child of its previous sibling. */
+export function outlineIndent(id: string): void {
+  const a = active()
+  if (!a) return
+  const g = buildGraph(yjsToOutline(a.doc))
+  const prev = navigate(g, id, 'up')
+  if (prev && reparent(a.doc, id, prev)) markDirty(a.tabId)
+}
+
+/** Outdent: make `id` a sibling of its parent, just after it. */
+export function outlineOutdent(id: string): void {
+  const a = active()
+  if (!a) return
+  const g = buildGraph(yjsToOutline(a.doc))
+  const parentId = g.nodes.find((n) => n.id === id)?.parentId ?? null
+  if (parentId == null) return // already a root
+  const grandparent = g.nodes.find((n) => n.id === parentId)?.parentId ?? null
+  const sibs =
+    grandparent === null
+      ? g.nodes.filter((n) => n.parentId === null).map((n) => n.id)
+      : (g.childrenOf.get(grandparent) ?? [])
+  if (reorder(a.doc, id, grandparent, sibs.indexOf(parentId) + 1)) markDirty(a.tabId)
+}
+
+/** Delete `id` (with subtree); select + return the previous sibling or parent (for focus). */
+export function outlineDelete(id: string): string | null {
+  const a = active()
+  if (!a) return null
+  const g = buildGraph(yjsToOutline(a.doc))
+  const prev = navigate(g, id, 'up') ?? g.nodes.find((n) => n.id === id)?.parentId ?? null
+  removeNode(a.doc, id)
+  markDirty(a.tabId)
+  if (prev) useProjectStore.getState().select(prev)
+  return prev
 }
 
 /** Quick-add a named child under `parentId` (no inline-rename — keeps the quick-entry focus). */
