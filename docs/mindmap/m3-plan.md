@@ -47,9 +47,9 @@
 ## Phase M3.4 — gate + QA
 
 - [x] **M3.4.1** `npx vitest run` green (411 pass; known `Editor.tab.test.tsx` jsdom error remains); `typecheck`/`lint`/`build` clean.
-- [ ] **M3.4.2** Manual QA: New Project → edit → Save → reopen; Import a `.mind-map` → round-trips; Export the fixture → `.mind-map` re-imports. *(handed off)*
-- [x] **M3.4.3** Update `docs/mindmap/README.md` → M3 code-complete (pending QA).
-- [ ] **M3.4.4** Hand off for QA; commit/push per the user's OK. *(handed off)*
+- [x] **M3.4.2** Manual QA: New Project → edit → Save → reopen; Import a `.mind-map` → round-trips; Export → re-imports. **Passed.**
+- [x] **M3.4.3** Update `docs/mindmap/README.md` → M3 shipped.
+- [x] **M3.4.4** Manual QA accepted; committed + pushed to origin.
 
 ## Self-review
 - **Reuses open/save:** New/Import create a real `.inkproj` then `enterProject` (no untitled-project special-casing); Export reuses `outlineToMarkdown`. ✓
