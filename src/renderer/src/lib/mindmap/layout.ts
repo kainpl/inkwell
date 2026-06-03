@@ -10,6 +10,8 @@ export interface Pos {
 const NODE_SEP = 60
 /** Depth-axis gap between levels. */
 const RANK_SEP = 200
+/** Cross-axis gap between separate root subtrees (so multiple roots don't overlap). */
+const ROOT_GAP = 80
 
 /**
  * Tidy-tree positions over the tree edges (RIGHT growth: x = depth axis).
@@ -24,13 +26,25 @@ export function computeLayout(graph: GraphModel): Map<string, Pos> {
   const pos = new Map<string, Pos>()
   const roots = graph.nodes.filter((n) => n.parentId === null)
 
+  // Lay out each root's subtree, then stack roots down the cross-axis so they
+  // never overlap. The first root keeps its natural (centered) coords; each
+  // later root is shifted to sit below the previous one + ROOT_GAP.
+  let yCursor: number | null = null
   for (const root of roots) {
     const h = hierarchy(root.id, (id) => graph.childrenOf.get(id) ?? [])
     const laid = tree<string>().nodeSize([NODE_SEP, RANK_SEP])(h)
+    // d.x = cross-axis, d.y = depth*RANK_SEP; swap for RIGHT growth.
+    const local: { id: string; x: number; y: number }[] = []
+    let minY = Infinity
+    let maxY = -Infinity
     laid.each((d) => {
-      // d.x = cross-axis, d.y = depth*RANK_SEP; swap for RIGHT growth.
-      pos.set(d.data, { x: d.y, y: d.x })
+      local.push({ id: d.data, x: d.y, y: d.x })
+      if (d.x < minY) minY = d.x
+      if (d.x > maxY) maxY = d.x
     })
+    const shift = yCursor === null ? 0 : yCursor - minY
+    for (const n of local) pos.set(n.id, { x: n.x, y: n.y + shift })
+    yCursor = (yCursor === null ? maxY : yCursor + (maxY - minY)) + ROOT_GAP
   }
 
   for (const node of graph.nodes) {
