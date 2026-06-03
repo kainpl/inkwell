@@ -95,6 +95,8 @@ export interface InkprojManifest {
   schema?: string
   /** Overrides for built-in types + first-class custom types. */
   linkTypes?: Record<string, LinkType>
+  /** Free-text project notes / instructions, surfaced on open. */
+  instructions?: string
 }
 
 /** Payload for an atomic bundle save: the schema text, plus (when changed) the

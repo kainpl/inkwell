@@ -23,6 +23,7 @@ export default function EditToolbar(): JSX.Element {
   const toggleQuick = useProjectStore((s) => s.toggleQuick)
   const toggleDocs = useProjectStore((s) => s.toggleDocs)
   const docsOn = project?.docsOpen ?? false
+  const hasNotes = (project?.manifestInstructions ?? '') !== ''
   const setViewMode = useProjectStore((s) => s.setViewMode)
   const setDirection = useProjectStore((s) => s.setDirection)
   const direction = project?.direction ?? 'right'
@@ -89,9 +90,9 @@ export default function EditToolbar(): JSX.Element {
       <button
         className={`${BTN} ${docsOn ? 'text-accent' : ''}`}
         onClick={toggleDocs}
-        title="All project documents + their nodes"
+        title="All project documents + their nodes (and project notes)"
       >
-        Docs
+        Docs{hasNotes ? <span className="ml-0.5 text-accent">•</span> : null}
       </button>
       <button
         className={`${BTN} ${focused ? 'text-accent' : ''}`}

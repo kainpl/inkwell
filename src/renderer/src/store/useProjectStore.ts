@@ -16,7 +16,9 @@ export interface ProjectEntry {
   linkTypes: Record<string, LinkType>
   /** The manifest's own link-type overrides/customs (what persists to `manifest.json`). */
   manifestLinkTypes: Record<string, LinkType>
-  /** Link-type registry changed since last save → write `manifest.json` on Save. */
+  /** Editable project notes (persist to `manifest.instructions`). */
+  manifestInstructions: string
+  /** Link-type registry / notes changed since last save → write `manifest.json` on Save. */
   manifestDirty: boolean
   /** Source `.inkproj` path (where Save writes back). */
   srcPath: string
@@ -87,6 +89,8 @@ interface ProjectsState {
   endEdit: () => void
   /** Add/override a link type (custom or built-in tweak); marks manifest + tab dirty. */
   addLinkType: (key: string, type: LinkType) => void
+  /** Edit the project notes (marks manifest + tab dirty). */
+  setManifestInstructions: (text: string) => void
   /** Clear the manifest-dirty flag (after a successful save). */
   clearManifestDirty: () => void
   /** Buffer an edited doc's content (marks the tab dirty). */
@@ -143,6 +147,7 @@ export const useProjectStore = create<ProjectsState>((set) => ({
           manifest,
           linkTypes,
           manifestLinkTypes: manifest.linkTypes ?? {},
+          manifestInstructions: manifest.instructions ?? '',
           manifestDirty: false,
           srcPath,
           collapsed,
@@ -254,6 +259,11 @@ export const useProjectStore = create<ProjectsState>((set) => ({
         manifestDirty: true
       }))
     )
+    useAppStore.getState().setTabDirty(useAppStore.getState().activeId, true)
+  },
+
+  setManifestInstructions: (text) => {
+    set((s) => patchActive(s, (e) => ({ ...e, manifestInstructions: text, manifestDirty: true })))
     useAppStore.getState().setTabDirty(useAppStore.getState().activeId, true)
   },
 

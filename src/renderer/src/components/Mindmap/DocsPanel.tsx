@@ -11,6 +11,8 @@ export default function DocsPanel(): JSX.Element | null {
   const activeId = useAppStore((s) => s.activeId)
   const open = useProjectStore((s) => s.byTab[activeId]?.docsOpen ?? false)
   const setDocsOpen = useProjectStore((s) => s.setDocsOpen)
+  const instructions = useProjectStore((s) => s.byTab[activeId]?.manifestInstructions ?? '')
+  const setInstructions = useProjectStore((s) => s.setManifestInstructions)
   const graph = useProjectGraph(activeId)
   const [gcStatus, setGcStatus] = useState<string | null>(null)
 
@@ -41,6 +43,16 @@ export default function DocsPanel(): JSX.Element | null {
           <button onClick={() => setDocsOpen(false)} className="text-faint hover:text-ink" title="Close (Esc)">
             ✕
           </button>
+        </div>
+        <div className="border-b border-line px-3 py-2">
+          <label className="mb-1 block text-[11px] uppercase tracking-wide text-faint">Project notes</label>
+          <textarea
+            value={instructions}
+            onChange={(e) => setInstructions(e.target.value)}
+            placeholder="Notes / schema rules / templates for this project…"
+            rows={2}
+            className="w-full resize-none rounded border border-line bg-paper px-2 py-1 text-[12px] text-ink outline-none placeholder:text-faint"
+          />
         </div>
         {docs.length === 0 ? (
           <div className="p-4 text-center text-sm text-faint">No documents yet.</div>

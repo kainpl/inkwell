@@ -192,7 +192,11 @@ export async function saveProject(tabId: string): Promise<void> {
   const title = (pd.doc.getMap('meta').get('title') as string) ?? ''
   const payload: InkprojSavePayload = { schema: outlineToMarkdown(yjsToOutline(pd.doc), title) }
   if (entry.manifestDirty) {
-    payload.manifest = { ...entry.manifest, linkTypes: entry.manifestLinkTypes }
+    payload.manifest = {
+      ...entry.manifest,
+      linkTypes: entry.manifestLinkTypes,
+      instructions: entry.manifestInstructions || undefined
+    }
   }
   const docs = Object.entries(entry.dirtyDocs).map(([path, content]) => ({ path, content }))
   if (docs.length) payload.docs = docs
