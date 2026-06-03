@@ -1,7 +1,15 @@
 import { describe, it, expect } from 'vitest'
 import * as Y from 'yjs'
 import { outlineToYjs, yjsToOutline } from './yjsModel'
-import { setNodeData, addTag, removeTag, addIcon, removeIcon, cycleTask } from './nodeStyleOps'
+import {
+  setNodeData,
+  addTag,
+  removeTag,
+  addIcon,
+  removeIcon,
+  cycleTask,
+  toggleLabelFlag
+} from './nodeStyleOps'
 import { markdownToOutline } from '@shared/mindmap/mindMapMarkdown'
 import type { MarkdownNode, NodeData } from '@shared/mindmap/types'
 
@@ -49,6 +57,18 @@ describe('node style ops', () => {
     cycleTask(doc, 'a')
     expect(dataOf(doc, 'a').task).toBeUndefined()
     expect(dataOf(doc, 'a').taskStatus).toBeUndefined()
+    expect(dataOf(doc, 'a').color).toBe('#111') // other keys preserved
+  })
+  it('toggleLabelFlag flips a format flag on and off', () => {
+    const doc = seed()
+    expect(dataOf(doc, 'a').bold).toBeUndefined()
+    toggleLabelFlag(doc, 'a', 'bold')
+    expect(dataOf(doc, 'a').bold).toBe(true)
+    toggleLabelFlag(doc, 'a', 'italic')
+    expect(dataOf(doc, 'a')).toMatchObject({ bold: true, italic: true })
+    toggleLabelFlag(doc, 'a', 'bold')
+    expect(dataOf(doc, 'a').bold).toBeUndefined()
+    expect(dataOf(doc, 'a').italic).toBe(true)
     expect(dataOf(doc, 'a').color).toBe('#111') // other keys preserved
   })
   it('icons add and remove by index', () => {

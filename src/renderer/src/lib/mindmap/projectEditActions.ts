@@ -9,7 +9,7 @@ import { yjsToOutline } from './yjsModel'
 import { navigate } from './treeNav'
 import { removeCrossLink } from './crossLinkOps'
 import { nodeDocs, pushDocRef, removeDocRef, replaceDocRef, setDocAnchor } from './docOps'
-import { setNodeData, addTag, cycleTask } from './nodeStyleOps'
+import { setNodeData, addTag, cycleTask, toggleLabelFlag } from './nodeStyleOps'
 import { applyTheme } from './themes'
 import { insertAtCaret } from './docView'
 import type { DocRef, NodeData } from '@shared/mindmap/types'
@@ -63,6 +63,14 @@ export function toggleTask(nodeId: string): void {
   const a = active()
   if (!a) return
   cycleTask(a.doc, nodeId)
+  markDirty(a.tabId)
+}
+
+/** Toggle a whole-label format flag (bold/italic/underline) on a node. */
+export function toggleLabel(nodeId: string, flag: 'bold' | 'italic' | 'underline'): void {
+  const a = active()
+  if (!a) return
+  toggleLabelFlag(a.doc, nodeId, flag)
   markDirty(a.tabId)
 }
 

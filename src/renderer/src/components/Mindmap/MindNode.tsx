@@ -49,6 +49,8 @@ export default function MindNode({ id, data }: NodeProps): JSX.Element {
   const taskStatus = d.task ? (typeof d.taskStatus === 'string' ? d.taskStatus : 'open') : null
   const taskMark = taskStatus === 'done' ? '☑' : taskStatus === 'cancelled' ? '⊘' : '☐'
   const labelStrike = taskStatus === 'done' || taskStatus === 'cancelled'
+  const fmt = `${d.bold ? 'font-bold ' : ''}${d.italic ? 'italic ' : ''}${d.underline ? 'underline ' : ''}`
+  const note = typeof d.note === 'string' && d.note.trim() ? d.note : null
 
   // Polygon shapes can't keep a border/shadow (clip-path removes them), so they
   // get a px-5 gutter + two stacked clipped layers for the outline; radius shapes
@@ -129,7 +131,7 @@ export default function MindNode({ id, data }: NodeProps): JSX.Element {
           />
         ) : (
           <span
-            className={`min-w-0 truncate ${labelStrike ? 'line-through opacity-60' : ''}`}
+            className={`min-w-0 truncate ${fmt}${labelStrike ? 'line-through opacity-60' : ''}`}
             title={nd.label}
             onDoubleClick={(e) => {
               e.stopPropagation()
@@ -142,6 +144,11 @@ export default function MindNode({ id, data }: NodeProps): JSX.Element {
         {hasDoc ? (
           <span title="Has document" className="shrink-0 text-faint">
             📄
+          </span>
+        ) : null}
+        {note ? (
+          <span title={note} className="shrink-0 text-faint">
+            📝
           </span>
         ) : null}
       </div>

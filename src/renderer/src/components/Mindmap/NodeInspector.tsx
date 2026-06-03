@@ -3,8 +3,13 @@ import { useAppStore } from '@renderer/store/useAppStore'
 import { useActiveProject } from '@renderer/store/useProjectStore'
 import { useProjectGraph } from '@renderer/lib/mindmap/useProjectGraph'
 import { getProjectDoc } from '@renderer/lib/mindmap/yjsRegistry'
-import { removeTag, addIcon, removeIcon } from '@renderer/lib/mindmap/nodeStyleOps'
-import { styleSelection, addTagToSelection, toggleTask } from '@renderer/lib/mindmap/projectEditActions'
+import { removeTag, addIcon, removeIcon, setNodeData } from '@renderer/lib/mindmap/nodeStyleOps'
+import {
+  styleSelection,
+  addTagToSelection,
+  toggleTask,
+  toggleLabel
+} from '@renderer/lib/mindmap/projectEditActions'
 import type { NodeData } from '@shared/mindmap/types'
 
 const SHAPES = ['rounded', 'rectangle', 'pill', 'ellipse', 'cloud', 'hexagon', 'octagon']
@@ -101,6 +106,30 @@ export default function NodeInspector(): JSX.Element | null {
           <option value="underline">underline</option>
         </select>
       </div>
+
+      <div className="flex items-center gap-2">
+        <span className="w-9 shrink-0 text-[11px] text-faint">Label</span>
+        {(['bold', 'italic', 'underline'] as const).map((f) => (
+          <button
+            key={f}
+            onClick={() => toggleLabel(sel, f)}
+            title={f}
+            className={`${field} w-7 ${f === 'bold' ? 'font-bold' : f === 'italic' ? 'italic' : 'underline'} ${
+              d[f] ? 'border-accent text-accent' : ''
+            }`}
+          >
+            {f === 'bold' ? 'B' : f === 'italic' ? 'I' : 'U'}
+          </button>
+        ))}
+      </div>
+
+      <textarea
+        value={typeof d.note === 'string' ? d.note : ''}
+        onChange={(e) => withDoc((pd) => pd && setNodeData(pd.doc, sel, { note: e.target.value }))}
+        placeholder="note…"
+        rows={2}
+        className={`${field} w-full resize-none outline-none`}
+      />
 
       <div>
         <div className="mb-1 flex flex-wrap items-center gap-1">

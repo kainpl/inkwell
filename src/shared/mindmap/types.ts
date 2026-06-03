@@ -22,6 +22,12 @@ export interface NodeData {
   docs?: DocRef[]
   /** Sanitized inline rich caption (HTML). */
   labelHtml?: string
+  /** Whole-label format flags — applied at render (rename-safe), not stored as HTML. */
+  bold?: boolean
+  italic?: boolean
+  underline?: boolean
+  /** A short per-node note (lighter than an attached doc). */
+  note?: string
   color?: string
   lineColor?: string
   fillColor?: string

@@ -74,6 +74,7 @@ export default function OutlinePanel(): JSX.Element {
         const hasChildren = (graph?.childrenOf.get(id)?.length ?? 0) > 0
         const tags = Array.isArray(n.data.tag) ? n.data.tag : []
         const hasDoc = Array.isArray(n.data.docs) && n.data.docs.length > 0
+        const fmt = `${n.data.bold ? 'font-bold ' : ''}${n.data.italic ? 'italic ' : ''}${n.data.underline ? 'underline ' : ''}`
         return (
           <div
             key={id}
@@ -103,7 +104,7 @@ export default function OutlinePanel(): JSX.Element {
               }}
               onKeyDown={(e) => onKey(e, id)}
               placeholder="(empty)"
-              className="min-w-0 flex-1 bg-transparent text-ink outline-none placeholder:text-faint"
+              className={`min-w-0 flex-1 bg-transparent text-ink outline-none placeholder:text-faint ${fmt}`}
             />
             {hasDoc ? <span className="shrink-0 text-faint">📄</span> : null}
             {tags.map((t, i) => (

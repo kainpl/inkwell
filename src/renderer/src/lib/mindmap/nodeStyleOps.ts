@@ -61,6 +61,26 @@ export function cycleTask(doc: Y.Doc, id: string): void {
   }, LOCAL_ORIGIN)
 }
 
+/** Toggle a whole-label format flag (bold/italic/underline); clears the key when off. */
+export function toggleLabelFlag(
+  doc: Y.Doc,
+  id: string,
+  flag: 'bold' | 'italic' | 'underline'
+): void {
+  const m = nodesOf(doc).get(id)
+  if (!m) return
+  doc.transact(() => {
+    const d = readData(m)
+    if (d[flag]) {
+      const rest: NodeData = { ...d }
+      delete rest[flag]
+      writeData(m, rest)
+    } else {
+      writeData(m, { ...d, [flag]: true })
+    }
+  }, LOCAL_ORIGIN)
+}
+
 export function addIcon(doc: Y.Doc, id: string, icon: string): void {
   const m = nodesOf(doc).get(id)
   if (!m || !icon) return
