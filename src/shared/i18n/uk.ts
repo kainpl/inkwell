@@ -19,6 +19,7 @@ export const uk: Dict = {
   'file.asOpml': 'OPML…',
   'file.asMarkdown': 'Markdown…',
   'file.asFreeMind': 'FreeMind (.mm)…',
+  'file.asMindnode': 'MindNode (.mindnode)…',
   'file.exportProjectHtml': 'Експорт проєкту в HTML…',
   'file.exportProjectAs': 'Експорт проєкту як',
   'file.asHtml': 'HTML…',

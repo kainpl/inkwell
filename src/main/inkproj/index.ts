@@ -30,7 +30,8 @@ const HTML_FILTER = [{ name: 'HTML', extensions: ['html', 'htm'] }]
 const EXPORT_TEXT_FILTERS: Record<string, { name: string; extensions: string[] }[]> = {
   '.opml': [{ name: 'OPML', extensions: ['opml'] }],
   '.md': [{ name: 'Markdown', extensions: ['md', 'markdown'] }],
-  '.mm': [{ name: 'FreeMind', extensions: ['mm'] }]
+  '.mm': [{ name: 'FreeMind', extensions: ['mm'] }],
+  '.mindnode': [{ name: 'MindNode', extensions: ['mindnode'] }]
 }
 const IMPORT_FILTER = [
   {
@@ -150,6 +151,16 @@ export function registerInkprojIpc(): void {
     const dest = await pickSave(e, 'Export', suggestedName, filters)
     if (!dest) return null
     await writeFile(dest, text, 'utf8')
+    return dest
+  })
+
+  // Generic binary export (e.g. the .mindnode writer) — renderer passes base64.
+  ipcMain.handle(IPC.inkprojExportBinary, async (e, base64: string, suggestedName: string) => {
+    const ext = extname(suggestedName).toLowerCase()
+    const filters = EXPORT_TEXT_FILTERS[ext] ?? [{ name: 'All Files', extensions: ['*'] }]
+    const dest = await pickSave(e, 'Export', suggestedName, filters)
+    if (!dest) return null
+    await writeFile(dest, Buffer.from(base64, 'base64'))
     return dest
   })
 

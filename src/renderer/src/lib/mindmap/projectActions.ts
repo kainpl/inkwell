@@ -14,6 +14,7 @@ import { importAny, type ImportResult } from './importFormats'
 import { importMindnode } from './importMindnode'
 import { importXmind } from './importXmind'
 import { toOpml, toPlainMarkdown, toFreeMind } from './exportFormats'
+import { outlineToMindnodeContents, exportMindnodeBytes } from './exportMindnode'
 import { withRetry } from './retry'
 import { projectVersionId } from './projectVersionId'
 
@@ -167,6 +168,28 @@ async function buildProjectHtml(interactive = false): Promise<{ html: string; ti
     interactive
   })
   return { html, title }
+}
+
+/** Base64-encode bytes in chunks (avoids a stack overflow on large arrays). */
+function bytesToBase64(bytes: Uint8Array): string {
+  let bin = ''
+  const chunk = 0x8000
+  for (let i = 0; i < bytes.length; i += chunk) {
+    bin += String.fromCharCode(...bytes.subarray(i, i + chunk))
+  }
+  return btoa(bin)
+}
+
+/** Export the active project's schema → a `.mindnode` (MindNode binary; round-trips
+ *  through Inkwell — MindNode-app compatibility is unverified). */
+export async function exportMindnode(): Promise<void> {
+  const tabId = useAppStore.getState().activeId
+  const pd = getProjectDoc(tabId)
+  if (!pd) return
+  const title = ((pd.doc.getMap('meta').get('title') as string) ?? '') || 'mindmap'
+  const contents = outlineToMindnodeContents(title, yjsToOutline(pd.doc))
+  const bytes = await exportMindnodeBytes(contents)
+  await window.api.inkproj.exportBinary(bytesToBase64(bytes), `${title}.mindnode`)
 }
 
 /** Export the active project → a single self-contained `.html` (tree + cross-links + docs). */

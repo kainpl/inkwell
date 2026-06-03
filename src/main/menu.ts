@@ -29,7 +29,8 @@ export function buildMenu(win: BrowserWindow, locale: Locale): void {
           submenu: [
             { label: t('file.asOpml'), click: send(IPC.menuExportSchemaOpml) },
             { label: t('file.asMarkdown'), click: send(IPC.menuExportSchemaMd) },
-            { label: t('file.asFreeMind'), click: send(IPC.menuExportSchemaMm) }
+            { label: t('file.asFreeMind'), click: send(IPC.menuExportSchemaMm) },
+            { label: t('file.asMindnode'), click: send(IPC.menuExportSchemaMindnode) }
           ]
         },
         {

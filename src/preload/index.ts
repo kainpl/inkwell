@@ -33,6 +33,7 @@ const menuChannels = [
   IPC.menuExportSchemaOpml,
   IPC.menuExportSchemaMd,
   IPC.menuExportSchemaMm,
+  IPC.menuExportSchemaMindnode,
   IPC.menuExportProjectPdf,
   IPC.menuExportProjectImage,
   IPC.menuExportProjectInteractive,
@@ -231,6 +232,8 @@ const api = {
       ipcRenderer.invoke(IPC.inkprojExportHtml, html, suggestedName),
     exportText: (text: string, suggestedName: string): Promise<string | null> =>
       ipcRenderer.invoke(IPC.inkprojExportText, text, suggestedName),
+    exportBinary: (base64: string, suggestedName: string): Promise<string | null> =>
+      ipcRenderer.invoke(IPC.inkprojExportBinary, base64, suggestedName),
     readDoc: (workingDir: string, ref: DocRef): Promise<string> =>
       ipcRenderer.invoke(IPC.inkprojReadDoc, workingDir, ref),
     save: (workingDir: string, payload: InkprojSavePayload, srcPath: string): Promise<void> =>
