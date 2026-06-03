@@ -112,6 +112,8 @@ interface ProjectsState {
   setDirection: (dir: 'right' | 'down') => void
   /** Record the node count persisted by the last save (shrink-guard baseline). */
   setSavedNodeCount: (n: number) => void
+  /** Bind an untitled project to its chosen source path (after the first save-as). */
+  setSrcPath: (srcPath: string) => void
 }
 
 /** Immutably update the active tab's entry (no-op if the active tab isn't a project). */
@@ -280,7 +282,8 @@ export const useProjectStore = create<ProjectsState>((set) => ({
   setFocus: (id) => set((s) => patchActive(s, (e) => ({ ...e, focusId: id }))),
   setViewMode: (mode) => set((s) => patchActive(s, (e) => ({ ...e, viewMode: mode }))),
   setDirection: (dir) => set((s) => patchActive(s, (e) => ({ ...e, direction: dir }))),
-  setSavedNodeCount: (n) => set((s) => patchActive(s, (e) => ({ ...e, savedNodeCount: n })))
+  setSavedNodeCount: (n) => set((s) => patchActive(s, (e) => ({ ...e, savedNodeCount: n }))),
+  setSrcPath: (srcPath) => set((s) => patchActive(s, (e) => ({ ...e, srcPath })))
 }))
 
 /** The active tab's project entry, or null. Subscribes to both stores so it

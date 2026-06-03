@@ -52,6 +52,11 @@ export async function newProject(): Promise<void> {
   if (opened) enterProject(opened)
 }
 
+/** Create an untitled project (no path yet) → open it; first Save prompts save-as. */
+export async function newUntitledProject(): Promise<void> {
+  enterProject(await window.api.inkproj.createUntitled())
+}
+
 /** Import a mind map from many formats (.mind-map/.mind-doc/.mm/.opml/.md/.txt/.json)
  *  → convert to our schema → new `.inkproj` → open it (D11). */
 export async function importMindMap(): Promise<void> {
@@ -190,7 +195,15 @@ export async function saveProject(tabId: string): Promise<void> {
   }
   const docs = Object.entries(entry.dirtyDocs).map(([path, content]) => ({ path, content }))
   if (docs.length) payload.docs = docs
-  await window.api.inkproj.save(entry.workingDir, payload, entry.srcPath)
+
+  if (!entry.srcPath) {
+    // Untitled project: prompt for a destination on the first save.
+    const newPath = await window.api.inkproj.saveAs(entry.workingDir, payload)
+    if (!newPath) return // user cancelled — keep the tab dirty
+    useProjectStore.getState().setSrcPath(newPath)
+  } else {
+    await window.api.inkproj.save(entry.workingDir, payload, entry.srcPath)
+  }
   useProjectStore.getState().clearManifestDirty()
   useProjectStore.getState().clearDirtyDocs()
   useProjectStore.getState().setSavedNodeCount(nodesOf(pd.doc).size)

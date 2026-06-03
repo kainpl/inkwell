@@ -12,10 +12,12 @@ import {
   openInkproj,
   readDocFile,
   saveInkproj,
+  saveInkprojAs,
   attachDoc,
   attachAsset,
   readAssetDataUri,
   createInkproj,
+  createUntitledInkproj,
   cleanupInkproj
 } from './zip'
 
@@ -84,6 +86,18 @@ export function registerInkprojIpc(): void {
     const dest = await pickSave(e, 'New Inkwell Project', 'Untitled.inkproj', INKPROJ_FILTER)
     return dest ? createInkproj(dest, DEFAULT_SCHEMA, 'Untitled', base) : null
   })
+
+  // Untitled project: no source file yet; bound to a path on the first save-as.
+  ipcMain.handle(IPC.inkprojCreateUntitled, () =>
+    createUntitledInkproj(DEFAULT_SCHEMA, 'Untitled', base)
+  )
+  ipcMain.handle(
+    IPC.inkprojSaveAs,
+    async (e, workingDir: string, payload: InkprojSavePayload): Promise<string | null> => {
+      const dest = await pickSave(e, 'Save Project As', 'Untitled.inkproj', INKPROJ_FILTER)
+      return dest ? saveInkprojAs(workingDir, payload, dest) : null
+    }
+  )
 
   // Import (D11): pick a source mind-map file → return its raw text for the
   // renderer to parse (XML/OPML need DOMParser). The renderer then calls

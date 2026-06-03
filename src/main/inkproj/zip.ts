@@ -182,12 +182,8 @@ async function* walkFiles(dir: string, base = dir): AsyncGenerator<{ abs: string
  * must be known and `srcPath` must match the one this project was opened from. Every
  * write target is path-validated to stay inside the working dir.
  */
-export async function saveInkproj(
-  workingDir: string,
-  payload: InkprojSavePayload,
-  srcPath: string
-): Promise<void> {
-  if (PROJECTS.get(workingDir) !== srcPath) throw new Error('unknown project or path mismatch')
+/** Write the dirty parts (schema / manifest / docs) into the working dir. */
+async function writePayload(workingDir: string, payload: InkprojSavePayload): Promise<void> {
   const manifest =
     payload.manifest ??
     (JSON.parse(await readFile(join(workingDir, 'manifest.json'), 'utf8')) as InkprojManifest)
@@ -210,13 +206,62 @@ export async function saveInkproj(
     await mkdir(dirname(dest), { recursive: true })
     await writeFile(dest, d.content, 'utf8')
   }
+}
 
+/** Zip the whole working dir and atomically write it to `dest`. */
+async function rezipTo(workingDir: string, dest: string): Promise<void> {
   const zip = new JSZip()
   for await (const f of walkFiles(workingDir)) zip.file(f.rel, await readFile(f.abs))
   const buf = await zip.generateAsync({ type: 'nodebuffer' })
-  const tmp = `${srcPath}.tmp-${Date.now().toString(36)}`
+  const tmp = `${dest}.tmp-${Date.now().toString(36)}`
   await writeFile(tmp, buf)
-  await rename(tmp, srcPath)
+  await rename(tmp, dest)
+}
+
+export async function saveInkproj(
+  workingDir: string,
+  payload: InkprojSavePayload,
+  srcPath: string
+): Promise<void> {
+  if (PROJECTS.get(workingDir) !== srcPath) throw new Error('unknown project or path mismatch')
+  await writePayload(workingDir, payload)
+  await rezipTo(workingDir, srcPath)
+}
+
+/** Save an (untitled) project to a newly chosen path; binds the working dir to it. */
+export async function saveInkprojAs(
+  workingDir: string,
+  payload: InkprojSavePayload,
+  destPath: string
+): Promise<string> {
+  if (!PROJECTS.has(workingDir)) throw new Error('unknown workingDir')
+  await writePayload(workingDir, payload)
+  await rezipTo(workingDir, destPath)
+  PROJECTS.set(workingDir, destPath)
+  return destPath
+}
+
+/** A fresh project with NO source file yet (srcPath bound on first save-as). */
+export async function createUntitledInkproj(
+  schemaText: string,
+  title: string,
+  baseDir: string = DEFAULT_BASE
+): Promise<OpenedInkproj> {
+  await mkdir(baseDir, { recursive: true })
+  const workingDir = await mkdtemp(join(baseDir, 'p-'))
+  const manifest: InkprojManifest = {
+    format: 'inkproj',
+    formatVersion: 1,
+    app: 'Inkwell',
+    title,
+    schema: 'schema.mind-map',
+    createdAt: new Date().toISOString()
+  }
+  await writeFile(join(workingDir, 'manifest.json'), JSON.stringify(manifest, null, 2), 'utf8')
+  await writeFile(join(workingDir, 'schema.mind-map'), schemaText, 'utf8')
+  await mkdir(join(workingDir, 'docs'), { recursive: true })
+  PROJECTS.set(workingDir, '')
+  return { workingDir, manifest, schema: schemaText, srcPath: '' }
 }
 
 /**

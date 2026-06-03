@@ -69,7 +69,7 @@ import PromptModal from '@renderer/components/PromptModal'
 import ConfirmUnsavedModal from '@renderer/components/ConfirmUnsavedModal'
 import ProjectView from '@renderer/components/Mindmap/ProjectView'
 import {
-  newProject,
+  newUntitledProject,
   openProjectFromDialog,
   openProjectFromPath,
   importMindMap,
@@ -91,7 +91,7 @@ export default function App(): JSX.Element {
     const unsubs = [
       window.api.onMenu(IPC.menuNewFile, () => void newDocument()),
       window.api.onMenu(IPC.menuOpenFile, () => void openFileFromDialog()),
-      window.api.onMenu(IPC.menuNewProject, () => void newProject()),
+      window.api.onMenu(IPC.menuNewProject, () => void newUntitledProject()),
       window.api.onMenu(IPC.menuOpenProject, () => void openProjectFromDialog()),
       window.api.onMenu(IPC.menuImportMindMap, () => void importMindMap()),
       window.api.onMenu(IPC.menuExportMindMap, () => void exportMindMap()),
