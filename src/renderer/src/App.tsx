@@ -40,6 +40,7 @@ import {
 } from '@renderer/lib/exportActions'
 import { startAutoSave } from '@renderer/lib/autoSave'
 import { startProjectAutoSave } from '@renderer/lib/mindmap/projectAutoSave'
+import { startProjectHistory } from '@renderer/lib/mindmap/projectHistory'
 import { startDraftAutoSave } from '@renderer/lib/draftAutoSave'
 import { startDiskWatch } from '@renderer/lib/diskWatch'
 import { startSettingsSync } from '@renderer/lib/settingsSync'
@@ -218,6 +219,7 @@ export default function App(): JSX.Element {
   useEffect(() => {
     const stopAutoSave = startAutoSave()
     const stopProjectAutoSave = startProjectAutoSave()
+    const stopProjectHistory = startProjectHistory()
     const stopDrafts = startDraftAutoSave()
     const stopDiskWatch = startDiskWatch()
     const stopSettings = startSettingsSync()
@@ -229,6 +231,7 @@ export default function App(): JSX.Element {
     return () => {
       stopAutoSave()
       stopProjectAutoSave()
+      stopProjectHistory()
       stopDrafts()
       stopDiskWatch()
       stopSettings()
