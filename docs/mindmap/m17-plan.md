@@ -57,8 +57,8 @@ elk output: same, with x/y on each child  →  fromElkGraph → Map<id,{x,y}>  �
 
 **Files:** modify `useProjectStore.ts` (`layoutEngine` + `setLayoutEngine`), `Canvas.tsx`.
 
-- [ ] **B1** `useProjectStore`: `layoutEngine: 'banded' | 'elk'` (init `'banded'`) + `setLayoutEngine`.
-- [ ] **B2** `Canvas`: keep the synchronous banded `useMemo` (`banded`). Add ELK as an async override:
+- [x] **B1** `useProjectStore`: `layoutEngine: 'banded' | 'elk'` (init `'banded'`) + `setLayoutEngine`.
+- [x] **B2** `Canvas`: keep the synchronous banded `useMemo` (`banded`). Add ELK as an async override:
   ```tsx
   const banded = useMemo(() => graph ? computeLayout(graph, collapsed, direction) : new Map(), [graph, collapsed, direction])
   const [elkLayout, setElkLayout] = useState<Map<string, Pos> | null>(null)
@@ -71,22 +71,22 @@ elk output: same, with x/y on each child  →  fromElkGraph → Map<id,{x,y}>  �
   const layout = engine === 'elk' && elkLayout ? elkLayout : banded
   ```
   (State is set only in the promise — no `set-state-in-effect`. Banded is shown until ELK lands, so switching engines / editing never flickers to empty. Cancel flag drops stale results.)
-- [ ] **B3** `centerOnNode` / drop-ghost / frames already read `layout` — they keep working with either engine (positions are positions).
-- [ ] **B4** `typecheck`/`lint`. Commit `feat(mindmap): wire ELK layout into the canvas (async, banded fallback)`.
+- [x] **B3** `centerOnNode` / drop-ghost / frames read `layout` — work with either engine.
+- [x] **B4** `typecheck`/`lint` green. Commit `feat(mindmap): wire ELK layout into the canvas (async, banded fallback)`.
 
 ## Phase C — engine toggle + polish
 
 **Files:** modify `EditToolbar.tsx`.
 
-- [ ] **C1** `EditToolbar`: a **Banded / ELK** engine toggle (segmented, like the direction control) → `setLayoutEngine`. Tooltip notes ELK is an alternative auto-layout.
-- [ ] **C2** Direction still applies under ELK (mrtree RIGHT/DOWN; radial → ELK radial); verify the toggle relayouts.
-- [ ] **C3** `typecheck`/`lint`/`build`. Commit `feat(mindmap): layout-engine toggle (Banded / ELK)`.
+- [x] **C1** `EditToolbar`: a **Banded / ELK** segmented engine toggle → `setLayoutEngine`.
+- [x] **C2** Direction applies under ELK (mrtree RIGHT/DOWN; radial → ELK radial).
+- [x] **C3** `typecheck`/`lint`/`build` green (bundle +~3 MB from elkjs). Commit `feat(mindmap): layout-engine toggle (Banded / ELK)`.
 
 ## Phase D — gate + QA + merge
 
-- [ ] **D1** `npx vitest run` green; `typecheck`/`lint`/`build` clean (note the bundle-size bump from `elkjs`).
-- [ ] **D2** QA: toggle ELK on a small map (relayouts), a large map (auto-arranged, smooth), each direction (right/down/radial); drag a node (pin honored under ELK); collapse/expand re-runs ELK; centering + frames + drop-ghost still align. Update `README.md` + `backlog.md` (§G fully ✅).
-- [ ] **D3** On QA OK: **merge `feat/mindmap-elk` → `feat/mindmap`** (`--no-ff`); later `feat/mindmap` → `dev` per the usual flow. Push per the user's instruction.
+- [x] **D1** `npx vitest run` green (486; +6 layoutElk); `typecheck`/`lint`/`build` clean (bundle +~3 MB from `elkjs`).
+- [ ] **D2** QA (live, `npm run dev`): toggle ELK on a small map (relayouts), a large map (auto-arranged, smooth), each direction (right/down/radial); drag a node (pin honored under ELK); collapse/expand re-runs ELK; centering + frames + drop-ghost still align. Update `README.md` + `backlog.md` (§G fully ✅). *(handed off for live QA)*
+- [ ] **D3** On QA OK: **merge `feat/mindmap-elk` → `feat/mindmap`** (`--no-ff`); later `feat/mindmap` → `dev`. Push per the user's instruction.
 
 ## Risks & mitigations
 - **Async races** (stale ELK result after a fast edit) → cancel flag in the effect; banded fallback means the screen is never empty.
