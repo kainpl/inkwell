@@ -51,6 +51,8 @@ export interface ProjectEntry {
   viewMode: 'map' | 'outline' | 'table' | 'slides' | 'split'
   /** Map growth direction: `right` = horizontal, `down` = vertical, `radial` = two-sided. */
   direction: 'right' | 'down' | 'radial'
+  /** Layout engine: the hand-rolled `banded` layout, or `elk` (elkjs auto-layout). */
+  layoutEngine: 'banded' | 'elk'
   /** Node count at the last successful save — the shrink-guard's baseline (0 until first save). */
   savedNodeCount: number
   /** Last save failure message (after retries), or null — shown as a banner. */
@@ -121,6 +123,8 @@ interface ProjectsState {
   setViewMode: (mode: 'map' | 'outline' | 'table' | 'slides' | 'split') => void
   /** Set the map growth direction (horizontal / vertical / radial). */
   setDirection: (dir: 'right' | 'down' | 'radial') => void
+  /** Switch the layout engine (banded / elk). */
+  setLayoutEngine: (engine: 'banded' | 'elk') => void
   /** Record the node count persisted by the last save (shrink-guard baseline). */
   setSavedNodeCount: (n: number) => void
   /** Bind an untitled project to its chosen source path (after the first save-as). */
@@ -171,6 +175,7 @@ export const useProjectStore = create<ProjectsState>((set) => ({
           focusId: null,
           viewMode: 'map',
           direction: 'right',
+          layoutEngine: 'banded',
           savedNodeCount: 0,
           saveError: null
         }
@@ -306,6 +311,7 @@ export const useProjectStore = create<ProjectsState>((set) => ({
   setFocus: (id) => set((s) => patchActive(s, (e) => ({ ...e, focusId: id }))),
   setViewMode: (mode) => set((s) => patchActive(s, (e) => ({ ...e, viewMode: mode }))),
   setDirection: (dir) => set((s) => patchActive(s, (e) => ({ ...e, direction: dir }))),
+  setLayoutEngine: (engine) => set((s) => patchActive(s, (e) => ({ ...e, layoutEngine: engine }))),
   setSavedNodeCount: (n) => set((s) => patchActive(s, (e) => ({ ...e, savedNodeCount: n }))),
   setSrcPath: (srcPath) => set((s) => patchActive(s, (e) => ({ ...e, srcPath }))),
   setSaveError: (msg) => set((s) => patchActive(s, (e) => ({ ...e, saveError: msg })))

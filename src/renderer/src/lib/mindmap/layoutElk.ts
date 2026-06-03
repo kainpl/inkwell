@@ -48,8 +48,8 @@ export function fromElkGraph(result: ElkNode): Map<string, Pos> {
 /** Async ELK layout: ELK positions for the visible tree + manual-pin overrides. */
 export async function computeElkLayout(
   graph: GraphModel,
-  collapsed: Set<string>,
-  direction: Direction
+  collapsed: Set<string> = new Set(),
+  direction: Direction = 'right'
 ): Promise<Map<string, Pos>> {
   const result = await elk.layout(toElkGraph(graph, collapsed, direction))
   const pos = fromElkGraph(result)
