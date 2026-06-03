@@ -16,20 +16,17 @@
 
 **Files:** create `lib/mindmap/import/index.ts` (`importAny`) + per-format modules (`mindmap.ts`, `freemind.ts`, `opml.ts`, `indented.ts`, `json.ts`) + tests; modify `index.ts` (`inkproj:pickImportFile`, `inkproj:createFromImport`), `shared/ipc.ts`, `preload`, `projectActions.ts`, `menu.ts`, `i18n`, `App.tsx`.
 
-- [ ] **A1** `importAny(name: string, text: string): { title: string; outline: MarkdownNode[] }` — dispatch by extension/content. Unknown → treat as `.md`. (Ported skeleton from the reference importer, adapted to our `MarkdownNode`.)
-- [ ] **A2** `mindmap.ts` — `.mind-map`/`.mind-doc` via the existing `markdownToOutline` (alias handling). Test: a `.mind-doc` round-trips identically to `.mind-map`.
-- [ ] **A3** `freemind.ts` — `.mm` via `DOMParser` (`<map><node TEXT=…>` recursion; decode entities; map `COLOR`/`BACKGROUND_COLOR` → `data.color`/`fillColor`). Tests on a small `.mm` fixture (nesting + a color). (Adapt `parseFreeMind`, ref line ~278.)
-- [ ] **A4** `opml.ts` (`<outline text=…>` recursion), `indented.ts` (`.md` headings+bullets / `.txt` indent), `json.ts` (`{title, outline|branches|children}`). Tests per format.
-- [ ] **A5** Main: `inkproj:pickImportFile` → open dialog (all supported exts) → `{ name, text } | null`; `inkproj:createFromImport(schemaText, title)` → save dialog (`.inkproj`) → `createInkproj`. `shared/ipc.ts` + `preload` + `menuChannels`.
-- [ ] **A6** `projectActions.importFile()`: `pickImportFile` → `importAny` → `outlineToMarkdown(outline, title)` → `createFromImport` → `enterProject`. Replace/extend M3's `importMindMap` (which only did raw `.mind-map`). `menu.ts` File → Import… (broaden label + filter); `i18n`; `App.tsx` wire.
-- [ ] **A7** `typecheck`/`lint`/`build`; QA: import a `.mm`, `.opml`, `.mind-doc`. Commit `feat(mindmap): multi-format import hub`.
+- [x] **A1–A4** `importFormats.ts` (single focused module instead of per-format files): `importAny(name, text)` dispatches → `parseMindDoc` (.mind-map/.mind-doc via `markdownToOutline`), `parseFreeMind` (.mm via DOMParser + color/fill/line/shape/fold), `parseOpml`, `parseMarkdown` (headings+bullets, inline-strip), `parseIndented` (.txt), `parseJson`; plus `cleanTree` (prune empty leaves) + `collapseDeep`. 5 format tests (jsdom for DOMParser).
+- [x] **A5** Main `inkproj:pickImportFile` (reads source text) + `inkproj:createFromImport(schema, title)` (save dialog → `createInkproj`); `shared/ipc.ts` + `preload`. (Replaced M3's raw-only `importDialog`.)
+- [x] **A6** `projectActions.importMindMap()` now: `pickImportFile` → `importAny` → `outlineToMarkdown` → `createFromImport` → `enterProject`. Menu Import wired to it (label kept).
+- [x] **A7** `typecheck`/`lint`/`build` green (vitest 417). Commit `feat(mindmap): multi-format import hub` (`53997e9`).
 
-## Phase B — `.mindnode` import (binary, stretch)
+## Phase B — `.mindnode` import (binary) — **BLOCKED, deferred**
 
-**Design.** `.mindnode` = a ZIP whose `contents.xml`/protobuf carries the map (the source's `mindnode-pb.ts` reader, ~174 lines). Heavier + proprietary; **optional** — build only if Phase A lands well and there's appetite. The vision parked this pending the Protocolist lib; doing the reader ourselves is the alternative.
+**Reality check (2026-06-03).** On inspecting the source, `.mindnode` is **~1400 lines** of deeply reverse-engineered, MindNode-version-specific protobuf (`parseMindnodeV2`: flat node list + relations, LZFSE-compressed theme blocks, per-file findings in the comments) — not the ~174-line figure first estimated. **We have no real `.mindnode` fixture to verify against**, so porting it blind would ship unverifiable binary parsing (violates "never claim green unverified"). Decision: **defer** — matches the vision's park (revisit with the Protocolist lib). Unblock by either (a) a real `.mindnode` sample to build+test against, or (b) adopting the Protocolist lib's reader.
 
-- [ ] **B1** `mindnode.ts` — unzip + decode the protobuf nodes → `{ title, outline }` (+ optional `viewport`). Adapt `mindnode-pb.ts`. Fixture test.
-- [ ] **B2** Wire into `importAny` (binary branch: `pickImportFile` returns bytes for `.mindnode`). QA on a real `.mindnode`. Commit.
+- [ ] **B1** *(blocked)* port a node-tree extractor (pb primitives + flat-nodes→tree) — needs a fixture.
+- [ ] **B2** *(blocked)* wire the binary branch into `pickImportFile`/`importAny`.
 
 ## Phase C — image assets
 
