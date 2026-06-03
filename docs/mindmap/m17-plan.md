@@ -85,8 +85,8 @@ elk output: same, with x/y on each child  →  fromElkGraph → Map<id,{x,y}>  �
 ## Phase D — gate + QA + merge
 
 - [x] **D1** `npx vitest run` green (486; +6 layoutElk); `typecheck`/`lint`/`build` clean (bundle +~3 MB from `elkjs`).
-- [ ] **D2** QA (live, `npm run dev`): toggle ELK on a small map (relayouts), a large map (auto-arranged, smooth), each direction (right/down/radial); drag a node (pin honored under ELK); collapse/expand re-runs ELK; centering + frames + drop-ghost still align. Update `README.md` + `backlog.md` (§G fully ✅). *(handed off for live QA)*
-- [ ] **D3** On QA OK: **merge `feat/mindmap-elk` → `feat/mindmap`** (`--no-ff`); later `feat/mindmap` → `dev`. Push per the user's instruction.
+- [x] **D2** QA (live) accepted. README + backlog updated (§G fully ✅).
+- [x] **D3** Merged `feat/mindmap-elk` → `feat/mindmap` (`--no-ff`). (`feat/mindmap` → `dev` per the user's word.)
 
 ## Risks & mitigations
 - **Async races** (stale ELK result after a fast edit) → cancel flag in the effect; banded fallback means the screen is never empty.

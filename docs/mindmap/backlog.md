@@ -143,9 +143,8 @@ multi-root layout + drop-ghost · per-node junction add-child/expand control.
 
 - **✅ Large-map virtualization** (M11 + M16) — `onlyRenderVisibleElements` + collapse, plus
   **auto-collapse** (the `Fit` action + on-open seeding for huge maps). *ours; Protocolist auto-collapse >2000.*
-- **★ ELK auto-layout** as an alternative engine for huge/auto-arranged maps (we have the
-  banded layout). **The one open backlog item** — needs the `elkjs` dependency (~1 MB) + an
-  async alternative engine. *Protocolist `layout-elk.ts`. · L*
+- **✅ ELK auto-layout** (M17) — `elkjs` as an opt-in alternative engine (Banded / ELK toggle;
+  async with a banded fallback; mrtree / radial; pin-aware). *Protocolist `layout-elk.ts`.*
 
 ---
 
