@@ -39,6 +39,7 @@ import {
   copyAsImage
 } from '@renderer/lib/exportActions'
 import { startAutoSave } from '@renderer/lib/autoSave'
+import { startProjectAutoSave } from '@renderer/lib/mindmap/projectAutoSave'
 import { startDraftAutoSave } from '@renderer/lib/draftAutoSave'
 import { startDiskWatch } from '@renderer/lib/diskWatch'
 import { startSettingsSync } from '@renderer/lib/settingsSync'
@@ -210,6 +211,7 @@ export default function App(): JSX.Element {
   // Debounced auto-save + crash-recovery draft snapshots for the app's lifetime.
   useEffect(() => {
     const stopAutoSave = startAutoSave()
+    const stopProjectAutoSave = startProjectAutoSave()
     const stopDrafts = startDraftAutoSave()
     const stopDiskWatch = startDiskWatch()
     const stopSettings = startSettingsSync()
@@ -220,6 +222,7 @@ export default function App(): JSX.Element {
     const offDrive = window.api.onDriveAccountsChanged(() => void refreshAccounts())
     return () => {
       stopAutoSave()
+      stopProjectAutoSave()
       stopDrafts()
       stopDiskWatch()
       stopSettings()

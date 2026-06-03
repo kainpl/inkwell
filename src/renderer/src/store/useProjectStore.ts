@@ -41,8 +41,10 @@ export interface ProjectEntry {
   highlightTag: string | null
   /** When set, nodes outside this node's focus set (it + ancestors + descendants) are dimmed. */
   focusId: string | null
-  /** Which view the left column shows: mind-map, outline, or both. */
-  viewMode: 'map' | 'outline' | 'split'
+  /** Which view the left column shows: mind-map, outline, table, or split. */
+  viewMode: 'map' | 'outline' | 'table' | 'split'
+  /** Node count at the last successful save — the shrink-guard's baseline (0 until first save). */
+  savedNodeCount: number
 }
 
 interface ProjectsState {
@@ -97,8 +99,10 @@ interface ProjectsState {
   setHighlightTag: (tag: string | null) => void
   /** Set / clear the focused node. */
   setFocus: (id: string | null) => void
-  /** Switch the left-column view (map / outline / split). */
-  setViewMode: (mode: 'map' | 'outline' | 'split') => void
+  /** Switch the left-column view (map / outline / table / split). */
+  setViewMode: (mode: 'map' | 'outline' | 'table' | 'split') => void
+  /** Record the node count persisted by the last save (shrink-guard baseline). */
+  setSavedNodeCount: (n: number) => void
 }
 
 /** Immutably update the active tab's entry (no-op if the active tab isn't a project). */
@@ -138,7 +142,8 @@ export const useProjectStore = create<ProjectsState>((set) => ({
           quickOpen: false,
           highlightTag: null,
           focusId: null,
-          viewMode: 'map'
+          viewMode: 'map',
+          savedNodeCount: 0
         }
       }
     })),
@@ -259,7 +264,8 @@ export const useProjectStore = create<ProjectsState>((set) => ({
   setHighlightTag: (tag) =>
     set((s) => patchActive(s, (e) => ({ ...e, highlightTag: e.highlightTag === tag ? null : tag }))),
   setFocus: (id) => set((s) => patchActive(s, (e) => ({ ...e, focusId: id }))),
-  setViewMode: (mode) => set((s) => patchActive(s, (e) => ({ ...e, viewMode: mode })))
+  setViewMode: (mode) => set((s) => patchActive(s, (e) => ({ ...e, viewMode: mode }))),
+  setSavedNodeCount: (n) => set((s) => patchActive(s, (e) => ({ ...e, savedNodeCount: n })))
 }))
 
 /** The active tab's project entry, or null. Subscribes to both stores so it

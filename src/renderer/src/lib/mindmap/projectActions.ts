@@ -193,6 +193,7 @@ export async function saveProject(tabId: string): Promise<void> {
   await window.api.inkproj.save(entry.workingDir, payload, entry.srcPath)
   useProjectStore.getState().clearManifestDirty()
   useProjectStore.getState().clearDirtyDocs()
+  useProjectStore.getState().setSavedNodeCount(nodesOf(pd.doc).size)
   useAppStore.getState().setTabDirty(tabId, false)
 }
 
