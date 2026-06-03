@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import Canvas from './Canvas'
 import DocPane from './DocPane'
 import DocBar from './DocBar'
@@ -7,6 +7,9 @@ import EdgeInspector from './EdgeInspector'
 import NodeInspector from './NodeInspector'
 import { useAppStore } from '@renderer/store/useAppStore'
 import { useProjectStore } from '@renderer/store/useProjectStore'
+import { useProjectGraph } from '@renderer/lib/mindmap/useProjectGraph'
+import { navigate, expandToLevel, type NavDir } from '@renderer/lib/mindmap/treeNav'
+import { centerOnNode } from '@renderer/lib/mindmap/canvasViewport'
 import {
   addChildToSelected,
   addSiblingToSelected,
@@ -16,6 +19,13 @@ import {
   redoActive,
   undoActive
 } from '@renderer/lib/mindmap/projectEditActions'
+
+const ARROW_DIR: Record<string, NavDir> = {
+  ArrowUp: 'up',
+  ArrowDown: 'down',
+  ArrowLeft: 'left',
+  ArrowRight: 'right'
+}
 
 /** True when keystrokes belong to a text field / interactive control, not the canvas. */
 function isTypingTarget(t: EventTarget | null): boolean {
@@ -28,6 +38,13 @@ function isTypingTarget(t: EventTarget | null): boolean {
 /** Project tab body: edit toolbar on top, schema canvas + read-only doc pane below.
  *  Mounts only for project tabs, so its key handler never touches the file editor. */
 export default function ProjectView(): JSX.Element {
+  const activeId = useAppStore((s) => s.activeId)
+  const graph = useProjectGraph(activeId)
+  const graphRef = useRef(graph)
+  useEffect(() => {
+    graphRef.current = graph
+  }, [graph])
+
   useEffect(() => {
     const onKey = (e: KeyboardEvent): void => {
       if (isTypingTarget(e.target)) return
@@ -48,11 +65,50 @@ export default function ProjectView(): JSX.Element {
         }
         return
       }
+      const store = useProjectStore.getState()
       const tabId = useAppStore.getState().activeId
-      const proj = useProjectStore.getState().byTab[tabId]
+      const proj = store.byTab[tabId]
+      const g = graphRef.current
       if (!proj) return
       const sel = proj.selectedId
+
+      // Expand-to-level: 1–9 reveal that depth, 0 expands everything.
+      if (g && /^[0-9]$/.test(e.key)) {
+        e.preventDefault()
+        const lvl = Number(e.key)
+        store.setCollapsed(lvl === 0 ? new Set() : expandToLevel(g, lvl))
+        return
+      }
+
       switch (e.key) {
+        case 'ArrowUp':
+        case 'ArrowDown':
+        case 'ArrowLeft':
+        case 'ArrowRight': {
+          if (!sel || !g) break
+          e.preventDefault()
+          const dir = ARROW_DIR[e.key]
+          // Right on a collapsed node with children expands it instead of moving.
+          if (dir === 'right' && proj.collapsed.has(sel) && (g.childrenOf.get(sel)?.length ?? 0) > 0) {
+            store.expand(sel)
+            break
+          }
+          const next = navigate(g, sel, dir)
+          if (next) {
+            store.select(next)
+            centerOnNode(next)
+          }
+          break
+        }
+        case 'Home': {
+          const root = g?.nodes.find((n) => n.parentId === null)
+          if (root) {
+            e.preventDefault()
+            store.select(root.id)
+            centerOnNode(root.id)
+          }
+          break
+        }
         case 'Tab':
           if (sel) {
             e.preventDefault()

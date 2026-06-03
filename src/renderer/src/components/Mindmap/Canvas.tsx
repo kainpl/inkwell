@@ -5,6 +5,7 @@ import {
   Controls,
   MiniMap,
   ViewportPortal,
+  useReactFlow,
   applyNodeChanges,
   applyEdgeChanges,
   type Connection,
@@ -29,10 +30,29 @@ import { getProjectDoc } from '@renderer/lib/mindmap/yjsRegistry'
 import { reparent, reorder } from '@renderer/lib/mindmap/treeOps'
 import { addCrossLink } from '@renderer/lib/mindmap/crossLinkOps'
 import { resolveDrop, type DropTarget } from '@renderer/lib/mindmap/resolveDrop'
+import { setCenterNodeFn } from '@renderer/lib/mindmap/canvasViewport'
 import type { LinkType } from '@shared/mindmap/types'
 import MindNode from './MindNode'
 import { TreeEdge, CrosslinkEdge } from './edges'
 import SearchPanel from './SearchPanel'
+
+/** Registers a center-on-node fn (it has both the layout and a React Flow instance)
+ *  so callers outside the flow (key handlers) can center the viewport. */
+function ViewportRegistrar({ layout }: { layout: Map<string, Pos> }): null {
+  const { setCenter } = useReactFlow()
+  const layoutRef = useRef(layout)
+  useEffect(() => {
+    layoutRef.current = layout
+  }, [layout])
+  useEffect(() => {
+    setCenterNodeFn((id) => {
+      const p = layoutRef.current.get(id)
+      if (p) void setCenter(p.x + 100, p.y + 16, { zoom: 1, duration: 300 })
+    })
+    return () => setCenterNodeFn(null)
+  }, [setCenter])
+  return null
+}
 
 const nodeTypes: NodeTypes = { mind: MindNode }
 const edgeTypes: EdgeTypes = { tree: TreeEdge, crosslink: CrosslinkEdge }
@@ -198,7 +218,8 @@ export default function Canvas(): JSX.Element {
       <Background />
       <Controls showInteractive={false} />
       <MiniMap pannable zoomable />
-      <SearchPanel graph={graph} layout={layout} />
+      <ViewportRegistrar layout={layout} />
+      <SearchPanel graph={graph} />
       {dropHint ? (
         <ViewportPortal>
           <DropGhost hint={dropHint} layout={layout} />

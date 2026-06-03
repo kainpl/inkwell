@@ -53,6 +53,8 @@ interface ProjectsState {
   toggleCollapse: (nodeId: string) => void
   /** Expand a node (remove it from the collapsed set) so its children show. */
   expand: (nodeId: string) => void
+  /** Replace the whole collapsed set (used by expand-to-level). */
+  setCollapsed: (ids: Set<string>) => void
   select: (nodeId: string | null) => void
   /** Select a cross-link (clears node selection); `null` clears the link selection. */
   selectLink: (fromNodeId: string | null, linkId?: string) => void
@@ -142,6 +144,8 @@ export const useProjectStore = create<ProjectsState>((set) => ({
         return { ...e, collapsed }
       })
     ),
+
+  setCollapsed: (ids) => set((s) => patchActive(s, (e) => ({ ...e, collapsed: ids }))),
 
   select: (nodeId) =>
     set((s) => patchActive(s, (e) => ({ ...e, selectedId: nodeId, selectedLink: null }))),

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { searchNodes, ancestorsOf } from './treeNav'
+import { searchNodes, ancestorsOf, navigate, expandToLevel } from './treeNav'
 import { buildGraph } from './buildGraph'
 import { markdownToOutline } from '@shared/mindmap/mindMapMarkdown'
 
@@ -21,5 +21,22 @@ describe('treeNav', () => {
     expect(ancestorsOf(graph, 'b')).toEqual([rootId, 'a'])
     expect(ancestorsOf(graph, 'a')).toEqual([rootId])
     expect(ancestorsOf(graph, rootId)).toEqual([])
+  })
+
+  it('navigate moves up/down/left/right', () => {
+    expect(navigate(graph, 'a', 'down')).toBe('g') // next sibling
+    expect(navigate(graph, 'g', 'up')).toBe('a') // prev sibling
+    expect(navigate(graph, 'a', 'right')).toBe('b') // first child
+    expect(navigate(graph, 'b', 'left')).toBe('a') // parent
+    expect(navigate(graph, 'a', 'up')).toBeNull() // no prev sibling
+    expect(navigate(graph, 'g', 'right')).toBeNull() // no children
+  })
+
+  it('expandToLevel collapses below the given depth', () => {
+    const c1 = expandToLevel(graph, 1) // show root + its children, hide deeper
+    expect(c1.has('a')).toBe(true) // Alpha (depth 1) has a child → collapsed
+    expect(c1.has(rootId)).toBe(false) // root visible
+    const c2 = expandToLevel(graph, 2)
+    expect(c2.has('a')).toBe(false) // depth 1 now expanded
   })
 })
