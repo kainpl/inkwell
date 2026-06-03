@@ -32,6 +32,7 @@ export default function MindNode({ id, data }: NodeProps): JSX.Element {
   const activeId = useAppStore((s) => s.activeId)
   const editing = useProjectStore((s) => s.byTab[activeId]?.editingId === id)
   const highlightTag = useProjectStore((s) => s.byTab[activeId]?.highlightTag ?? null)
+  const vertical = useProjectStore((s) => s.byTab[activeId]?.direction === 'down')
   const nd = data as RfNodeData
   const d = nd.raw.data
   const fill = typeof d.fillColor === 'string' ? d.fillColor : undefined
@@ -81,7 +82,7 @@ export default function MindNode({ id, data }: NodeProps): JSX.Element {
         ) : null}
         <Handle
           type="target"
-          position={Position.Left}
+          position={vertical ? Position.Top : Position.Left}
           className="!h-2 !w-2 !border-paper !bg-accent opacity-0 transition-opacity group-hover:opacity-100"
         />
         <div className="flex items-center gap-1">
@@ -173,15 +174,21 @@ export default function MindNode({ id, data }: NodeProps): JSX.Element {
       ) : null}
         <Handle
           type="source"
-          position={Position.Right}
+          position={vertical ? Position.Bottom : Position.Right}
           className="!h-2 !w-2 !border-paper !bg-accent opacity-0 transition-opacity group-hover:opacity-100"
         />
       </div>
-      {/* Right-edge "tail" control at the branch junction: expand when collapsed
-          children are hidden, else add a child to this node. A short stub line
-          connects it to the node so it doesn't look like it's floating. Kept at
-          wrapper level so clip-path shapes (hexagon/octagon) don't hide it. */}
-      <span className="absolute right-0 top-1/2 h-px w-3 -translate-y-1/2 translate-x-full bg-line" />
+      {/* "Tail" control at the branch junction: expand when collapsed children are
+          hidden, else add a child. A short stub line connects it to the node. Sits on
+          the growth-side edge (right for horizontal, bottom for vertical) and at wrapper
+          level so clip-path shapes (hexagon/octagon) don't hide it. */}
+      <span
+        className={`absolute bg-line ${
+          vertical
+            ? 'bottom-0 left-1/2 h-3 w-px -translate-x-1/2 translate-y-full'
+            : 'right-0 top-1/2 h-px w-3 -translate-y-1/2 translate-x-full'
+        }`}
+      />
       <button
         onPointerDown={(e) => e.stopPropagation()}
         onClick={(e) => {
@@ -190,9 +197,13 @@ export default function MindNode({ id, data }: NodeProps): JSX.Element {
           else addChildTo(id)
         }}
         title={nd.hasChildren && nd.collapsed ? 'Expand' : 'Add child'}
-        className="absolute right-0 top-1/2 z-10 flex h-4 w-4 -translate-y-1/2 translate-x-[150%] items-center justify-center rounded-full border border-line bg-paper text-[11px] leading-none text-faint shadow-sm hover:border-accent hover:text-accent"
+        className={`absolute z-10 flex h-4 w-4 items-center justify-center rounded-full border border-line bg-paper text-[11px] leading-none text-faint shadow-sm hover:border-accent hover:text-accent ${
+          vertical
+            ? 'bottom-0 left-1/2 -translate-x-1/2 translate-y-[150%]'
+            : 'right-0 top-1/2 -translate-y-1/2 translate-x-[150%]'
+        }`}
       >
-        {nd.hasChildren && nd.collapsed ? '▸' : '+'}
+        {nd.hasChildren && nd.collapsed ? (vertical ? '▾' : '▸') : '+'}
       </button>
     </div>
   )

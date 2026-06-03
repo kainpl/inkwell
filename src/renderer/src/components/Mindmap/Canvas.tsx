@@ -176,12 +176,13 @@ export default function Canvas(): JSX.Element {
   const multi = project?.multi ?? EMPTY_MULTI
   const highlightTag = project?.highlightTag ?? null
   const focusId = project?.focusId ?? null
+  const direction = project?.direction ?? 'right'
 
-  // Positions depend on the tree shape AND collapse (collapsed subtrees reserve no
-  // space — otherwise visible nodes spread out as if everything were expanded).
+  // Positions depend on the tree shape, collapse (collapsed subtrees reserve no
+  // space), and the growth direction.
   const layout = useMemo(
-    () => (graph ? computeLayout(graph, collapsed) : new Map<string, Pos>()),
-    [graph, collapsed]
+    () => (graph ? computeLayout(graph, collapsed, direction) : new Map<string, Pos>()),
+    [graph, collapsed, direction]
   )
   const focus = useMemo(
     () => (graph && focusId ? focusSet(graph, focusId) : null),

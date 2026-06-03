@@ -16,6 +16,18 @@ describe('computeLayout', () => {
     expect(a?.y).not.toBe(b?.y) // distinct cross-axis (y)
   })
 
+  it('down direction puts depth on the Y axis (siblings share Y, differ X)', () => {
+    const g = graphOf('# R\n\n- A <!-- mindmap {"id":"a"} -->\n- B <!-- mindmap {"id":"b"} -->\n')
+    const pos = computeLayout(g, new Set(), 'down')
+    const a = pos.get('a')
+    const b = pos.get('b')
+    expect(a?.y).toBe(b?.y) // same depth (y now)
+    expect(a?.x).not.toBe(b?.x) // distinct cross-axis (x now)
+    // the root sits above its children (smaller y)
+    const rootId = g.nodes.find((n) => n.parentId === null)!.id
+    expect(pos.get(rootId)?.y ?? 0).toBeLessThan(a?.y ?? 0)
+  })
+
   it('honors an absolute pin (customLeft/customTop)', () => {
     const g = graphOf('# R\n\n- A <!-- mindmap {"id":"a","customLeft":111,"customTop":222} -->\n')
     expect(computeLayout(g).get('a')).toEqual({ x: 111, y: 222 })

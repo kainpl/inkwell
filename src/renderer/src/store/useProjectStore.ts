@@ -43,6 +43,8 @@ export interface ProjectEntry {
   focusId: string | null
   /** Which view the left column shows: mind-map, outline, table, or split. */
   viewMode: 'map' | 'outline' | 'table' | 'split'
+  /** Map growth direction: `right` = horizontal, `down` = vertical. */
+  direction: 'right' | 'down'
   /** Node count at the last successful save — the shrink-guard's baseline (0 until first save). */
   savedNodeCount: number
 }
@@ -101,6 +103,8 @@ interface ProjectsState {
   setFocus: (id: string | null) => void
   /** Switch the left-column view (map / outline / table / split). */
   setViewMode: (mode: 'map' | 'outline' | 'table' | 'split') => void
+  /** Set the map growth direction (horizontal / vertical). */
+  setDirection: (dir: 'right' | 'down') => void
   /** Record the node count persisted by the last save (shrink-guard baseline). */
   setSavedNodeCount: (n: number) => void
 }
@@ -143,6 +147,7 @@ export const useProjectStore = create<ProjectsState>((set) => ({
           highlightTag: null,
           focusId: null,
           viewMode: 'map',
+          direction: 'right',
           savedNodeCount: 0
         }
       }
@@ -265,6 +270,7 @@ export const useProjectStore = create<ProjectsState>((set) => ({
     set((s) => patchActive(s, (e) => ({ ...e, highlightTag: e.highlightTag === tag ? null : tag }))),
   setFocus: (id) => set((s) => patchActive(s, (e) => ({ ...e, focusId: id }))),
   setViewMode: (mode) => set((s) => patchActive(s, (e) => ({ ...e, viewMode: mode }))),
+  setDirection: (dir) => set((s) => patchActive(s, (e) => ({ ...e, direction: dir }))),
   setSavedNodeCount: (n) => set((s) => patchActive(s, (e) => ({ ...e, savedNodeCount: n })))
 }))
 

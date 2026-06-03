@@ -5,50 +5,65 @@ export interface Pos {
   y: number
 }
 
+/** Growth direction: `right` = horizontal (depth on X), `down` = vertical (depth on Y). */
+export type Direction = 'right' | 'down'
+
 // Nodes are capped (MindNode `max-w-[230px]`, single-line `truncate`), so each cell
-// is uniform: a depth level lands in its own column and rows never overlap.
-/** Cross-axis (vertical) row pitch — ≥ a single-line node's height + gap. */
-const NODE_SEP = 46
-/** Depth-axis (horizontal) column pitch — ≥ the max node width (230) + a gap. */
-const RANK_SEP = 270
-/** Cross-axis gap between separate root subtrees. */
-const ROOT_GAP = 46
+// is uniform: a depth level lands in its own band and rows never overlap. The two
+// axes need different pitches: along depth we clear the node's extent on that axis,
+// across siblings we clear the other extent.
+const SEP: Record<Direction, { rank: number; cross: number; root: number }> = {
+  // horizontal: columns 270 apart (≥ node width), rows 46 apart (≥ node height)
+  right: { rank: 270, cross: 46, root: 46 },
+  // vertical: rows 96 apart (≥ node height + gap), columns 250 apart (≥ node width)
+  down: { rank: 96, cross: 250, root: 250 }
+}
 /** Approximate rendered node box (for subtree-frame bounds; nodes are width-capped). */
 export const NODE_W = 200
 export const NODE_H = 34
 
 /**
- * **Banded** tree layout (RIGHT growth: x = depth axis). Each subtree owns a
- * contiguous vertical band — leaves take one row each, a parent is centered over
- * its children's band, and siblings' bands never interleave. So expanding a node
- * grows the tree and pushes its siblings clear (above/below the whole child band),
- * instead of d3-tidy's compact interleaving. A **collapsed** node is a leaf (its
- * hidden subtree reserves no space). Manual pins win: `customLeft/customTop`
- * (absolute) or `offsetX/offsetY` (delta). Cross-links don't affect layout.
+ * **Banded** tree layout. Each subtree owns a contiguous band along the cross axis —
+ * leaves take one slot each, a parent is centered over its children's band, and
+ * siblings' bands never interleave. So expanding a node grows the tree and pushes its
+ * siblings clear (past the whole child band), instead of d3-tidy's compact
+ * interleaving. A **collapsed** node is a leaf (its hidden subtree reserves no space).
+ * `direction` puts depth on the X axis (`right` → horizontal) or Y axis (`down` →
+ * vertical). Manual pins win: `customLeft/customTop` (absolute) or `offsetX/offsetY`
+ * (delta). Cross-links don't affect layout.
  */
-export function computeLayout(graph: GraphModel, collapsed: Set<string> = new Set()): Map<string, Pos> {
+export function computeLayout(
+  graph: GraphModel,
+  collapsed: Set<string> = new Set(),
+  direction: Direction = 'right'
+): Map<string, Pos> {
   const pos = new Map<string, Pos>()
+  const sep = SEP[direction]
   const roots = graph.nodes.filter((n) => n.parentId === null)
-  let cursor = 0 // running cross-axis (vertical) position for the next leaf row
+  let cursor = 0 // running cross-axis position for the next leaf slot
+
+  // depth → the depth-axis coordinate; cross → the cross-axis coordinate.
+  const xy = (main: number, cross: number): Pos =>
+    direction === 'down' ? { x: cross, y: main } : { x: main, y: cross }
 
   const place = (id: string, depth: number): number => {
-    const x = depth * RANK_SEP
+    const main = depth * sep.rank
     const kids = collapsed.has(id) ? [] : (graph.childrenOf.get(id) ?? [])
     if (kids.length === 0) {
-      const y = cursor
-      cursor += NODE_SEP
-      pos.set(id, { x, y })
-      return y
+      const cross = cursor
+      cursor += sep.cross
+      pos.set(id, xy(main, cross))
+      return cross
     }
-    const childYs = kids.map((kid) => place(kid, depth + 1))
-    const y = (childYs[0] + childYs[childYs.length - 1]) / 2 // center over children
-    pos.set(id, { x, y })
-    return y
+    const childCross = kids.map((kid) => place(kid, depth + 1))
+    const cross = (childCross[0] + childCross[childCross.length - 1]) / 2 // center over children
+    pos.set(id, xy(main, cross))
+    return cross
   }
 
   for (const root of roots) {
     place(root.id, 0)
-    cursor += ROOT_GAP // gap before the next root's band
+    cursor += sep.root // gap before the next root's band
   }
 
   // Manual pins override the computed slot.

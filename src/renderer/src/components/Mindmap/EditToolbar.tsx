@@ -22,6 +22,8 @@ export default function EditToolbar(): JSX.Element {
   const setFocus = useProjectStore((s) => s.setFocus)
   const toggleQuick = useProjectStore((s) => s.toggleQuick)
   const setViewMode = useProjectStore((s) => s.setViewMode)
+  const setDirection = useProjectStore((s) => s.setDirection)
+  const direction = project?.direction ?? 'right'
   const sel = project?.selectedId ?? null
   const hasSel = sel != null
   const focused = project?.focusId != null
@@ -43,6 +45,22 @@ export default function EditToolbar(): JSX.Element {
         {VIEW_BTN('outline', 'Outline')}
         {VIEW_BTN('table', 'Table')}
         {VIEW_BTN('split', 'Split')}
+      </div>
+      <div className="mr-1 flex overflow-hidden rounded border border-line" title="Map growth direction">
+        <button
+          onClick={() => setDirection('right')}
+          className={`px-2 py-0.5 text-[12px] ${direction === 'right' ? 'bg-accent text-paper' : 'text-muted hover:text-ink'}`}
+          title="Horizontal"
+        >
+          →
+        </button>
+        <button
+          onClick={() => setDirection('down')}
+          className={`px-2 py-0.5 text-[12px] ${direction === 'down' ? 'bg-accent text-paper' : 'text-muted hover:text-ink'}`}
+          title="Vertical"
+        >
+          ↓
+        </button>
       </div>
       <span className="mx-1 h-4 w-px bg-line" />
       <button className={BTN} disabled={!hasSel} onClick={addChildToSelected} title="Add child (Tab)">
