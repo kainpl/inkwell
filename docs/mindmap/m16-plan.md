@@ -21,25 +21,25 @@ large maps. Decisions: backlog §C/§G.
 
 **Files:** create `lib/mindmap/buildSlides.ts` (+ test), `components/Mindmap/SlidesPanel.tsx`; modify `useProjectStore.ts` (`viewMode` += `'slides'`), `EditToolbar.tsx`, `ProjectView.tsx`.
 
-- [ ] **A1** `buildSlides(graph)` → `{ id, title, bullets[] }[]` — one slide per node with children (title = its label, bullets = direct children labels), in tree order; a flat map falls back to one slide of all nodes. Pure; test.
-- [ ] **A2** `viewMode` union gains `'slides'`; `EditToolbar` adds a **Slides** segment.
-- [ ] **A3** `SlidesPanel`: shows the current slide (big title + bullet list), ◀ / ▶ nav + an `n / total` counter, ←/→ keys; clicking the title selects + centers the node.
-- [ ] **A4** `ProjectView` renders `SlidesPanel` when `viewMode === 'slides'`.
-- [ ] **A5** `typecheck`/`lint`. Commit `feat(mindmap): slides projection`.
+- [x] **A1** `buildSlides(graph)` → `{ id, title, bullets[] }[]` — one slide per node with children (title = its label, bullets = direct children labels), in tree order; a flat map falls back to one slide of all nodes. Pure; test.
+- [x] **A2** `viewMode` union gains `'slides'`; `EditToolbar` adds a **Slides** segment.
+- [x] **A3** `SlidesPanel`: shows the current slide (big title + bullet list), ◀ / ▶ nav + an `n / total` counter, ←/→ keys; clicking the title selects + centers the node.
+- [x] **A4** `ProjectView` renders `SlidesPanel` when `viewMode === 'slides'`.
+- [x] **A5** `typecheck`/`lint`. Commit `feat(mindmap): slides projection`.
 
 ## Phase B — auto-collapse for large maps
 
 **Files:** create `lib/mindmap/autoCollapse.ts` (+ test); modify `projectEditActions.ts` (a `fitMap` action), `projectActions.ts` (apply on open when large), `EditToolbar.tsx` (a Fit button).
 
-- [ ] **B1** `autoCollapse(graph, maxVisible)` → the collapsed `Set` for the **deepest** `expandToLevel` whose `visibleInOrder` count ≤ `maxVisible` (≥ level 1). Pure; test (a big tree collapses; a small tree stays empty).
-- [ ] **B2** `projectEditActions.fitMap(maxVisible = 150)` — `setCollapsed(autoCollapse(graph, maxVisible))`. `EditToolbar`: a **⤢ Fit** button.
-- [ ] **B3** `projectActions.enterProject`: when the opened map has no collapse data and `> 400` nodes, seed `collapsed = autoCollapse(graph, 200)` (keeps a huge map navigable on open).
-- [ ] **B4** `typecheck`/`lint`/`build`. Commit `feat(mindmap): auto-collapse large maps`.
+- [x] **B1** `autoCollapse(graph, maxVisible)` → the collapsed `Set` for the **deepest** `expandToLevel` whose `visibleInOrder` count ≤ `maxVisible` (≥ level 1). Pure; test (a big tree collapses; a small tree stays empty).
+- [x] **B2** `projectEditActions.fitMap(maxVisible = 150)` — `setCollapsed(autoCollapse(graph, maxVisible))`. `EditToolbar`: a **⤢ Fit** button.
+- [x] **B3** `projectActions.enterProject`: when the opened map has no collapse data and `> 400` nodes, seed `collapsed = autoCollapse(graph, 200)` (keeps a huge map navigable on open).
+- [x] **B4** `typecheck`/`lint`/`build`. Commit `feat(mindmap): auto-collapse large maps`.
 
 ## Phase C — gate + ship
 
-- [ ] **C1** `npx vitest run` green; `typecheck`/`lint`/`build` clean.
-- [ ] **C2** Update `README.md` + `backlog.md` (§C slides ✅; §G auto-collapse ✅, ELK noted as the lone deferred item). Commit; **push** (user pre-authorized the small leftovers).
+- [x] **C1** `npx vitest run` green; `typecheck`/`lint`/`build` clean.
+- [x] **C2** Update `README.md` + `backlog.md` (§C slides ✅; §G auto-collapse ✅, ELK noted as the lone deferred item). Commit; **push** (user pre-authorized the small leftovers).
 
 ## Self-review
 - **Additive:** slides is a read-only projection; auto-collapse only sets collapse state. ✓

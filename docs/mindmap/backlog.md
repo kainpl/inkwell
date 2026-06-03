@@ -83,9 +83,9 @@ multi-root layout + drop-ghost · per-node junction add-child/expand control.
 - **✅ Many-to-many node ↔ doc links** (M12) — link an existing bundle doc to another node
   (**Link…**), an **🔗 also:** row of the nodes sharing the open doc, and a **Docs** panel
   (all docs + referencing nodes). *ours. · M*
-- **✅ Multi-view projections of the tree** — map / outline / **table** (M11) are live
-  projections of the one model (instant switch, not export). *slides projection still open;
-  a canonical-AST rebuild is **explicitly not pursued** (see the note above). · S each*
+- **✅ Multi-view projections of the tree** — map / outline / **table** (M11) / **slides** (M16)
+  are live projections of the one model (instant switch, not export). *a canonical-AST rebuild
+  is **explicitly not pursued** (see the note above). · S each*
 
 ## D. Import / export / interop
 
@@ -141,10 +141,11 @@ multi-root layout + drop-ghost · per-node junction add-child/expand control.
 
 ## G. Performance
 
-- **◐ Large-map virtualization** (M11) — `onlyRenderVisibleElements` enabled (+ collapse).
-  *auto-collapse beyond N nodes still open. *ours; Protocolist auto-collapse >2000 nodes. · M*
+- **✅ Large-map virtualization** (M11 + M16) — `onlyRenderVisibleElements` + collapse, plus
+  **auto-collapse** (the `Fit` action + on-open seeding for huge maps). *ours; Protocolist auto-collapse >2000.*
 - **★ ELK auto-layout** as an alternative engine for huge/auto-arranged maps (we have the
-  banded layout). *Protocolist `layout-elk.ts`. · L*
+  banded layout). **The one open backlog item** — needs the `elkjs` dependency (~1 MB) + an
+  async alternative engine. *Protocolist `layout-elk.ts`. · L*
 
 ---
 
