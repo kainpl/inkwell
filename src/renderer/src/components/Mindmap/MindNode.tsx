@@ -9,6 +9,7 @@ import {
 } from '@renderer/lib/mindmap/projectEditActions'
 import { openProjectFromPath } from '@renderer/lib/mindmap/projectActions'
 import { useAssetDataUri } from '@renderer/lib/mindmap/useAssetDataUri'
+import { inlineMd } from '@renderer/lib/mindmap/inlineMd'
 import type { RfNodeData } from '@renderer/lib/mindmap/rfModel'
 
 /** Node outline shape → border-radius class (border + shadow preserved). */
@@ -58,6 +59,10 @@ export default function MindNode({ id, data }: NodeProps): JSX.Element {
   const fmt = `${d.bold ? 'font-bold ' : ''}${d.italic ? 'italic ' : ''}${d.underline ? 'underline ' : ''}`
   const note = typeof d.note === 'string' && d.note.trim() ? d.note : null
   const extLinks = Array.isArray(d.extLinks) ? d.extLinks : []
+  const labelStyle = {
+    fontSize: typeof d.fontSize === 'number' ? d.fontSize : undefined,
+    fontFamily: typeof d.fontFamily === 'string' ? d.fontFamily : undefined
+  }
 
   // Polygon shapes can't keep a border/shadow (clip-path removes them), so they
   // get a px-5 gutter + two stacked clipped layers for the outline; radius shapes
@@ -147,12 +152,20 @@ export default function MindNode({ id, data }: NodeProps): JSX.Element {
           <span
             className={`min-w-0 truncate ${fmt}${labelStrike ? 'line-through opacity-60' : ''}`}
             title={nd.label}
+            style={labelStyle}
             onDoubleClick={(e) => {
               e.stopPropagation()
               beginEdit(id)
             }}
           >
-            {nd.label}
+            {inlineMd(nd.label).map((s, i) => (
+              <span
+                key={i}
+                className={`${s.bold ? 'font-bold ' : ''}${s.italic ? 'italic ' : ''}${s.strike ? 'line-through ' : ''}${s.code ? 'font-mono ' : ''}`}
+              >
+                {s.text}
+              </span>
+            ))}
           </span>
         )}
         {hasDoc ? (

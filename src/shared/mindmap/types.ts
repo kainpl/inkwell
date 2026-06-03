@@ -28,6 +28,9 @@ export interface NodeData {
   bold?: boolean
   italic?: boolean
   underline?: boolean
+  /** Label font size (px) + family — render-time styling. */
+  fontSize?: number
+  fontFamily?: string
   /** A short per-node note (lighter than an attached doc). */
   note?: string
   color?: string

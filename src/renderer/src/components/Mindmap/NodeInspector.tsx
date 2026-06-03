@@ -127,6 +127,29 @@ export default function NodeInspector(): JSX.Element | null {
         ))}
       </div>
 
+      <div className="flex items-center gap-2">
+        <span className="w-9 shrink-0 text-[11px] text-faint">Font</span>
+        <input
+          type="number"
+          min={9}
+          max={40}
+          value={typeof d.fontSize === 'number' ? d.fontSize : ''}
+          onChange={(e) => apply({ fontSize: e.target.value ? Number(e.target.value) : undefined })}
+          placeholder="px"
+          className={`${field} w-14`}
+        />
+        <select
+          value={typeof d.fontFamily === 'string' ? d.fontFamily : ''}
+          onChange={(e) => apply({ fontFamily: e.target.value || undefined })}
+          className={`${field} flex-1`}
+        >
+          <option value="">default</option>
+          <option value="serif">serif</option>
+          <option value="monospace">mono</option>
+          <option value="cursive">cursive</option>
+        </select>
+      </div>
+
       <textarea
         value={typeof d.note === 'string' ? d.note : ''}
         onChange={(e) => withDoc((pd) => pd && setNodeData(pd.doc, sel, { note: e.target.value }))}
