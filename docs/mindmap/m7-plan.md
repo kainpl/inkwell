@@ -46,11 +46,12 @@
 - [x] **D3** Node tag chips toggle highlight (active = accent); `EditToolbar` Focus button + `.` key; Esc clears highlight + focus.
 - [x] **D4** `typecheck`/`lint`/`build` green (vitest 430). Commit `feat(mindmap): tag-highlight + canvas focus mode` (`ad0b7e3`).
 
-## Phase E — polish (stretch)
+## Phase E — polish
 
-- [ ] **E1** Hotkeys help overlay (`?`) listing the schema shortcuts.
-- [ ] **E2** Quick Entry box (keyboard-first rapid add under the selected node).
-- [ ] **E3** Breadcrumb of the selected node's path.
+- [x] **E1** `HotkeysHelp` overlay toggled by `?` (Esc closes it first).
+- [x] **E2** `QuickEntry` (⚡ Quick toggle): each Enter adds a named child under the selected node (or root), keeps focus; `quickAddChild`.
+- [x] **E3** `Breadcrumb` (bottom-center): the selected node's root→leaf path; click a crumb to select + center.
+- [x] Commit `feat(mindmap): hotkeys help + quick-entry + breadcrumb` (`dd36d8c`).
 
 ## Phase F — gate + QA
 

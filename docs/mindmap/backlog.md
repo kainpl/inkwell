@@ -47,11 +47,11 @@ multi-root layout + drop-ghost · per-node junction add-child/expand control.
   *MindNode; Protocolist. · S–M*
 - **✅ Focus mode on the canvas** (M7-D) — dim everything except the selected node + its branch
   (Focus button + `.`; Esc clears). *MindNode. · M*
-- **★★ Quick Entry / capture** — a fast "add ideas" box (keyboard-first) that drops nodes
-  into the current node/map without the mouse. *MindNode. · M*
-- **★ Hotkeys help overlay** (`?`) + a fuller shortcut set; collapse/expand animations;
-  auto-hide controls during drag. *Protocolist `hotkeys-help.tsx`. · S*
-- **★ Breadcrumb of the selected node's path.** *Protocolist `tree-nav.navigate`. · S*
+- **✅ Quick Entry / capture** (M7-E) — a ⚡ Quick box: each Enter adds a named child under
+  the selected node, keeps focus. *MindNode. · M*
+- **✅ Hotkeys help overlay** (M7-E, `?`). Collapse/expand animations + auto-hide controls
+  during drag are still open. *Protocolist `hotkeys-help.tsx`. · S*
+- **✅ Breadcrumb of the selected node's path** (M7-E). *Protocolist `tree-nav.navigate`. · S*
 
 ## B. Schema editor — nodes & visuals
 
