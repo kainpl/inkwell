@@ -1,8 +1,15 @@
 # Milestone 19 — plan (AI assist — Expand + Summarize, BYOK)
 
+> ## ⏸ STATUS: DEFERRED / PARKED (2026-06)
+> AI integration is **paused indefinitely** at the user's request — back-burnered, not
+> abandoned. **Nothing was built** (no code; this is design + research only). This doc is
+> preserved as the future starting point. **Key reason it stalled:** the auth research below
+> (a third-party app can't legitimately ride the user's Claude.ai subscription), so the only
+> free/sanctioned provider is **Ollama** (local) — revisit when AI is back on the table.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: superpowers:subagent-driven-development (or executing-plans). Steps use `- [ ]` checkboxes.
 >
-> **Branch:** `feat/mindmap-ai` (off `feat/mindmap`). Merge into `feat/mindmap` after QA. First real §F item.
+> **Branch (was):** `feat/mindmap-ai` (off `feat/mindmap`) — deleted after parking; this plan doc was merged back into `feat/mindmap`. First §F item.
 
 **Goal:** Add **AI assist** to the schema editor — **Expand** a node (brainstorm child
 topics) and **Summarize** a subtree into a node note — over a **bring-your-own-key** LLM
@@ -87,3 +94,37 @@ UI: ✨ Expand / Summarize in the Node Inspector (busy spinner, error, "configur
 - **BYOK & additive:** mirrors the Drive-credentials pattern; AI is a flag-gated extra; the editor works fully without it. ✓
 - **Reuses:** settings/store/`settingsSync`, `insertOutlineUnder`, `setNodeData`, `ancestorsOf`, `outlineToMarkdown`, the inspector. ✓
 - **Deferred (M20+):** the natural-language **command bar** (structured edit-ops + preview/confirm), **streaming**, **mind-map → article**, multi-step agentic commands.
+
+---
+
+## Authentication research (verified via `claude-code-guide`, 2026-06) — why this parked
+
+The user has a Claude.ai Pro/Max subscription (Claude Desktop + Claude Code) and does **not**
+want to buy separate Anthropic **API** billing. We investigated reusing that subscription
+inside Inkwell. Findings (authoritative, current docs):
+
+1. **Anthropic API vs subscription are separate** — the API (`console.anthropic.com`,
+   `sk-ant-…` keys, pay-per-token) is a different account/billing from the claude.ai
+   consumer subscription. (User was correct.)
+2. **The Claude Agent SDK (`@anthropic-ai/claude-agent-sdk`) authenticates via
+   `ANTHROPIC_API_KEY`, NOT the local Claude Code login.** It does **not** read
+   `~/.claude/.credentials.json` / the OS keychain. The TS SDK bundles the Claude Code
+   runtime (no separate CLI install needed). One-shot: `for await (const m of query({prompt})) { if ('result' in m) … }`.
+3. **Subscription + SDK/`claude -p` exists (since 2026-06-15)** but draws from a **separate
+   monthly "Agent SDK credit" pool** — and, decisively: **Anthropic forbids third-party
+   developers from offering claude.ai login / subscription rate-limits in their products**
+   ("…does not allow third party developers to offer claude.ai login or rate limits for their
+   products, including agents built on the Agent SDK"). So **Inkwell cannot legitimately ride
+   the user's subscription** — neither via the SDK nor via spawning `claude -p`. (The earlier
+   "spawn the local CLI to reuse the sub" idea was **retracted** for this reason. Protocolist's
+   `claude-sdk` provider is their own internal/dev usage, not a shipped third-party feature.)
+4. **Non-API routing alts** (still not the consumer sub): `CLAUDE_CODE_USE_BEDROCK` (AWS),
+   `CLAUDE_CODE_USE_VERTEX` (GCP), `CLAUDE_CODE_USE_FOUNDRY` (Azure) — all need cloud billing.
+5. **The only free / sanctioned path for Inkwell = Ollama (local).** No key, no account, no
+   billing, no ToS issue, text stays local. So if/when AI returns, **Ollama is the user's
+   default**; the Anthropic-API / OpenAI-compatible BYOK paths are for users who already hold keys.
+   Sources: code.claude.com/docs/en/agent-sdk, …/authentication, support.claude.com article 15036540.
+
+**Bottom line for the future:** the BYOK design above (Anthropic-API / OpenAI-compatible /
+Ollama) is sound and ready to build; **Ollama is the practical default** given the auth reality.
+Do **not** re-propose riding the Claude subscription via CLI/SDK — it's against Anthropic's terms.
