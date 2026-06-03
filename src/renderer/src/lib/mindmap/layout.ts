@@ -13,6 +13,9 @@ const NODE_SEP = 46
 const RANK_SEP = 270
 /** Cross-axis gap between separate root subtrees. */
 const ROOT_GAP = 46
+/** Approximate rendered node box (for subtree-frame bounds; nodes are width-capped). */
+export const NODE_W = 200
+export const NODE_H = 34
 
 /**
  * **Banded** tree layout (RIGHT growth: x = depth axis). Each subtree owns a
@@ -60,4 +63,39 @@ export function computeLayout(graph: GraphModel, collapsed: Set<string> = new Se
   }
 
   return pos
+}
+
+/**
+ * Bounding box (in layout coords) of a node plus its **visible** subtree — the
+ * basis for a group frame. Walks `childrenOf`, stopping at collapsed nodes and at
+ * any node missing from `layout` (collapsed away). Returns null if `rootId` isn't laid out.
+ */
+export function subtreeBounds(
+  graph: GraphModel,
+  collapsed: Set<string>,
+  layout: Map<string, Pos>,
+  rootId: string
+): { x: number; y: number; w: number; h: number } | null {
+  const ids: string[] = []
+  const walk = (id: string): void => {
+    if (!layout.has(id)) return
+    ids.push(id)
+    if (collapsed.has(id)) return
+    for (const k of graph.childrenOf.get(id) ?? []) walk(k)
+  }
+  walk(rootId)
+  if (!ids.length) return null
+
+  let minX = Infinity
+  let minY = Infinity
+  let maxX = -Infinity
+  let maxY = -Infinity
+  for (const id of ids) {
+    const p = layout.get(id)!
+    minX = Math.min(minX, p.x)
+    minY = Math.min(minY, p.y)
+    maxX = Math.max(maxX, p.x + NODE_W)
+    maxY = Math.max(maxY, p.y + NODE_H)
+  }
+  return { x: minX, y: minY, w: maxX - minX, h: maxY - minY }
 }

@@ -89,6 +89,19 @@ export default function NodeInspector(): JSX.Element | null {
         </button>
       </div>
 
+      <div className="flex items-center gap-2">
+        <span className="w-9 shrink-0 text-[11px] text-faint">Frame</span>
+        <select
+          value={typeof d.frame === 'string' ? d.frame : ''}
+          onChange={(e) => apply({ frame: (e.target.value || undefined) as NodeData['frame'] })}
+          className={`${field} flex-1`}
+        >
+          <option value="">none</option>
+          <option value="bracket">bracket</option>
+          <option value="underline">underline</option>
+        </select>
+      </div>
+
       <div>
         <div className="mb-1 flex flex-wrap items-center gap-1">
           {icons.map((ic, i) => (

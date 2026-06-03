@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { computeLayout } from './layout'
+import { computeLayout, subtreeBounds, NODE_W, NODE_H } from './layout'
 import { buildGraph } from './buildGraph'
 import { markdownToOutline } from '@shared/mindmap/mindMapMarkdown'
 import type { MarkdownNode } from '@shared/mindmap/types'
@@ -61,6 +61,26 @@ describe('computeLayout', () => {
     // 'above' sits above ALL of S's children; 'below' sits below all of them.
     expect(y('above')).toBeLessThan(Math.min(y('s1'), y('s2'), y('s3')))
     expect(y('below')).toBeGreaterThan(Math.max(y('s1'), y('s2'), y('s3')))
+  })
+
+  it('subtreeBounds covers a node + its visible descendants (shrinks when collapsed)', () => {
+    const leaf = (id: string): MarkdownNode => ({ name: id, data: { id } })
+    const graph = buildGraph([
+      { name: 'R', data: { id: 'r' }, children: [{ name: 'S', data: { id: 's' }, children: [leaf('s1'), leaf('s2')] }] }
+    ])
+    const layout = computeLayout(graph)
+    const b = subtreeBounds(graph, new Set(), layout, 's')
+    expect(b).not.toBeNull()
+    // spans from S's column to its children's column, and across both child rows
+    const ys = ['s', 's1', 's2'].map((id) => layout.get(id)!.y)
+    expect(b!.x).toBe(layout.get('s')!.x)
+    expect(b!.w).toBeGreaterThan(NODE_W) // includes the deeper child column
+    expect(b!.h).toBeCloseTo(Math.max(...ys) + NODE_H - Math.min(...ys))
+
+    // Collapsing S → only S itself is in bounds (its hidden children reserve nothing).
+    const collapsedLayout = computeLayout(graph, new Set(['s']))
+    const cb = subtreeBounds(graph, new Set(['s']), collapsedLayout, 's')
+    expect(cb).toEqual({ x: collapsedLayout.get('s')!.x, y: collapsedLayout.get('s')!.y, w: NODE_W, h: NODE_H })
   })
 
   it('stacks multiple roots without overlap (first root unchanged)', () => {

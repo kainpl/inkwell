@@ -18,7 +18,7 @@ import '@xyflow/react/dist/style.css'
 import { useAppStore } from '@renderer/store/useAppStore'
 import { useProjectStore, useActiveProject } from '@renderer/store/useProjectStore'
 import { useProjectGraph } from '@renderer/lib/mindmap/useProjectGraph'
-import { computeLayout, type Pos } from '@renderer/lib/mindmap/layout'
+import { computeLayout, subtreeBounds, type Pos } from '@renderer/lib/mindmap/layout'
 import {
   buildRfModel,
   type RfNode,
@@ -32,7 +32,7 @@ import { addCrossLink } from '@renderer/lib/mindmap/crossLinkOps'
 import { resolveDrop, type DropTarget } from '@renderer/lib/mindmap/resolveDrop'
 import { setCenterNodeFn } from '@renderer/lib/mindmap/canvasViewport'
 import { focusSet } from '@renderer/lib/mindmap/treeNav'
-import type { LinkType } from '@shared/mindmap/types'
+import type { GraphModel, LinkType } from '@shared/mindmap/types'
 import MindNode from './MindNode'
 import { TreeEdge, CrosslinkEdge } from './edges'
 import SearchPanel from './SearchPanel'
@@ -95,6 +95,68 @@ function DropGhost({ hint, layout }: { hint: DropTarget; layout: Map<string, Pos
     pointerEvents: 'none' as const
   }
   return <div style={style} />
+}
+
+/** Group frames: a translucent bracket/underline around a node's visible subtree
+ *  (in flow coordinates, via ViewportPortal). Behind the nodes, never interactive. */
+function Frames({
+  graph,
+  collapsed,
+  layout
+}: {
+  graph: GraphModel
+  collapsed: Set<string>
+  layout: Map<string, Pos>
+}): JSX.Element | null {
+  const framed = graph.nodes.filter(
+    (n) => n.data.frame === 'bracket' || n.data.frame === 'underline'
+  )
+  if (!framed.length) return null
+  const pad = 12
+  return (
+    <>
+      {framed.map((n) => {
+        const b = subtreeBounds(graph, collapsed, layout, n.id)
+        if (!b) return null
+        const color = typeof n.data.lineColor === 'string' ? n.data.lineColor : 'rgb(var(--faint))'
+        if (n.data.frame === 'underline') {
+          return (
+            <div
+              key={n.id}
+              aria-hidden
+              style={{
+                position: 'absolute',
+                left: b.x - pad,
+                top: b.y + b.h + pad,
+                width: b.w + pad * 2,
+                height: 0,
+                borderTop: `2px solid ${color}`,
+                opacity: 0.6,
+                pointerEvents: 'none'
+              }}
+            />
+          )
+        }
+        return (
+          <div
+            key={n.id}
+            aria-hidden
+            style={{
+              position: 'absolute',
+              left: b.x - pad,
+              top: b.y - pad,
+              width: b.w + pad * 2,
+              height: b.h + pad * 2,
+              border: `2px solid ${color}`,
+              borderRadius: 14,
+              opacity: 0.5,
+              pointerEvents: 'none'
+            }}
+          />
+        )
+      })}
+    </>
+  )
 }
 
 /** React Flow canvas: renders the schema tree + typed cross-links, with
@@ -233,6 +295,11 @@ export default function Canvas(): JSX.Element {
       <Background />
       <Controls showInteractive={false} />
       <MiniMap pannable zoomable />
+      {graph ? (
+        <ViewportPortal>
+          <Frames graph={graph} collapsed={collapsed ?? EMPTY_MULTI} layout={layout} />
+        </ViewportPortal>
+      ) : null}
       <ViewportRegistrar layout={layout} />
       <SearchPanel graph={graph} />
       <QuickEntry graph={graph} />

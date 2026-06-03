@@ -26,6 +26,8 @@ export interface NodeData {
   lineColor?: string
   fillColor?: string
   shape?: string
+  /** Draw a frame around this node's visible subtree (group bracket / underline). */
+  frame?: 'bracket' | 'underline'
   icon?: string[]
   tag?: string[]
   task?: boolean
