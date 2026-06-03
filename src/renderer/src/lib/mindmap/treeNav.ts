@@ -47,6 +47,21 @@ export function ancestorsOf(graph: GraphModel, id: string): string[] {
   return chain.reverse()
 }
 
+/** Visible nodes in tree (DFS) order with depth — children of a collapsed node are skipped. */
+export function visibleInOrder(
+  graph: GraphModel,
+  collapsed: Set<string>
+): { id: string; depth: number }[] {
+  const out: { id: string; depth: number }[] = []
+  const walk = (id: string, depth: number): void => {
+    out.push({ id, depth })
+    if (collapsed.has(id)) return
+    for (const c of graph.childrenOf.get(id) ?? []) walk(c, depth + 1)
+  }
+  for (const r of graph.nodes.filter((n) => n.parentId === null)) walk(r.id, 0)
+  return out
+}
+
 /** The focus set of a node: itself + all ancestors + all descendants. */
 export function focusSet(graph: GraphModel, id: string): Set<string> {
   const set = new Set<string>([id, ...ancestorsOf(graph, id)])

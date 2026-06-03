@@ -41,6 +41,8 @@ export interface ProjectEntry {
   highlightTag: string | null
   /** When set, nodes outside this node's focus set (it + ancestors + descendants) are dimmed. */
   focusId: string | null
+  /** Which view the left column shows: mind-map, outline, or both. */
+  viewMode: 'map' | 'outline' | 'split'
 }
 
 interface ProjectsState {
@@ -95,6 +97,8 @@ interface ProjectsState {
   setHighlightTag: (tag: string | null) => void
   /** Set / clear the focused node. */
   setFocus: (id: string | null) => void
+  /** Switch the left-column view (map / outline / split). */
+  setViewMode: (mode: 'map' | 'outline' | 'split') => void
 }
 
 /** Immutably update the active tab's entry (no-op if the active tab isn't a project). */
@@ -133,7 +137,8 @@ export const useProjectStore = create<ProjectsState>((set) => ({
           searchOpen: false,
           quickOpen: false,
           highlightTag: null,
-          focusId: null
+          focusId: null,
+          viewMode: 'map'
         }
       }
     })),
@@ -253,7 +258,8 @@ export const useProjectStore = create<ProjectsState>((set) => ({
 
   setHighlightTag: (tag) =>
     set((s) => patchActive(s, (e) => ({ ...e, highlightTag: e.highlightTag === tag ? null : tag }))),
-  setFocus: (id) => set((s) => patchActive(s, (e) => ({ ...e, focusId: id })))
+  setFocus: (id) => set((s) => patchActive(s, (e) => ({ ...e, focusId: id }))),
+  setViewMode: (mode) => set((s) => patchActive(s, (e) => ({ ...e, viewMode: mode })))
 }))
 
 /** The active tab's project entry, or null. Subscribes to both stores so it

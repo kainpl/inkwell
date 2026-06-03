@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { searchNodes, ancestorsOf, navigate, expandToLevel, focusSet } from './treeNav'
+import { searchNodes, ancestorsOf, navigate, expandToLevel, focusSet, visibleInOrder } from './treeNav'
 import { buildGraph } from './buildGraph'
 import { markdownToOutline } from '@shared/mindmap/mindMapMarkdown'
 
@@ -30,6 +30,16 @@ describe('treeNav', () => {
     expect(navigate(graph, 'b', 'left')).toBe('a') // parent
     expect(navigate(graph, 'a', 'up')).toBeNull() // no prev sibling
     expect(navigate(graph, 'g', 'right')).toBeNull() // no children
+  })
+
+  it('visibleInOrder lists DFS nodes with depth, skipping collapsed children', () => {
+    expect(visibleInOrder(graph, new Set())).toEqual([
+      { id: rootId, depth: 0 },
+      { id: 'a', depth: 1 },
+      { id: 'b', depth: 2 },
+      { id: 'g', depth: 1 }
+    ])
+    expect(visibleInOrder(graph, new Set(['a'])).map((r) => r.id)).toEqual([rootId, 'a', 'g'])
   })
 
   it('focusSet = node + ancestors + descendants', () => {
