@@ -211,17 +211,62 @@ export default function Canvas(): JSX.Element {
     [graph, layout, collapsed, linkTypes, selectedId, selectedLinkId, multi, highlightTag, focus]
   )
 
-  // Local copies React Flow mutates during a drag, re-synced whenever the Yjs model
-  // changes. This is the documented controlled-flow pattern: the effect synchronizes
-  // local state with an external system (React Flow), which is exactly what the
-  // set-state-in-effect guidance carves out an exception for.
+  // Local copies React Flow mutates during a drag, re-synced when the model changes.
+  // Position changes are TWEENED (rAF, easeOutCubic) so collapse/expand & relayout glide
+  // instead of snapping; React Flow recomputes edge paths each frame, so edges follow the
+  // nodes (a plain CSS transition would detach them). New nodes unfold from their parent's
+  // previous slot. (Documented controlled-flow exception to set-state-in-effect.)
   const [nodes, setNodes] = useState<RfNode[]>(model.nodes)
   const [edges, setEdges] = useState<RfEdge[]>(model.edges)
+  const nodesRef = useRef(nodes)
   useEffect(() => {
+    nodesRef.current = nodes
+  }, [nodes])
+  const firstSync = useRef(true)
+  const rafRef = useRef<number | null>(null)
+  const stopTween = useCallback(() => {
+    if (rafRef.current != null) {
+      cancelAnimationFrame(rafRef.current)
+      rafRef.current = null
+    }
+  }, [])
+
+  useEffect(() => {
+    stopTween()
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    setNodes(model.nodes)
     setEdges(model.edges)
-  }, [model])
+    const reduce = window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches
+    if (firstSync.current || reduce) {
+      firstSync.current = false
+      setNodes(model.nodes)
+      return
+    }
+    const startPos = new Map(nodesRef.current.map((n) => [n.id, n.position]))
+    const fromOf = (n: RfNode): Pos => {
+      const here = startPos.get(n.id)
+      if (here) return here
+      const pid = (n.data as RfNodeData).raw.parentId
+      return (pid != null ? startPos.get(pid) : undefined) ?? n.position
+    }
+    const DURATION = 200
+    const t0 = performance.now()
+    const tick = (now: number): void => {
+      const k = Math.min(1, (now - t0) / DURATION)
+      const e = 1 - Math.pow(1 - k, 3) // easeOutCubic
+      setNodes(
+        model.nodes.map((n) => {
+          const f = fromOf(n)
+          return {
+            ...n,
+            position: { x: f.x + (n.position.x - f.x) * e, y: f.y + (n.position.y - f.y) * e }
+          }
+        })
+      )
+      rafRef.current = k < 1 ? requestAnimationFrame(tick) : null
+    }
+    rafRef.current = requestAnimationFrame(tick)
+    return stopTween
+  }, [model, stopTween])
 
   const onNodesChange = useCallback(
     (changes: NodeChange<RfNode>[]) => setNodes((nds) => applyNodeChanges(changes, nds)),
@@ -251,6 +296,7 @@ export default function Canvas(): JSX.Element {
 
   const onNodeDrag = useCallback(
     (_e: unknown, node: RfNode) => {
+      stopTween() // a grab mid-animation should take over from the tween
       if (!graph) return
       const t = resolveDrop(graph, posList(model.nodes), node.id, node.position)
       const key = t ? JSON.stringify(t) : ''
@@ -259,7 +305,7 @@ export default function Canvas(): JSX.Element {
         setDropHint(t)
       }
     },
-    [model, graph]
+    [model, graph, stopTween]
   )
 
   const onNodeDragStop = useCallback(
