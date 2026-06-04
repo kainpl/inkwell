@@ -88,10 +88,8 @@ function replace(view: EditorView, ctx: TableContext, model: TableModel): boolea
   return true
 }
 
-/** Apply a structural table edit relative to the caret position. */
-export function applyTable(view: EditorView, action: TableAction): boolean {
-  const ctx = tableAt(view)
-  if (!ctx) return false
+/** Core switch: apply `action` to a resolved table context at (row, col). */
+function applyToContext(view: EditorView, ctx: TableContext, action: TableAction): boolean {
   const { model, row, col } = ctx
   const align = (a: Align): boolean => replace(view, ctx, setColumnAlign(model, col, a))
   switch (action) {
@@ -116,4 +114,29 @@ export function applyTable(view: EditorView, action: TableAction): boolean {
     default:
       return false
   }
+}
+
+/** Apply a structural table edit relative to the caret position. */
+export function applyTable(view: EditorView, action: TableAction): boolean {
+  const ctx = tableAt(view)
+  return ctx ? applyToContext(view, ctx, action) : false
+}
+
+/**
+ * Apply a table edit at an explicit document position with an explicit target
+ * (row, col). Used by the rendered-table inline toolbar, where the caret is
+ * NOT inside the table, so the caret-based `applyTable` can't locate it.
+ */
+export function applyTableAt(
+  view: EditorView,
+  pos: number,
+  row: number,
+  col: number,
+  action: TableAction
+): boolean {
+  const lineNo = view.state.doc.lineAt(pos).number
+  const { from, to } = expandTableRange(view.state.doc, lineNo)
+  const model = parseTable(view.state.doc.sliceString(from, to))
+  if (!model) return false
+  return applyToContext(view, { from, to, model, row, col }, action)
 }

@@ -14,6 +14,7 @@ import katex from 'katex'
 import { renderMermaid } from '@renderer/lib/mermaidRender'
 import { sanitizeHtml } from '@renderer/lib/sanitizeHtml'
 import { parseTable } from '@renderer/lib/tableModel'
+import { applyTableAt, type TableAction } from '@renderer/lib/tableCommands'
 
 /**
  * The "seamless live preview" core (Typora's signature behaviour).
@@ -285,15 +286,24 @@ export class MathWidget extends WidgetType {
   }
 }
 
-/** Renders a GFM table as a styled HTML <table> on idle lines. */
+/**
+ * Renders a GFM table as a styled HTML <table> on idle lines, with an inline
+ * toolbar (add/delete row+col, alignment) and draggable column borders. Controls
+ * mutate the **markdown source** through `tableCommands` — the source stays the
+ * single source of truth. `pos` is a document offset inside the table so the
+ * controls can locate it even though the caret isn't in the table (it's idle).
+ */
 export class TableWidget extends WidgetType {
-  constructor(readonly md: string) {
+  constructor(
+    readonly md: string,
+    readonly pos: number
+  ) {
     super()
   }
   eq(other: TableWidget): boolean {
-    return other.md === this.md
+    return other.md === this.md && other.pos === this.pos
   }
-  toDOM(): HTMLElement {
+  toDOM(view: EditorView): HTMLElement {
     const wrap = document.createElement('div')
     wrap.className = 'ink-table-wrap'
     const model = parseTable(this.md)
@@ -301,33 +311,125 @@ export class TableWidget extends WidgetType {
       wrap.textContent = this.md
       return wrap
     }
+    const pos = this.pos
+
+    // Current toolbar target, set as the mouse moves over cells.
+    let activeRow = -1 // -1 = header row
+    let activeCol = 0
+
     const table = document.createElement('table')
     table.className = 'ink-table'
+    const ncols = model.header.length
+    const colEls: HTMLTableColElement[] = []
+    const colgroup = document.createElement('colgroup')
+    for (let i = 0; i < ncols; i++) {
+      const col = document.createElement('col')
+      colgroup.appendChild(col)
+      colEls.push(col)
+    }
+    table.appendChild(colgroup)
+
+    // Mark a cell as the toolbar target on hover (header row = activeRow -1).
+    const target = (r: number, c: number) => (): void => {
+      activeRow = r
+      activeCol = c
+    }
+
     const thead = document.createElement('thead')
     const htr = document.createElement('tr')
     model.header.forEach((cell, i) => {
       const th = document.createElement('th')
       th.textContent = cell
       if (model.aligns[i] !== 'none') th.style.textAlign = model.aligns[i]
+      th.addEventListener('mouseenter', target(-1, i))
+      // A draggable border on the right edge resizes this column (visual only —
+      // GFM has no column widths, so it resets on the next edit).
+      if (i < ncols) th.appendChild(this.resizeHandle(colEls, i, table))
       htr.appendChild(th)
     })
     thead.appendChild(htr)
     table.appendChild(thead)
+
     const tbody = document.createElement('tbody')
-    model.rows.forEach((row) => {
+    model.rows.forEach((row, r) => {
       const tr = document.createElement('tr')
       row.forEach((cell, i) => {
         const td = document.createElement('td')
         td.textContent = cell
         if (model.aligns[i] !== 'none') td.style.textAlign = model.aligns[i]
+        td.addEventListener('mouseenter', target(r, i))
         tr.appendChild(td)
       })
       tbody.appendChild(tr)
     })
     table.appendChild(tbody)
+
+    // Inline toolbar (shown on hover via CSS); each button edits the source at
+    // the current target cell. mousedown + preventDefault keeps the caret out of
+    // the table so it stays rendered (idle) through the edit.
+    const toolbar = document.createElement('div')
+    toolbar.className = 'ink-table-toolbar'
+    const mkBtn = (label: string, title: string, action: TableAction): HTMLButtonElement => {
+      const b = document.createElement('button')
+      b.className = 'ink-tbl-btn'
+      b.textContent = label
+      b.title = title
+      b.addEventListener('mousedown', (e) => {
+        e.preventDefault()
+        e.stopPropagation()
+        applyTableAt(view, pos, activeRow, activeCol, action)
+      })
+      return b
+    }
+    toolbar.append(
+      mkBtn('↥', 'Row above', 'rowAbove'),
+      mkBtn('↧', 'Row below', 'rowBelow'),
+      mkBtn('⌫R', 'Delete row', 'deleteRow'),
+      mkBtn('↤', 'Column before', 'colBefore'),
+      mkBtn('↦', 'Column after', 'colAfter'),
+      mkBtn('⌫C', 'Delete column', 'deleteCol'),
+      mkBtn('⬅', 'Align left', 'alignLeft'),
+      mkBtn('↔', 'Align center', 'alignCenter'),
+      mkBtn('➡', 'Align right', 'alignRight')
+    )
+
+    wrap.appendChild(toolbar)
     wrap.appendChild(table)
     return wrap
   }
+
+  /** A drag handle on a column's right border; sets the `<col>` width visually. */
+  private resizeHandle(
+    colEls: HTMLTableColElement[],
+    i: number,
+    table: HTMLTableElement
+  ): HTMLElement {
+    const handle = document.createElement('span')
+    handle.className = 'ink-col-resize'
+    handle.addEventListener('mousedown', (e) => {
+      e.preventDefault()
+      e.stopPropagation()
+      // Freeze current widths so the dragged column doesn't reflow the others.
+      const ths = table.querySelectorAll('thead th')
+      ths.forEach((th, j) => {
+        colEls[j].style.width = (th as HTMLElement).getBoundingClientRect().width + 'px'
+      })
+      table.style.tableLayout = 'fixed'
+      const startX = e.clientX
+      const startW = (ths[i] as HTMLElement).getBoundingClientRect().width
+      const onMove = (ev: MouseEvent): void => {
+        colEls[i].style.width = Math.max(40, startW + (ev.clientX - startX)) + 'px'
+      }
+      const onUp = (): void => {
+        document.removeEventListener('mousemove', onMove)
+        document.removeEventListener('mouseup', onUp)
+      }
+      document.addEventListener('mousemove', onMove)
+      document.addEventListener('mouseup', onUp)
+    })
+    return handle
+  }
+
   ignoreEvent(): boolean {
     return false
   }
@@ -991,7 +1093,7 @@ export function buildDecorations(
           if (!blockActive) {
             const md = doc.sliceString(node.from, node.to)
             decos.push(
-              Decoration.replace({ widget: new TableWidget(md), block: true }).range(
+              Decoration.replace({ widget: new TableWidget(md, node.from), block: true }).range(
                 node.from,
                 node.to
               )
