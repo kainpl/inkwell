@@ -386,3 +386,14 @@
   border-radius: 9999px;
 }
 *::-webkit-scrollbar-track { background: transparent; }
+
+/* Mind-map canvas: glide nodes to their new slots on collapse/expand & relayout.
+   RF sets each node's position as an inline `transform`, so transitioning it animates
+   the move — node objects are never recreated, so measured sizes + virtualization are
+   untouched. Disabled while dragging (so a node never lags the cursor) and for reduced
+   motion. (Edges recompute to the final positions, so they may briefly lead the glide.) */
+.ink-flow .react-flow__node { transition: transform 500ms ease; }
+.ink-flow .react-flow__node.dragging { transition: none; }
+@media (prefers-reduced-motion: reduce) {
+  .ink-flow .react-flow__node { transition: none; }
+}
