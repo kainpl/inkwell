@@ -157,6 +157,17 @@ export const en: Dict = {
   'status.focusTitle': 'Dim all but the active line (F8)',
   'status.typewriterTitle': 'Keep the active line centered (F9)',
   'status.sourceControlTitle': 'Source Control (Ctrl+Shift+G)',
+  'status.wordCountTitle': 'Word count details',
+
+  // --- Word count popover ---
+  'wc.title': 'Word count',
+  'wc.words': 'Words',
+  'wc.chars': 'Characters',
+  'wc.charsNoSpaces': 'Characters (no spaces)',
+  'wc.lines': 'Lines',
+  'wc.reading': 'Reading time',
+  'wc.goal': 'Goal',
+  'wc.goalDone': 'Goal reached 🎉',
 
   // --- Command palette ---
   'cmd.placeholder': 'Run a command…',
@@ -253,6 +264,8 @@ export const en: Dict = {
   'prefs.showFormatBar': 'Show formatting bar',
   'prefs.smartPunct': 'Smart punctuation',
   'prefs.smartPunctHint': 'straight quotes/dashes/ellipsis → typographic as you type',
+  'prefs.wordGoal': 'Word goal',
+  'prefs.wordGoalHint': 'target word count (0 = off)',
   'prefs.spellCheck': 'Spell check',
   'prefs.spellCheckHint': 'underline misspellings; right-click for suggestions',
   'prefs.spellLangs': 'Spell-check languages',

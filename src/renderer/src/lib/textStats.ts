@@ -26,3 +26,22 @@ export function computeStats(text: string): TextStats {
 export function readingTimeLabel(minutes: number): string {
   return minutes === 0 ? '' : `${minutes} min read`
 }
+
+export interface GoalProgress {
+  /** Completion percentage, clamped 0–100. */
+  pct: number
+  /** Words still to write to reach the goal (never negative). */
+  remaining: number
+  /** Whether the goal has been met. */
+  done: boolean
+}
+
+/**
+ * Progress toward a word-count goal. Returns null when no goal is set
+ * (`null`/`0`/negative), so callers can branch on a single value.
+ */
+export function goalProgress(words: number, goal: number | null): GoalProgress | null {
+  if (!goal || goal <= 0) return null
+  const pct = Math.min(100, Math.round((words / goal) * 100))
+  return { pct, remaining: Math.max(0, goal - words), done: words >= goal }
+}

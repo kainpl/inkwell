@@ -103,6 +103,9 @@ interface AppState {
   /** Embed local images as data: URIs in exported HTML. */
   embedImages: boolean
   setEmbedImages: (on: boolean) => void
+  /** Target word count for the status-bar progress (null/0 = off). */
+  wordGoal: number | null
+  setWordGoal: (n: number | null) => void
   /** Typographic substitution as you type (quotes/dashes/ellipsis). */
   smartPunctuation: boolean
   setSmartPunctuation: (on: boolean) => void
@@ -311,6 +314,7 @@ export const useAppStore = create<AppState>((set) => ({
   contentWidth: s0.contentWidth,
   sidebarWidth: s0.sidebarWidth,
   embedImages: s0.embedImages,
+  wordGoal: s0.wordGoal,
   smartPunctuation: s0.smartPunctuation,
   spellCheck: s0.spellCheck,
   spellLanguages: s0.spellLanguages,
@@ -329,6 +333,7 @@ export const useAppStore = create<AppState>((set) => ({
   setContentWidth: (px) => set({ contentWidth: px }),
   setSidebarWidth: (px) => set({ sidebarWidth: clampPanel(px) }),
   setEmbedImages: (on) => set({ embedImages: on }),
+  setWordGoal: (n) => set({ wordGoal: n }),
   setSmartPunctuation: (on) => set({ smartPunctuation: on }),
   setSpellCheck: (on) => set({ spellCheck: on }),
   toggleSpellLanguage: (lang) =>
