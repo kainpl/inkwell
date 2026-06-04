@@ -233,12 +233,11 @@ export default function Canvas(): JSX.Element {
 
   useEffect(() => {
     stopTween()
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setEdges(model.edges)
     const reduce = window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches
     if (firstSync.current || reduce) {
       firstSync.current = false
       setNodes(model.nodes)
+      setEdges(model.edges)
       return
     }
     const startPos = new Map(nodesRef.current.map((n) => [n.id, n.position]))
@@ -248,20 +247,19 @@ export default function Canvas(): JSX.Element {
       const pid = (n.data as RfNodeData).raw.parentId
       return (pid != null ? startPos.get(pid) : undefined) ?? n.position
     }
-    const DURATION = 200
+    const at = (e: number): RfNode[] =>
+      model.nodes.map((n) => {
+        const f = fromOf(n)
+        return { ...n, position: { x: f.x + (n.position.x - f.x) * e, y: f.y + (n.position.y - f.y) * e } }
+      })
+    // Commit the FULL node set + edges SYNCHRONOUSLY (no rAF gap → nodes never blank),
+    // at the start positions; then tween only the positions to target over 200ms.
+    setNodes(at(0))
+    setEdges(model.edges)
     const t0 = performance.now()
     const tick = (now: number): void => {
-      const k = Math.min(1, (now - t0) / DURATION)
-      const e = 1 - Math.pow(1 - k, 3) // easeOutCubic
-      setNodes(
-        model.nodes.map((n) => {
-          const f = fromOf(n)
-          return {
-            ...n,
-            position: { x: f.x + (n.position.x - f.x) * e, y: f.y + (n.position.y - f.y) * e }
-          }
-        })
-      )
+      const k = Math.min(1, (now - t0) / 200)
+      setNodes(at(1 - Math.pow(1 - k, 3))) // easeOutCubic
       rafRef.current = k < 1 ? requestAnimationFrame(tick) : null
     }
     rafRef.current = requestAnimationFrame(tick)
