@@ -58,6 +58,7 @@ export function buildMenu(win: BrowserWindow, locale: Locale): void {
         { type: 'separator' },
         { label: t('file.save'), accelerator: 'CmdOrCtrl+S', click: send(IPC.menuSave) },
         { label: t('file.saveAs'), accelerator: 'CmdOrCtrl+Shift+S', click: send(IPC.menuSaveAs) },
+        { label: t('file.saveAll'), accelerator: 'CmdOrCtrl+Alt+S', click: send(IPC.menuSaveAll) },
         { label: t('file.autoSave'), type: 'checkbox', checked: false, click: send(IPC.menuToggleAutoSave) },
         {
           label: t('file.lineEndings'),

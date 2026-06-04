@@ -40,6 +40,7 @@ export const COMMANDS: Command[] = [
   { id: 'file.connectDrive', title: 'Connect Google Drive…', titleKey: 'file.connectDrive', category: 'File', channel: IPC.menuConnectDrive },
   { id: 'file.save', title: 'Save', titleKey: 'file.save', category: 'File', channel: IPC.menuSave },
   { id: 'file.saveAs', title: 'Save As…', titleKey: 'file.saveAs', category: 'File', channel: IPC.menuSaveAs },
+  { id: 'file.saveAll', title: 'Save All', titleKey: 'file.saveAll', category: 'File', channel: IPC.menuSaveAll },
   { id: 'file.reopen', title: 'Reopen Closed File', titleKey: 'file.reopenClosed', category: 'File', channel: IPC.menuReopenClosed },
   { id: 'file.close', title: 'Close', titleKey: 'file.close', category: 'File', channel: IPC.menuClose },
   { id: 'file.closeFolder', title: 'Close Folder', titleKey: 'file.closeFolder', category: 'File', channel: IPC.menuCloseFolder },

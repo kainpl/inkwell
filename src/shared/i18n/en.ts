@@ -38,6 +38,7 @@ export const en: Dict = {
   'file.closeFolder': 'Close Folder',
   'file.save': 'Save',
   'file.saveAs': 'Save As…',
+  'file.saveAll': 'Save All',
   'file.autoSave': 'Auto Save',
   'file.lineEndings': 'Line Endings',
   'file.lf': 'LF (Unix)',

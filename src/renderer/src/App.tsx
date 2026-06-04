@@ -14,7 +14,8 @@ import {
   restoreSession,
   recoverDrafts,
   saveCurrent,
-  saveDocAs
+  saveDocAs,
+  saveAllTabs
 } from '@renderer/lib/docActions'
 import { setSessionFile } from '@renderer/lib/persistence'
 import { startThemeSync } from '@renderer/lib/themeApply'
@@ -116,6 +117,7 @@ export default function App(): JSX.Element {
         const isProject = s.tabs.find((t) => t.id === s.activeId)?.kind === 'project'
         void (isProject ? saveCurrent() : saveDocAs())
       }),
+      window.api.onMenu(IPC.menuSaveAll, () => void saveAllTabs()),
       window.api.onMenu(IPC.menuToggleSidebar, () => store.toggleSidebar()),
       window.api.onMenu(IPC.menuToggleOutline, () => store.toggleOutline()),
       window.api.onMenu(IPC.menuToggleFocusMode, () => store.toggleFocusMode()),

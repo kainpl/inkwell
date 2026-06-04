@@ -36,6 +36,7 @@ export const uk: Dict = {
   'file.closeFolder': 'Закрити теку',
   'file.save': 'Зберегти',
   'file.saveAs': 'Зберегти як…',
+  'file.saveAll': 'Зберегти все',
   'file.autoSave': 'Автозбереження',
   'file.lineEndings': 'Закінчення рядків',
   'file.lf': 'LF (Unix)',

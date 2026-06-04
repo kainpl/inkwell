@@ -41,6 +41,7 @@ const menuChannels = [
   IPC.menuOpenFolder,
   IPC.menuSave,
   IPC.menuSaveAs,
+  IPC.menuSaveAll,
   IPC.menuToggleSidebar,
   IPC.menuToggleOutline,
   IPC.menuToggleFocusMode,

@@ -36,6 +36,7 @@ export const ru: Dict = {
   'file.closeFolder': 'Закрыть папку',
   'file.save': 'Сохранить',
   'file.saveAs': 'Сохранить как…',
+  'file.saveAll': 'Сохранить всё',
   'file.autoSave': 'Автосохранение',
   'file.lineEndings': 'Окончания строк',
   'file.lf': 'LF (Unix)',

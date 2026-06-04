@@ -25,6 +25,8 @@ interface AppState {
   /** Replace the active tab's content (file reload / draft recovery / welcome). */
   loadDoc: (doc: { path: string | null; name: string; content: string }) => void
   markSaved: (path?: string, name?: string) => void
+  /** Mark a specific tab clean by id (used by Save All for non-active tabs). */
+  markTabSaved: (id: string) => void
   /** Open a file as a tab: focus an existing tab for the path, replace a pristine
    *  untitled tab, or append a new one. */
   openInTab: (file: { path: string | null; name: string; content: string }) => void
@@ -207,6 +209,12 @@ export const useAppStore = create<AppState>((set) => ({
         )
       }
     }),
+
+  markTabSaved: (id) =>
+    set((s) => ({
+      tabs: s.tabs.map((t) => (t.id === id ? { ...t, dirty: false } : t)),
+      doc: id === s.activeId ? { ...s.doc, dirty: false } : s.doc
+    })),
 
   openInTab: (file) =>
     set((s) => {
