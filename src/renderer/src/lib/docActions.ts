@@ -106,6 +106,38 @@ export async function saveCurrent(): Promise<boolean> {
 }
 
 /**
+ * Save every dirty tab without flipping the UI through each one. Each tab keeps
+ * its own current `content` in the store (synced on every edit), so we can write
+ * them directly. Project tabs save their `.inkproj`; untitled (path-less) tabs
+ * are skipped (they need a Save-As dialog). On a Drive conflict we leave the tab
+ * dirty so the user can save it individually and see the overwrite prompt.
+ */
+export async function saveAllTabs(): Promise<void> {
+  const { tabs, lineEnding, insertFinalNewline, markTabSaved } = useAppStore.getState()
+  for (const tab of tabs) {
+    if (!tab.dirty) continue
+    if (tab.kind === 'project') {
+      await saveProject(tab.id)
+      continue
+    }
+    if (!tab.path) continue // untitled — needs Save As; leave for the user
+    const content = normalizeForSave(tab.content, { lineEnding, insertFinalNewline })
+    if (isGdrive(tab.path)) {
+      const res = await writeRef(tab.path, content, getDriveBase(tab.path))
+      if (res.ok) {
+        setDriveBase(tab.path, res.modifiedTime)
+        markTabSaved(tab.id)
+      }
+      continue
+    }
+    await window.api.saveFile(tab.path, content)
+    snapshotVersion(tab.path, content)
+    markTabSaved(tab.id)
+  }
+  void refreshGitStatus()
+}
+
+/**
  * If the active tab has unsaved changes, ask the user. Returns true when it is
  * safe to proceed (changes saved or discarded), false to abort the operation.
  */
@@ -177,6 +209,19 @@ export async function openPath(path: string): Promise<void> {
   const file = await window.api.readFile(path)
   useAppStore.getState().openInTab(file)
   rememberFile(file.path)
+}
+
+/**
+ * Re-read the active file decoded with a different text encoding (File → Reopen
+ * with Encoding). Guards unsaved changes first; only local on-disk files apply
+ * (untitled / Drive docs are no-ops). Replaces the buffer, keeping path + name.
+ */
+export async function reopenWithEncoding(encoding: string): Promise<void> {
+  const { doc } = useAppStore.getState()
+  if (!doc.path || isGdrive(doc.path)) return
+  if (!(await guardUnsaved())) return
+  const file = await window.api.readFileAs(doc.path, encoding).catch(() => null)
+  if (file) useAppStore.getState().loadDoc(file)
 }
 
 /**

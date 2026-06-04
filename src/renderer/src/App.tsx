@@ -14,7 +14,9 @@ import {
   restoreSession,
   recoverDrafts,
   saveCurrent,
-  saveDocAs
+  saveDocAs,
+  saveAllTabs,
+  reopenWithEncoding
 } from '@renderer/lib/docActions'
 import { setSessionFile } from '@renderer/lib/persistence'
 import { startThemeSync } from '@renderer/lib/themeApply'
@@ -53,6 +55,7 @@ import Toolbar from '@renderer/components/Toolbar'
 import FloatingToolbar from '@renderer/components/FloatingToolbar'
 import ImageZoom from '@renderer/components/ImageZoom'
 import QuickOpen from '@renderer/components/QuickOpen'
+import OutlinePopover from '@renderer/components/OutlinePopover'
 import CommandPalette from '@renderer/components/CommandPalette'
 import NoteGraph from '@renderer/components/NoteGraph'
 import SourceControl from '@renderer/components/SourceControl'
@@ -116,6 +119,7 @@ export default function App(): JSX.Element {
         const isProject = s.tabs.find((t) => t.id === s.activeId)?.kind === 'project'
         void (isProject ? saveCurrent() : saveDocAs())
       }),
+      window.api.onMenu(IPC.menuSaveAll, () => void saveAllTabs()),
       window.api.onMenu(IPC.menuToggleSidebar, () => store.toggleSidebar()),
       window.api.onMenu(IPC.menuToggleOutline, () => store.toggleOutline()),
       window.api.onMenu(IPC.menuToggleFocusMode, () => store.toggleFocusMode()),
@@ -174,6 +178,9 @@ export default function App(): JSX.Element {
 
   // Pandoc export-menu commands (docx/odt/rtf/epub/latex).
   useEffect(() => window.api.onExportPandoc((format) => void exportPandocFile(format)), [])
+
+  // Reopen the active file decoded with a chosen encoding.
+  useEffect(() => window.api.onReopenEncoding((enc) => void reopenWithEncoding(enc)), [])
 
   // The OS handed us a file to open (file association / double-click).
   useEffect(
@@ -279,6 +286,7 @@ export default function App(): JSX.Element {
       <FloatingToolbar />
       <ImageZoom />
       <QuickOpen />
+      <OutlinePopover />
       <CommandPalette />
       <NoteGraph />
       <SourceControl />

@@ -2,7 +2,7 @@ import { EditorState } from '@codemirror/state'
 import { EditorView } from '@codemirror/view'
 import { markdown, markdownLanguage } from '@codemirror/lang-markdown'
 import { ensureSyntaxTree } from '@codemirror/language'
-import { applyTable, tableAt, inTable } from './tableCommands'
+import { applyTable, applyTableAt, tableAt, inTable } from './tableCommands'
 
 const TBL = '| A | B |\n| - | - |\n| 1 | 2 |'
 
@@ -58,6 +58,17 @@ describe('tableCommands', () => {
     const view = mkView(TBL, TBL.indexOf('A'))
     applyTable(view, 'alignCenter')
     expect(view.state.doc.toString().split('\n')[1]).toBe('| :-: | --- |')
+    view.destroy()
+  })
+
+  it('applyTableAt edits the table even when the caret is outside it', () => {
+    const doc = 'hi\n\n' + TBL
+    const view = mkView(doc, 1) // caret in "hi", not the table
+    expect(inTable(view)).toBe(false)
+    expect(applyTable(view, 'deleteRow')).toBe(false) // caret-based can't locate it
+    const ok = applyTableAt(view, doc.indexOf('A'), 0, 0, 'deleteRow')
+    expect(ok).toBe(true)
+    expect(view.state.doc.toString()).toBe('hi\n\n| A | B |\n| --- | --- |')
     view.destroy()
   })
 })

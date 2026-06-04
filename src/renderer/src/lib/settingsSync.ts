@@ -22,6 +22,8 @@ function currentSettings(): Settings {
     embedImages: s.embedImages,
     exportStyle: s.exportStyle,
     markdownFeatures: s.markdownFeatures,
+    allowEmbeds: s.allowEmbeds,
+    wordGoal: s.wordGoal,
     smartPunctuation: s.smartPunctuation,
     spellCheck: s.spellCheck,
     spellLanguages: s.spellLanguages,

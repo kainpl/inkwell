@@ -1,6 +1,7 @@
 import { Menu, BrowserWindow, type MenuItemConstructorOptions } from 'electron'
 import { IPC } from '../shared/ipc'
 import { translate, type Locale } from '../shared/i18n'
+import { ENCODINGS } from '../shared/encodings'
 
 export function buildMenu(win: BrowserWindow, locale: Locale): void {
   const isMac = process.platform === 'darwin'
@@ -8,6 +9,7 @@ export function buildMenu(win: BrowserWindow, locale: Locale): void {
   const send = (channel: string) => () => win.webContents.send(channel)
   const fmt = (action: string) => () => win.webContents.send(IPC.menuFormat, action)
   const pandoc = (format: string) => () => win.webContents.send(IPC.menuExportPandoc, format)
+  const enc = (id: string) => () => win.webContents.send(IPC.menuReopenEncoding, id)
 
   const template: MenuItemConstructorOptions[] = [
     ...(isMac
@@ -58,6 +60,7 @@ export function buildMenu(win: BrowserWindow, locale: Locale): void {
         { type: 'separator' },
         { label: t('file.save'), accelerator: 'CmdOrCtrl+S', click: send(IPC.menuSave) },
         { label: t('file.saveAs'), accelerator: 'CmdOrCtrl+Shift+S', click: send(IPC.menuSaveAs) },
+        { label: t('file.saveAll'), accelerator: 'CmdOrCtrl+Alt+S', click: send(IPC.menuSaveAll) },
         { label: t('file.autoSave'), type: 'checkbox', checked: false, click: send(IPC.menuToggleAutoSave) },
         {
           label: t('file.lineEndings'),
@@ -71,6 +74,10 @@ export function buildMenu(win: BrowserWindow, locale: Locale): void {
           type: 'checkbox',
           checked: true,
           click: send(IPC.menuToggleFinalNewline)
+        },
+        {
+          label: t('file.reopenEncoding'),
+          submenu: ENCODINGS.map((e) => ({ label: e.label, click: enc(e.id) }))
         },
         { type: 'separator' },
         {
@@ -199,6 +206,7 @@ export function buildMenu(win: BrowserWindow, locale: Locale): void {
         { label: t('view.toggleFormatBar'), accelerator: 'CmdOrCtrl+Shift+B', click: send(IPC.menuToggleFormatBar) },
         { label: t('view.toggleSidebar'), accelerator: 'CmdOrCtrl+\\', click: send(IPC.menuToggleSidebar) },
         { label: t('view.toggleOutline'), accelerator: 'CmdOrCtrl+/', click: send(IPC.menuToggleOutline) },
+        { label: t('view.outlinePopover'), accelerator: 'CmdOrCtrl+Shift+O', click: send(IPC.menuOutlinePopover) },
         {
           label: t('view.globalSearch'),
           accelerator: 'CmdOrCtrl+Shift+F',

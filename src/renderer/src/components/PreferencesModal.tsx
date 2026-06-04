@@ -180,6 +180,19 @@ function Editor(): JSX.Element {
       <Row label={t('prefs.smartPunct')} hint={t('prefs.smartPunctHint')}>
         <input type="checkbox" className="h-4 w-4 accent-accent" checked={s.smartPunctuation} onChange={() => s.setSmartPunctuation(!s.smartPunctuation)} />
       </Row>
+      <Row label={t('prefs.wordGoal')} hint={t('prefs.wordGoalHint')}>
+        <input
+          type="number"
+          min={0}
+          step={50}
+          className={`${FIELD} w-24`}
+          value={s.wordGoal ?? ''}
+          onChange={(e) => {
+            const n = Math.floor(Number(e.target.value))
+            s.setWordGoal(Number.isFinite(n) && n > 0 ? n : null)
+          }}
+        />
+      </Row>
       <Row label={t('prefs.spellCheck')} hint={t('prefs.spellCheckHint')}>
         <input type="checkbox" className="h-4 w-4 accent-accent" checked={s.spellCheck} onChange={() => s.setSpellCheck(!s.spellCheck)} />
       </Row>
@@ -287,6 +300,14 @@ function Markdown(): JSX.Element {
           />
         </Row>
       ))}
+      <Row label={t('prefs.allowEmbeds')} hint={t('prefs.allowEmbedsHint')}>
+        <input
+          type="checkbox"
+          className="h-4 w-4 accent-accent"
+          checked={s.allowEmbeds}
+          onChange={() => s.setAllowEmbeds(!s.allowEmbeds)}
+        />
+      </Row>
     </>
   )
 }

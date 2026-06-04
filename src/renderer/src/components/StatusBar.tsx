@@ -1,8 +1,9 @@
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { IPC } from '@shared/ipc'
 import { useAppStore } from '@renderer/store/useAppStore'
-import { computeStats, readingTimeLabel } from '@renderer/lib/textStats'
+import { computeStats, readingTimeLabel, goalProgress } from '@renderer/lib/textStats'
 import { useT } from '@renderer/lib/i18n'
+import WordCountPopover from './WordCountPopover'
 
 export default function StatusBar(): JSX.Element {
   const content = useAppStore((s) => s.doc.content)
@@ -11,6 +12,7 @@ export default function StatusBar(): JSX.Element {
   const typewriter = useAppStore((s) => s.typewriterMode)
   const sourceMode = useAppStore((s) => s.sourceMode)
   const autoSave = useAppStore((s) => s.autoSave)
+  const wordGoal = useAppStore((s) => s.wordGoal)
   const toggleFocusMode = useAppStore((s) => s.toggleFocusMode)
   const toggleTypewriter = useAppStore((s) => s.toggleTypewriter)
   const toggleSourceMode = useAppStore((s) => s.toggleSourceMode)
@@ -18,8 +20,10 @@ export default function StatusBar(): JSX.Element {
 
   const gitBranch = useAppStore((s) => s.gitBranch)
   const t = useT()
+  const [wcOpen, setWcOpen] = useState(false)
 
   const stats = useMemo(() => computeStats(content), [content])
+  const progress = goalProgress(stats.words, wordGoal)
 
   return (
     <footer className="flex h-7 shrink-0 items-center justify-between border-t border-line bg-chrome px-3 text-[12px] text-faint">
@@ -35,8 +39,24 @@ export default function StatusBar(): JSX.Element {
             {gitBranch.behind > 0 && <span>↓{gitBranch.behind}</span>}
           </button>
         )}
-        <span>{t('status.words', { n: stats.words })}</span>
-        <span>{t('status.chars', { n: stats.chars })}</span>
+        <div className="relative">
+          <button
+            onClick={() => setWcOpen((o) => !o)}
+            title={t('status.wordCountTitle')}
+            className={'flex items-center gap-1.5 hover:text-ink ' + (wcOpen ? 'text-ink' : '')}
+          >
+            <span>{t('status.words', { n: stats.words })}</span>
+            <span>{t('status.chars', { n: stats.chars })}</span>
+            {progress && (
+              <span className={progress.done ? 'text-emerald-500' : 'text-accent'}>
+                · {progress.pct}%
+              </span>
+            )}
+          </button>
+          {wcOpen && (
+            <WordCountPopover stats={stats} goal={wordGoal} onClose={() => setWcOpen(false)} />
+          )}
+        </div>
         {stats.readingMinutes > 0 && <span>{readingTimeLabel(stats.readingMinutes)}</span>}
         <span>{dirty ? t('status.unsaved') : t('status.saved')}</span>
       </div>

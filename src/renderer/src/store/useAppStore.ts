@@ -25,6 +25,8 @@ interface AppState {
   /** Replace the active tab's content (file reload / draft recovery / welcome). */
   loadDoc: (doc: { path: string | null; name: string; content: string }) => void
   markSaved: (path?: string, name?: string) => void
+  /** Mark a specific tab clean by id (used by Save All for non-active tabs). */
+  markTabSaved: (id: string) => void
   /** Open a file as a tab: focus an existing tab for the path, replace a pristine
    *  untitled tab, or append a new one. */
   openInTab: (file: { path: string | null; name: string; content: string }) => void
@@ -103,6 +105,12 @@ interface AppState {
   /** Embed local images as data: URIs in exported HTML. */
   embedImages: boolean
   setEmbedImages: (on: boolean) => void
+  /** Allow iframe/video/audio embeds in HTML blocks (less safe; default off). */
+  allowEmbeds: boolean
+  setAllowEmbeds: (on: boolean) => void
+  /** Target word count for the status-bar progress (null/0 = off). */
+  wordGoal: number | null
+  setWordGoal: (n: number | null) => void
   /** Typographic substitution as you type (quotes/dashes/ellipsis). */
   smartPunctuation: boolean
   setSmartPunctuation: (on: boolean) => void
@@ -204,6 +212,12 @@ export const useAppStore = create<AppState>((set) => ({
         )
       }
     }),
+
+  markTabSaved: (id) =>
+    set((s) => ({
+      tabs: s.tabs.map((t) => (t.id === id ? { ...t, dirty: false } : t)),
+      doc: id === s.activeId ? { ...s.doc, dirty: false } : s.doc
+    })),
 
   openInTab: (file) =>
     set((s) => {
@@ -311,6 +325,8 @@ export const useAppStore = create<AppState>((set) => ({
   contentWidth: s0.contentWidth,
   sidebarWidth: s0.sidebarWidth,
   embedImages: s0.embedImages,
+  allowEmbeds: s0.allowEmbeds,
+  wordGoal: s0.wordGoal,
   smartPunctuation: s0.smartPunctuation,
   spellCheck: s0.spellCheck,
   spellLanguages: s0.spellLanguages,
@@ -329,6 +345,8 @@ export const useAppStore = create<AppState>((set) => ({
   setContentWidth: (px) => set({ contentWidth: px }),
   setSidebarWidth: (px) => set({ sidebarWidth: clampPanel(px) }),
   setEmbedImages: (on) => set({ embedImages: on }),
+  setAllowEmbeds: (on) => set({ allowEmbeds: on }),
+  setWordGoal: (n) => set({ wordGoal: n }),
   setSmartPunctuation: (on) => set({ smartPunctuation: on }),
   setSpellCheck: (on) => set({ spellCheck: on }),
   toggleSpellLanguage: (lang) =>

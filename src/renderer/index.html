@@ -3,9 +3,15 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!--
+      frame-src/media-src are widened to https (+ local for media) so the opt-in
+      iframe/video embeds can load. This only PERMITS the capability — the
+      sanitizer (see lib/sanitizeHtml.ts) is the real gate and keeps embeds off
+      by default; script-src is unchanged (no inline/remote JS).
+    -->
     <meta
       http-equiv="Content-Security-Policy"
-      content="default-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: file: inkfile:; font-src 'self' data:;"
+      content="default-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: file: inkfile:; font-src 'self' data:; frame-src https:; media-src 'self' https: data: blob: file:;"
     />
     <title>Inkwell</title>
   </head>

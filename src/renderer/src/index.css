@@ -308,11 +308,30 @@
   .ink-html { display: block; }
 
   /* Rendered GFM table. */
-  .ink-table-wrap { display: block; overflow-x: auto; margin: 0.4em 0; }
+  .ink-table-wrap { display: block; overflow-x: auto; margin: 0.4em 0; position: relative; }
   .ink-table { border-collapse: collapse; width: auto; }
   .ink-table th, .ink-table td { border: 1px solid rgb(var(--line)); padding: 0.35em 0.7em; }
-  .ink-table th { background: rgb(var(--ink) / 0.04); font-weight: 700; text-align: left; }
+  .ink-table th { background: rgb(var(--ink) / 0.04); font-weight: 700; text-align: left; position: relative; }
   .ink-table tr:nth-child(even) td { background: rgb(var(--ink) / 0.02); }
+
+  /* Inline table toolbar (hover) + column-resize handles. */
+  .ink-table-toolbar {
+    position: absolute; top: 2px; right: 2px; z-index: 2;
+    display: none; gap: 1px; padding: 1px;
+    background: rgb(var(--paper)); border: 1px solid rgb(var(--line));
+    border-radius: 5px; box-shadow: 0 1px 4px rgb(0 0 0 / 0.12);
+  }
+  .ink-table-wrap:hover .ink-table-toolbar { display: flex; }
+  .ink-tbl-btn {
+    font-size: 11px; line-height: 1; padding: 3px 5px; border-radius: 3px;
+    color: rgb(var(--faint)); background: transparent; cursor: pointer;
+  }
+  .ink-tbl-btn:hover { background: rgb(var(--ink) / 0.08); color: rgb(var(--ink)); }
+  .ink-col-resize {
+    position: absolute; top: 0; right: -3px; width: 6px; height: 100%;
+    cursor: col-resize; user-select: none; z-index: 1;
+  }
+  .ink-col-resize:hover { background: rgb(var(--accent) / 0.4); }
 
   /* Table of contents generated from [toc]. */
   .ink-toc { display: block; border: 1px solid rgb(var(--line)); border-radius: 6px; padding: 0.6em 0.9em; margin: 0.4em 0; }

@@ -45,6 +45,10 @@ export interface Settings {
   exportStyle: 'default' | 'theme'
   /** Toggleable Markdown features (live editor + export). */
   markdownFeatures: MarkdownFeatures
+  /** Allow iframe/video/audio embeds in HTML blocks (less safe; default off). */
+  allowEmbeds: boolean
+  /** Target word count for the status-bar progress (null/0 = off). */
+  wordGoal: number | null
   /** Convert straight quotes/dashes/ellipsis to typographic ones as you type. */
   smartPunctuation: boolean
   /** Spell check (underline misspellings, right-click suggestions). */
@@ -88,6 +92,8 @@ export const DEFAULT_SETTINGS: Settings = {
   embedImages: true,
   exportStyle: 'default',
   markdownFeatures: DEFAULT_MARKDOWN_FEATURES,
+  allowEmbeds: false,
+  wordGoal: null,
   smartPunctuation: false,
   spellCheck: false,
   spellLanguages: ['en'],
@@ -124,6 +130,10 @@ function sanitize(s: Settings): Settings {
     mode: migrated.mode,
     exportStyle: s.exportStyle === 'theme' ? 'theme' : 'default',
     markdownFeatures: normalizeFeatures(s.markdownFeatures),
+    wordGoal:
+      typeof s.wordGoal === 'number' && Number.isFinite(s.wordGoal) && s.wordGoal > 0
+        ? Math.round(s.wordGoal)
+        : null,
     learnedWords: Array.isArray(s.learnedWords) ? s.learnedWords : [],
     spellLanguages: normalizeSpellLanguages(s),
     searchServices: Array.isArray(s.searchServices) ? s.searchServices : DEFAULT_SETTINGS.searchServices,

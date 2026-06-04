@@ -110,13 +110,15 @@ export default function Editor(): JSX.Element {
   // effect, no doc edit needed.
   useEffect(() => {
     let lastFeatures = useAppStore.getState().markdownFeatures
+    let lastEmbeds = useAppStore.getState().allowEmbeds
     let lastSpell = useAppStore.getState().spellVersion
     let lastKeys = useAppStore.getState().keyBindings
     return useAppStore.subscribe(() => {
       const s = useAppStore.getState()
       const effects = []
-      if (s.markdownFeatures !== lastFeatures) {
+      if (s.markdownFeatures !== lastFeatures || s.allowEmbeds !== lastEmbeds) {
         lastFeatures = s.markdownFeatures
+        lastEmbeds = s.allowEmbeds
         effects.push(refreshPreview.of(null))
       }
       if (s.spellVersion !== lastSpell) {
