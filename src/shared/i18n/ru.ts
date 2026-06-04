@@ -31,6 +31,7 @@ export const ru: Dict = {
   'file.openQuickly': 'Быстрое открытие…',
   'file.openRecent': 'Открыть недавнее…',
   'file.reopenClosed': 'Снова открыть закрытый файл',
+  'file.reopenEncoding': 'Открыть с кодировкой',
   'file.connectDrive': 'Подключить Google Drive…',
   'file.close': 'Закрыть',
   'file.closeFolder': 'Закрыть папку',

@@ -33,6 +33,7 @@ export const en: Dict = {
   'file.openQuickly': 'Open Quickly…',
   'file.openRecent': 'Open Recent…',
   'file.reopenClosed': 'Reopen Closed File',
+  'file.reopenEncoding': 'Reopen with Encoding',
   'file.connectDrive': 'Connect Google Drive…',
   'file.close': 'Close',
   'file.closeFolder': 'Close Folder',

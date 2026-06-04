@@ -15,7 +15,8 @@ import {
   recoverDrafts,
   saveCurrent,
   saveDocAs,
-  saveAllTabs
+  saveAllTabs,
+  reopenWithEncoding
 } from '@renderer/lib/docActions'
 import { setSessionFile } from '@renderer/lib/persistence'
 import { startThemeSync } from '@renderer/lib/themeApply'
@@ -176,6 +177,9 @@ export default function App(): JSX.Element {
 
   // Pandoc export-menu commands (docx/odt/rtf/epub/latex).
   useEffect(() => window.api.onExportPandoc((format) => void exportPandocFile(format)), [])
+
+  // Reopen the active file decoded with a chosen encoding.
+  useEffect(() => window.api.onReopenEncoding((enc) => void reopenWithEncoding(enc)), [])
 
   // The OS handed us a file to open (file association / double-click).
   useEffect(

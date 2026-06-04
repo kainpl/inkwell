@@ -94,6 +94,9 @@ const api = {
   searchInFolder: (path: string, query: string): Promise<SearchFileResult[]> =>
     ipcRenderer.invoke(IPC.searchInFolder, path, query),
   readFile: (path: string): Promise<OpenedFile> => ipcRenderer.invoke(IPC.readFile, path),
+  /** Re-read a file decoded with a specific text encoding (Reopen with Encoding). */
+  readFileAs: (path: string, encoding: string): Promise<OpenedFile> =>
+    ipcRenderer.invoke(IPC.readFileAs, path, encoding),
   /** Read the bundled welcome document (first-launch sample). */
   getWelcome: (): Promise<string> => ipcRenderer.invoke(IPC.getWelcome),
 
@@ -354,6 +357,13 @@ const api = {
     const listener = (_e: unknown, action: string): void => handler(action)
     ipcRenderer.on(IPC.menuFormat, listener)
     return () => ipcRenderer.removeListener(IPC.menuFormat, listener)
+  },
+
+  /** Subscribe to Reopen-with-Encoding; handler receives the encoding id. */
+  onReopenEncoding: (handler: (encoding: string) => void): (() => void) => {
+    const listener = (_e: unknown, encoding: string): void => handler(encoding)
+    ipcRenderer.on(IPC.menuReopenEncoding, listener)
+    return () => ipcRenderer.removeListener(IPC.menuReopenEncoding, listener)
   },
 
   /** Subscribe to a menu command coming from the main process. Returns an unsubscribe fn. */

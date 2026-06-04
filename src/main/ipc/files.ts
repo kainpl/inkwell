@@ -12,6 +12,7 @@ import {
   type VersionEntry
 } from '../../shared/ipc'
 import { MAX_VERSIONS, shouldSnapshot, versionsToPrune } from '../../shared/versions'
+import { decode } from '../../shared/encodings'
 
 const MD_EXTENSIONS = ['.md', '.markdown', '.mdown', '.mkd', '.txt']
 
@@ -180,6 +181,17 @@ export function registerFileIpc(): void {
     const content = await fs.readFile(path, 'utf-8')
     return { path, name: basename(path), content }
   })
+
+  // Re-read a file under a specific text encoding (File → Reopen with Encoding).
+  // `decode` validates the id and is non-fatal, so a wrong guess yields mojibake
+  // rather than throwing. Node 18+ full-ICU handles the legacy code pages.
+  ipcMain.handle(
+    IPC.readFileAs,
+    async (_e, path: string, encoding: string): Promise<OpenedFile> => {
+      const buf = await fs.readFile(path)
+      return { path, name: basename(path), content: decode(buf, encoding) }
+    }
+  )
 
   // Read the bundled welcome document, loaded as the first-launch doc. In dev it
   // sits at <project>/resources/Welcome.md (main bundles to out/main); when

@@ -1,6 +1,7 @@
 import { Menu, BrowserWindow, type MenuItemConstructorOptions } from 'electron'
 import { IPC } from '../shared/ipc'
 import { translate, type Locale } from '../shared/i18n'
+import { ENCODINGS } from '../shared/encodings'
 
 export function buildMenu(win: BrowserWindow, locale: Locale): void {
   const isMac = process.platform === 'darwin'
@@ -8,6 +9,7 @@ export function buildMenu(win: BrowserWindow, locale: Locale): void {
   const send = (channel: string) => () => win.webContents.send(channel)
   const fmt = (action: string) => () => win.webContents.send(IPC.menuFormat, action)
   const pandoc = (format: string) => () => win.webContents.send(IPC.menuExportPandoc, format)
+  const enc = (id: string) => () => win.webContents.send(IPC.menuReopenEncoding, id)
 
   const template: MenuItemConstructorOptions[] = [
     ...(isMac
@@ -72,6 +74,10 @@ export function buildMenu(win: BrowserWindow, locale: Locale): void {
           type: 'checkbox',
           checked: true,
           click: send(IPC.menuToggleFinalNewline)
+        },
+        {
+          label: t('file.reopenEncoding'),
+          submenu: ENCODINGS.map((e) => ({ label: e.label, click: enc(e.id) }))
         },
         { type: 'separator' },
         {

@@ -212,6 +212,19 @@ export async function openPath(path: string): Promise<void> {
 }
 
 /**
+ * Re-read the active file decoded with a different text encoding (File → Reopen
+ * with Encoding). Guards unsaved changes first; only local on-disk files apply
+ * (untitled / Drive docs are no-ops). Replaces the buffer, keeping path + name.
+ */
+export async function reopenWithEncoding(encoding: string): Promise<void> {
+  const { doc } = useAppStore.getState()
+  if (!doc.path || isGdrive(doc.path)) return
+  if (!(await guardUnsaved())) return
+  const file = await window.api.readFileAs(doc.path, encoding).catch(() => null)
+  if (file) useAppStore.getState().loadDoc(file)
+}
+
+/**
  * After session restore, offer to recover the newest crash-recovery draft whose
  * content differs from disk. Recovered content is loaded into the editor and
  * marked dirty so the user can Save or discard it. Run once on launch.
