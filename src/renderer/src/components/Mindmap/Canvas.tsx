@@ -283,6 +283,7 @@ export default function Canvas(): JSX.Element {
 
   return (
     <ReactFlow
+      className="ink-flow"
       nodes={nodes}
       edges={edges}
       onNodesChange={onNodesChange}
