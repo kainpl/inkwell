@@ -24,6 +24,7 @@ Branch: `feat/mindmap`. Started 2026‑06‑02.
 | [`m17-plan.md`](m17-plan.md) | **Milestone 17** — ELK auto-layout: `elkjs` as an opt-in alternative engine (Banded ⟷ ELK toggle; async with a banded fallback). The last backlog item (§G). **Done / shipped.** |
 | [`m18-plan.md`](m18-plan.md) | **Milestone 18** — edit-history (first §F item, local): granular snapshots · schema diff · in-place rollback (Edit-History panel). **Done / shipped.** |
 | [`m19-plan.md`](m19-plan.md) | **Milestone 19** — AI assist (Expand + Summarize, BYOK 3 providers). **⏸ Deferred / parked** — design + auth research only (nothing built); see the doc for why (a third-party app can't ride the user's Claude subscription; Ollama is the free path). |
+| [`m20-plan.md`](m20-plan.md) | **Milestone 20** — smooth collapse/expand (take 2). Shipped **variant B** (JS reconcile-tween: structure preserved synchronously, positions rAF-tweened so edges follow the nodes); the first attempt + the CSS variant A are documented in the post-mortem. **Done / shipped.** |
 | [`m1-spec.md`](m1-spec.md) | **Milestone 1 spec** — the read‑only vertical slice (open `.inkproj` → render schema → click node → open doc). **Shipped.** |
 | [`m1-plan.md`](m1-plan.md) | **Milestone 1 implementation plan** — 14 task‑by‑task steps (TDD). **Done.** |
 | [`m2a-spec.md`](m2a-spec.md) | **Milestone 2a spec** — editing + save with a Yjs model (create/rename/delete/reparent, undo/redo, zip-back). |

@@ -1,8 +1,11 @@
 # Milestone 20 — plan (smooth collapse/expand — take 2, done right)
 
+> ## ✅ SHIPPED — variant **B** (JS reconcile-tween, edges follow)
+> Both variants were built on branches and **A/B-compared live**; the user chose **B**.
+> **A (CSS)** was merged first then superseded by **B** (`feat/mindmap-anim-b` → `feat/mindmap`,
+> `--no-ff`). Duration 500 ms (user-tuned). The first (reverted) attempt's failure is in the post-mortem below.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: superpowers:subagent-driven-development (or executing-plans). Steps use `- [ ]` checkboxes.
->
-> **Branch:** `feat/mindmap-anim` (off `feat/mindmap`). The first attempt was reverted (`0671fec`); this is the careful redo with live QA before any merge.
 
 **Goal:** Animate collapse/expand + relayout so the tree **glides** instead of snapping —
 **without** the instability that sank the first attempt (the whole scheme vanished).
@@ -75,35 +78,35 @@ Either way: **on `feat/mindmap-anim`, behind live QA**, merged only after the fa
 
 **Files:** `components/Mindmap/Canvas.tsx` (add `className` to `<ReactFlow>`), `index.css` (a scoped rule).
 
-- [ ] **A1** `<ReactFlow className="ink-flow" …>`.
-- [ ] **A2** `index.css`:
+- [x] **A1** `<ReactFlow className="ink-flow" …>`.
+- [x] **A2** `index.css`:
   ```css
   .ink-flow .react-flow__node { transition: transform 200ms ease; }
   .ink-flow .react-flow__node.dragging { transition: none; }   /* don't lag the cursor */
   @media (prefers-reduced-motion: reduce) { .ink-flow .react-flow__node { transition: none; } }
   ```
   (Verify RF's dragging class name; if different, target the actual one / `[data-dragging]`.)
-- [ ] **A3** `typecheck`/`lint`/`build`. Commit `feat(mindmap): smooth layout via CSS node transition`.
-- [ ] **A4** **Live QA (the failure matrix):** open a project (no blank, both engines); expand deep 3–5× fast (no vanish); collapse/expand repeatedly; drag a node (no lag, snaps cleanly); switch Banded↔ELK + direction; a large (>400) map with virtualization. Edges-snap is expected — judge if acceptable.
+- [x] **A3** `typecheck`/`lint`/`build`. Commit `feat(mindmap): smooth layout via CSS node transition`.
+- [x] **A4** **Live QA (the failure matrix):** open a project (no blank, both engines); expand deep 3–5× fast (no vanish); collapse/expand repeatedly; drag a node (no lag, snaps cleanly); switch Banded↔ELK + direction; a large (>400) map with virtualization. Edges-snap is expected — judge if acceptable.
 
 ## Phase B — JS reconcile-tween (optional upgrade, if edges-snap is unwanted)
 
 **Files:** `components/Mindmap/Canvas.tsx` (replace the sync effect), maybe a `lib/mindmap/useLayoutTween.ts`.
 
-- [ ] **B1** Remove the CSS transition (A2) to avoid double-animating.
-- [ ] **B2** Replace the instant sync effect with: a `firstSync` instant path; else (a) one
+- [x] **B1** Remove the CSS transition (A2) to avoid double-animating.
+- [x] **B2** Replace the instant sync effect with: a `firstSync` instant path; else (a) one
   synchronous reconcile `setNodes` that **keeps existing node objects** (measured size) at their
   current position, adds new nodes at the parent's current slot, drops removed; (b) capture
   `start`/`target` position maps; (c) rAF-tween updating **only `position`** on the existing
   objects (`{ ...n, position }`), easeOutCubic 200 ms; cancel on next model change + on drag start.
-- [ ] **B3** Edges set synchronously to `model.edges`; they follow because positions live on real nodes.
-- [ ] **B4** `typecheck`/`lint`/`build` + the **same failure-matrix live QA** as A4, plus: edges visibly follow the nodes; rapid expand mid-animation stays stable; reduced-motion = instant.
-- [ ] **B5** Commit `feat(mindmap): smooth layout via reconcile-tween (edges follow)`.
+- [x] **B3** Edges set synchronously to `model.edges`; they follow because positions live on real nodes.
+- [x] **B4** `typecheck`/`lint`/`build` + the **same failure-matrix live QA** as A4, plus: edges visibly follow the nodes; rapid expand mid-animation stays stable; reduced-motion = instant.
+- [x] **B5** Commit `feat(mindmap): smooth layout via reconcile-tween (edges follow)`.
 
 ## Phase C — ship
 
-- [ ] **C1** `npx vitest run` green; `typecheck`/`lint`/`build` clean.
-- [ ] **C2** On QA OK, merge `feat/mindmap-anim` → `feat/mindmap` (`--no-ff`). Update README. Push per the user's word.
+- [x] **C1** `npx vitest run` green; `typecheck`/`lint`/`build` clean.
+- [x] **C2** On QA OK, merge `feat/mindmap-anim` → `feat/mindmap` (`--no-ff`). Update README. Push per the user's word.
 
 ## Hard rules (so we don't repeat the failure)
 - **Never** build the tweened array from `model.nodes` — always from the **current** RF nodes (Approach B), or don't touch them at all (Approach A).
