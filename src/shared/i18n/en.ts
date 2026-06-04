@@ -124,6 +124,8 @@ export const en: Dict = {
   'view.toggleFormatBar': 'Toggle Formatting Bar',
   'view.toggleSidebar': 'Toggle Sidebar',
   'view.toggleOutline': 'Toggle Outline',
+  'view.outlinePopover': 'Outline…',
+  'outlinePopover.placeholder': 'Jump to heading…',
   'view.globalSearch': 'Search in Folder…',
   'view.toggleFocus': 'Toggle Focus Mode',
   'view.toggleTypewriter': 'Toggle Typewriter Mode',

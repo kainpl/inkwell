@@ -55,6 +55,7 @@ import Toolbar from '@renderer/components/Toolbar'
 import FloatingToolbar from '@renderer/components/FloatingToolbar'
 import ImageZoom from '@renderer/components/ImageZoom'
 import QuickOpen from '@renderer/components/QuickOpen'
+import OutlinePopover from '@renderer/components/OutlinePopover'
 import CommandPalette from '@renderer/components/CommandPalette'
 import NoteGraph from '@renderer/components/NoteGraph'
 import SourceControl from '@renderer/components/SourceControl'
@@ -285,6 +286,7 @@ export default function App(): JSX.Element {
       <FloatingToolbar />
       <ImageZoom />
       <QuickOpen />
+      <OutlinePopover />
       <CommandPalette />
       <NoteGraph />
       <SourceControl />

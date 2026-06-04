@@ -118,6 +118,8 @@ export const ru: Dict = {
   'view.toggleFormatBar': 'Переключить панель форматирования',
   'view.toggleSidebar': 'Переключить боковую панель',
   'view.toggleOutline': 'Переключить оглавление',
+  'view.outlinePopover': 'Оглавление…',
+  'outlinePopover.placeholder': 'Перейти к заголовку…',
   'view.globalSearch': 'Поиск в папке…',
   'view.toggleFocus': 'Переключить режим фокуса',
   'view.toggleTypewriter': 'Переключить режим печатной машинки',

@@ -206,6 +206,7 @@ export function buildMenu(win: BrowserWindow, locale: Locale): void {
         { label: t('view.toggleFormatBar'), accelerator: 'CmdOrCtrl+Shift+B', click: send(IPC.menuToggleFormatBar) },
         { label: t('view.toggleSidebar'), accelerator: 'CmdOrCtrl+\\', click: send(IPC.menuToggleSidebar) },
         { label: t('view.toggleOutline'), accelerator: 'CmdOrCtrl+/', click: send(IPC.menuToggleOutline) },
+        { label: t('view.outlinePopover'), accelerator: 'CmdOrCtrl+Shift+O', click: send(IPC.menuOutlinePopover) },
         {
           label: t('view.globalSearch'),
           accelerator: 'CmdOrCtrl+Shift+F',

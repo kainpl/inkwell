@@ -110,6 +110,7 @@ export const COMMANDS: Command[] = [
   { id: 'view.formatBar', title: 'Toggle Formatting Bar', titleKey: 'view.toggleFormatBar', category: 'View', channel: IPC.menuToggleFormatBar },
   { id: 'view.sidebar', title: 'Toggle Sidebar', titleKey: 'view.toggleSidebar', category: 'View', channel: IPC.menuToggleSidebar },
   { id: 'view.outline', title: 'Toggle Outline', titleKey: 'view.toggleOutline', category: 'View', channel: IPC.menuToggleOutline },
+  { id: 'view.outlinePopover', title: 'Outline…', titleKey: 'view.outlinePopover', category: 'View', channel: IPC.menuOutlinePopover },
   { id: 'view.focus', title: 'Toggle Focus Mode', titleKey: 'view.toggleFocus', category: 'View', channel: IPC.menuToggleFocusMode },
   { id: 'view.typewriter', title: 'Toggle Typewriter Mode', titleKey: 'view.toggleTypewriter', category: 'View', channel: IPC.menuToggleTypewriter },
   { id: 'view.source', title: 'Toggle Source Code Mode', titleKey: 'view.toggleSource', category: 'View', channel: IPC.menuToggleSourceMode },

@@ -281,6 +281,7 @@ export const IPC = {
   menuSaveAll: 'menu:saveAll',
   menuToggleSidebar: 'menu:toggleSidebar',
   menuToggleOutline: 'menu:toggleOutline',
+  menuOutlinePopover: 'menu:outlinePopover',
   menuToggleFocusMode: 'menu:toggleFocusMode',
   menuToggleTypewriter: 'menu:toggleTypewriter',
   menuToggleSourceMode: 'menu:toggleSourceMode',

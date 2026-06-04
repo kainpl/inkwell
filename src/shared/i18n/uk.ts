@@ -118,6 +118,8 @@ export const uk: Dict = {
   'view.toggleFormatBar': 'Перемкнути панель форматування',
   'view.toggleSidebar': 'Перемкнути бічну панель',
   'view.toggleOutline': 'Перемкнути оглавлення',
+  'view.outlinePopover': 'Оглавлення…',
+  'outlinePopover.placeholder': 'Перейти до заголовка…',
   'view.globalSearch': 'Пошук у теці…',
   'view.toggleFocus': 'Перемкнути режим фокусу',
   'view.toggleTypewriter': 'Перемкнути режим друкарки',
