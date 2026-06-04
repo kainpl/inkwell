@@ -29,7 +29,6 @@ const EMBED_ATTRS = [
   'poster',
   'preload',
   'type',
-  'sandbox',
   'referrerpolicy',
   'title',
   'kind',
@@ -51,7 +50,10 @@ function ensureHook(): void {
     const src = el.getAttribute('src') ?? ''
     if (!/^https:\/\//i.test(src)) el.removeAttribute('src') // https only
     el.removeAttribute('srcdoc') // never allow inline iframe documents
-    el.setAttribute('sandbox', el.getAttribute('sandbox') ?? IFRAME_SANDBOX)
+    // Always force OUR sandbox — never honour an author-supplied value, which
+    // could widen it (allow-top-navigation, allow-popups-to-escape-sandbox, …).
+    // `sandbox` is not in EMBED_ATTRS, so DOMPurify has already stripped theirs.
+    el.setAttribute('sandbox', IFRAME_SANDBOX)
   })
 }
 

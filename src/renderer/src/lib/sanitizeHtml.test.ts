@@ -26,6 +26,16 @@ describe('sanitizeHtml', () => {
     expect(out).not.toContain('http://insecure.example')
   })
 
+  it('overrides an author-supplied weakened sandbox with the trusted set', () => {
+    const out = sanitizeHtml(
+      '<iframe src="https://x/y" sandbox="allow-scripts allow-top-navigation allow-popups-to-escape-sandbox"></iframe>',
+      true
+    )
+    expect(out).not.toContain('allow-top-navigation')
+    expect(out).not.toContain('allow-popups-to-escape-sandbox')
+    expect(out).toContain('allow-presentation') // from our IFRAME_SANDBOX
+  })
+
   it('drops srcdoc on iframes', () => {
     const out = sanitizeHtml('<iframe srcdoc="<b>x</b>"></iframe>', true)
     expect(out).not.toContain('srcdoc')
