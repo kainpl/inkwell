@@ -12,7 +12,7 @@ import { type MarkdownFeatures, DEFAULT_MARKDOWN_FEATURES } from '@renderer/lib/
 import { parseHtmlImage, parseImage, toHtmlImage } from '@renderer/lib/imageInput'
 import katex from 'katex'
 import { renderMermaid } from '@renderer/lib/mermaidRender'
-import DOMPurify from 'dompurify'
+import { sanitizeHtml } from '@renderer/lib/sanitizeHtml'
 import { parseTable } from '@renderer/lib/tableModel'
 
 /**
@@ -335,17 +335,21 @@ export class TableWidget extends WidgetType {
 
 /** Renders a sanitized HTML block on idle lines (passthrough, XSS-safe). */
 export class HtmlBlockWidget extends WidgetType {
-  constructor(readonly html: string) {
+  constructor(
+    readonly html: string,
+    readonly allowEmbeds = false
+  ) {
     super()
   }
   eq(other: HtmlBlockWidget): boolean {
-    return other.html === this.html
+    return other.html === this.html && other.allowEmbeds === this.allowEmbeds
   }
   toDOM(): HTMLElement {
     const el = document.createElement('div')
     el.className = 'ink-html'
     // Sanitize to prevent script/onerror injection from an untrusted document.
-    el.innerHTML = DOMPurify.sanitize(this.html)
+    // With embeds enabled, https iframes / video are kept (sandboxed); see sanitizeHtml.
+    el.innerHTML = sanitizeHtml(this.html, this.allowEmbeds)
     return el
   }
   ignoreEvent(): boolean {
@@ -881,7 +885,8 @@ export function buildDecorations(
   ranges: readonly { from: number; to: number }[],
   active: Set<number>,
   docPath: string | null = null,
-  features: MarkdownFeatures = DEFAULT_MARKDOWN_FEATURES
+  features: MarkdownFeatures = DEFAULT_MARKDOWN_FEATURES,
+  allowEmbeds = false
 ): DecorationSet {
   const decos: Range<Decoration>[] = []
   const doc = state.doc
@@ -1008,12 +1013,17 @@ export function buildDecorations(
           }
           if (!blockActive) {
             const html = doc.sliceString(node.from, node.to)
-            decos.push(
-              Decoration.replace({ widget: new HtmlBlockWidget(html), block: true }).range(
-                node.from,
-                node.to
+            // With embeds off, leave iframe/video/audio blocks raw (visible +
+            // editable) rather than rendering them to an empty sanitized div.
+            const isEmbed = /<(iframe|video|audio)\b/i.test(html)
+            if (allowEmbeds || !isEmbed) {
+              decos.push(
+                Decoration.replace({
+                  widget: new HtmlBlockWidget(html, allowEmbeds),
+                  block: true
+                }).range(node.from, node.to)
               )
-            )
+            }
           }
           return false
         }
@@ -1238,13 +1248,14 @@ export function buildDecorations(
  * `visibleRanges`) and rebuild on doc or selection changes.
  */
 function computeDecorations(state: EditorState): DecorationSet {
-  const { doc, markdownFeatures } = useAppStore.getState()
+  const { doc, markdownFeatures, allowEmbeds } = useAppStore.getState()
   return buildDecorations(
     state,
     [{ from: 0, to: state.doc.length }],
     activeLines(state),
     doc.path,
-    markdownFeatures
+    markdownFeatures,
+    allowEmbeds
   )
 }
 

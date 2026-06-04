@@ -13,6 +13,7 @@ import hljsCss from 'highlight.js/styles/github.css?raw'
 import hljsDarkCss from 'highlight.js/styles/github-dark.css?raw'
 import DOMPurify from 'dompurify'
 import { get as emojiGet } from 'node-emoji'
+import { sanitizeHtml } from './sanitizeHtml'
 import { EXPORT_CSS } from './exportCss'
 import { type MarkdownFeatures, DEFAULT_MARKDOWN_FEATURES } from './markdownFeatures'
 
@@ -102,21 +103,20 @@ function getMd(f: MarkdownFeatures): MarkdownIt {
   return m
 }
 
-/** DOMPurify config: allow HTML + KaTeX's MathML + SVG (mermaid), drop scripts. */
-const PURIFY_OPTS = { USE_PROFILES: { html: true, mathMl: true, svg: true } } as const
-
 /**
  * Render the Markdown body to a **sanitized** HTML fragment (no `<html>`
  * wrapper). `html: true` lets through inline raw HTML the document relies on
  * (e.g. `<u>`), so the output MUST be sanitized — a document is untrusted input,
- * and the HTML is later written to a file / loaded into a print window. DOMPurify
- * strips scripts and event handlers while keeping KaTeX (MathML) and SVG.
+ * and the HTML is later written to a file / loaded into a print window.
+ * `sanitizeHtml` strips scripts/handlers while keeping KaTeX (MathML) and SVG,
+ * and — when `allowEmbeds` is set — sandboxed https iframes / video.
  */
 export function renderMarkdownBody(
   markdown: string,
-  features: MarkdownFeatures = DEFAULT_MARKDOWN_FEATURES
+  features: MarkdownFeatures = DEFAULT_MARKDOWN_FEATURES,
+  allowEmbeds = false
 ): string {
-  return DOMPurify.sanitize(getMd(features).render(markdown), PURIFY_OPTS)
+  return sanitizeHtml(getMd(features).render(markdown), allowEmbeds)
 }
 
 /** Plain text of the document (markdown stripped), with blocks on their own lines. */
@@ -279,6 +279,8 @@ export interface RenderDocOptions {
   dark?: boolean
   /** Toggleable Markdown features (defaults to all on). */
   features?: MarkdownFeatures
+  /** Keep iframe/video/audio embeds in the output (default off; https iframes sandboxed). */
+  allowEmbeds?: boolean
   /** Injectable for tests. */
   renderMermaidSvg?: (code: string) => Promise<string>
   embedImage?: (url: string) => Promise<string | null>
@@ -295,7 +297,7 @@ export async function renderDocumentHtml(
 ): Promise<string> {
   const features = opts.features ?? DEFAULT_MARKDOWN_FEATURES
   const doc = new DOMParser().parseFromString(
-    `<!doctype html><body>${renderMarkdownBody(markdown, features)}</body>`,
+    `<!doctype html><body>${renderMarkdownBody(markdown, features, opts.allowEmbeds)}</body>`,
     'text/html'
   )
   if (features.alerts) applyAlerts(doc)

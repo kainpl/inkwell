@@ -270,6 +270,8 @@ export const en: Dict = {
   'prefs.smartPunctHint': 'straight quotes/dashes/ellipsis → typographic as you type',
   'prefs.wordGoal': 'Word goal',
   'prefs.wordGoalHint': 'target word count (0 = off)',
+  'prefs.allowEmbeds': 'Allow iframe/video embeds',
+  'prefs.allowEmbedsHint': 'less safe — https iframes are sandboxed; off by default',
   'prefs.spellCheck': 'Spell check',
   'prefs.spellCheckHint': 'underline misspellings; right-click for suggestions',
   'prefs.spellLangs': 'Spell-check languages',

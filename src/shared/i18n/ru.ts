@@ -259,6 +259,8 @@ export const ru: Dict = {
   'prefs.smartPunctHint': 'прямые кавычки/тире/многоточие → типографские при наборе',
   'prefs.wordGoal': 'Цель по словам',
   'prefs.wordGoalHint': 'целевое количество слов (0 = выкл)',
+  'prefs.allowEmbeds': 'Разрешить iframe/видео-вставки',
+  'prefs.allowEmbedsHint': 'менее безопасно — https-iframe в песочнице; по умолчанию выкл',
   'prefs.spellCheck': 'Проверка орфографии',
   'prefs.spellCheckHint': 'подчёркивать ошибки; правый клик — подсказки',
   'prefs.spellLangs': 'Языки проверки орфографии',

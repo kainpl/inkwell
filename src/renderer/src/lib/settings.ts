@@ -45,6 +45,8 @@ export interface Settings {
   exportStyle: 'default' | 'theme'
   /** Toggleable Markdown features (live editor + export). */
   markdownFeatures: MarkdownFeatures
+  /** Allow iframe/video/audio embeds in HTML blocks (less safe; default off). */
+  allowEmbeds: boolean
   /** Target word count for the status-bar progress (null/0 = off). */
   wordGoal: number | null
   /** Convert straight quotes/dashes/ellipsis to typographic ones as you type. */
@@ -90,6 +92,7 @@ export const DEFAULT_SETTINGS: Settings = {
   embedImages: true,
   exportStyle: 'default',
   markdownFeatures: DEFAULT_MARKDOWN_FEATURES,
+  allowEmbeds: false,
   wordGoal: null,
   smartPunctuation: false,
   spellCheck: false,

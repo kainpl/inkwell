@@ -300,6 +300,14 @@ function Markdown(): JSX.Element {
           />
         </Row>
       ))}
+      <Row label={t('prefs.allowEmbeds')} hint={t('prefs.allowEmbedsHint')}>
+        <input
+          type="checkbox"
+          className="h-4 w-4 accent-accent"
+          checked={s.allowEmbeds}
+          onChange={() => s.setAllowEmbeds(!s.allowEmbeds)}
+        />
+      </Row>
     </>
   )
 }

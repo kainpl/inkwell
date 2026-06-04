@@ -259,6 +259,8 @@ export const uk: Dict = {
   'prefs.smartPunctHint': 'прямі лапки/тире/три крапки → типографські під час набору',
   'prefs.wordGoal': 'Ціль за словами',
   'prefs.wordGoalHint': 'цільова кількість слів (0 = вимкнено)',
+  'prefs.allowEmbeds': 'Дозволити iframe/відео-вбудови',
+  'prefs.allowEmbedsHint': 'менш безпечно — https-iframe у пісочниці; типово вимкнено',
   'prefs.spellCheck': 'Перевірка орфографії',
   'prefs.spellCheckHint': 'підкреслювати помилки; правий клік — підказки',
   'prefs.spellLangs': 'Мови перевірки орфографії',

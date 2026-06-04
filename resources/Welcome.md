@@ -123,6 +123,14 @@ Markdown
 Inkwell
 : A seamless Markdown editor with a live preview.
 
+## Embeds
+
+Enable **Preferences ▸ Markdown ▸ Allow iframe/video embeds** (off by default), then
+an HTML block with an `<iframe>` or `<video>` renders inline (https only, sandboxed).
+Until you turn it on, the block below stays as plain, editable text:
+
+<video controls width="320" src="https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.webm"></video>
+
 ### Next
 
 Open a folder (`Ctrl/⌘ Shift O`) to browse files, or just start writing.
