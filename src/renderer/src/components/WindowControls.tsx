@@ -52,7 +52,7 @@ export default function WindowControls({ actions }: { actions: DesktopActions })
             title={label}
             id={'window-' + action.toLowerCase()}
             ref={action === 'Maximize' ? maximizeButton : undefined}
-            onClick={() => void actions.run(action)}
+            onClick={() => void (action === 'Close' ? actions.closeWindow() : actions.run(action))}
           >
             <svg
               viewBox="0 0 16 16"

@@ -20,9 +20,13 @@ async function remember(kind: RecentKind, path: string): Promise<void> {
   }
 }
 
-async function readDocument(path: string): Promise<OpenedFile> {
+async function readDocumentText(path: string): Promise<string> {
   // Preserve an existing UTF-8 BOM on a subsequent save, as well as the line endings.
-  const content = new TextDecoder('utf-8', { ignoreBOM: true }).decode(await readFile(path))
+  return new TextDecoder('utf-8', { ignoreBOM: true }).decode(await readFile(path))
+}
+
+async function readDocument(path: string): Promise<OpenedFile> {
+  const content = await readDocumentText(path)
   await remember('files', path)
   return { path, name: await basename(path), content }
 }
@@ -58,6 +62,7 @@ export const files = {
     invoke<void>('restore_recent_access', { kind, path }),
   readFolder,
   readFile: readDocument,
+  readDocumentText,
   readDir: children,
   async openFileDialog(): Promise<OpenedFile | null> {
     const path = await open({
@@ -74,13 +79,16 @@ export const files = {
     await writeTextFile(path, content)
     return true
   },
-  async saveFileAs(content: string): Promise<OpenedFile | null> {
+  async saveFileAs(content: string, name: string, id: number): Promise<OpenedFile | null> {
     const path = await save({
       title: translate('Save As…'),
-      defaultPath: useAppStore.getState().doc.name,
+      defaultPath: name,
       filters: [{ name: 'Markdown', extensions: ['md'] }]
     })
     if (!path) return null
+    if (useAppStore.getState().tabs.some((tab) => tab.id !== id && tab.doc.path === path)) {
+      throw new Error(translate('That file is already open in another tab.'))
+    }
     await writeTextFile(path, content)
     await remember('files', path)
     return { path, name: await basename(path), content }

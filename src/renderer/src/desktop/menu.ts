@@ -62,5 +62,6 @@ export const menuGroups = {
 export interface DesktopActions {
   customFrame: boolean
   run: (id: MenuAction) => Promise<void>
+  closeWindow: () => Promise<void>
   recent: (kind: RecentKind, path: string) => Promise<void>
 }

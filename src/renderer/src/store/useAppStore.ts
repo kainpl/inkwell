@@ -13,22 +13,32 @@ export interface DocState {
   dirty: boolean
 }
 
+export interface DocumentTab {
+  id: number
+  doc: DocState
+  documentEol: string
+  savedContent: string
+  diskContent: string
+  externalChange: boolean
+  reloadVersion: number
+  draftGoal: number
+}
+
 interface AppState extends Settings {
   spellError: string | null
   preferencesOpen: boolean
   showPreferences: (open: boolean) => void
   configure: (settings: Partial<Settings>) => void
-  documentEol: string
-  savedContent: string
-  draftGoal: number
-  setGoal: (goal: number) => void
-  // --- document ---
-  doc: DocState
+  tabs: DocumentTab[]
   documentId: number
+  activateTab: (id: number) => void
+  removeTab: (id: number) => void
+  setGoal: (goal: number) => void
   toggleSourceMode: () => void
-  setContent: (content: string) => void
-  loadDoc: (doc: { path: string | null; name: string; content: string }) => void
-  markSaved: (content: string, path?: string, name?: string) => void
+  setContent: (content: string, id?: number) => void
+  loadDoc: (doc: Omit<DocState, 'dirty'>) => number
+  markSaved: (id: number, content: string, diskContent: string, path: string, name: string) => void
+  receiveDiskContent: (content: string, discardEdits?: boolean, id?: number) => void
   newDoc: () => void
 
   // --- workspace ---
@@ -60,65 +70,165 @@ const INITIAL_DOC: DocState = {
   content: (initial.language === 'uk' ? welcomeUk : welcomeEn).replace(/\r\n?/g, '\n')
 }
 
-export const useAppStore = create<AppState>((set) => ({
+let nextId = 1
+
+function documentTab(id: number, doc: Omit<DocState, 'dirty'>, fallbackEol: string): DocumentTab {
+  return {
+    id,
+    doc: { ...doc, dirty: false },
+    documentEol: doc.content.match(/\r\n?|\n/)?.[0] ?? fallbackEol,
+    savedContent: doc.content,
+    diskContent: doc.content,
+    externalChange: false,
+    reloadVersion: 0,
+    draftGoal: 0
+  }
+}
+
+export function activeTab(state: Pick<AppState, 'tabs' | 'documentId'>): DocumentTab {
+  return state.tabs.find((tab) => tab.id === state.documentId)!
+}
+
+function updateTab(
+  state: AppState,
+  id: number,
+  update: (tab: DocumentTab) => DocumentTab
+): AppState | Pick<AppState, 'tabs'> {
+  const index = state.tabs.findIndex((tab) => tab.id === id)
+  if (index === -1) return state
+  const tab = update(state.tabs[index])
+  if (tab === state.tabs[index]) return state
+  return { tabs: state.tabs.map((entry, i) => (i === index ? tab : entry)) }
+}
+
+const emptyTab = (state: AppState) =>
+  documentTab(
+    nextId++,
+    {
+      ...EMPTY_DOC,
+      name: state.language === 'en' ? 'Untitled.md' : 'Без назви.md'
+    },
+    state.lineEnding === 'LF' ? '\n' : '\r\n'
+  )
+
+function openTab(state: AppState, tab: DocumentTab) {
+  const current = activeTab(state)
+  const replace =
+    !current.doc.path && !current.doc.dirty && (current.id === 0 || !current.doc.content)
+  return {
+    tabs: replace
+      ? state.tabs.map((entry) => (entry.id === current.id ? tab : entry))
+      : [...state.tabs, tab],
+    documentId: tab.id
+  }
+}
+
+export const useAppStore = create<AppState>((set, get) => ({
   ...initial,
-  doc: INITIAL_DOC,
-  savedContent: INITIAL_DOC.content,
-  documentEol: '\n',
+  tabs: [documentTab(0, INITIAL_DOC, '\n')],
   documentId: 0,
   spellError: null,
   preferencesOpen: false,
   showPreferences: (preferencesOpen) => set({ preferencesOpen }),
-  configure: (patch) => set(patch),
-  draftGoal: 0,
+  configure: (patch) => {
+    const mode = patch.editorMode
+    set(mode && mode !== 'source' ? { ...patch, lastFormattedMode: mode } : patch)
+  },
+  activateTab: (id) =>
+    set((s) =>
+      s.documentId !== id && s.tabs.some((tab) => tab.id === id) ? { documentId: id } : s
+    ),
+  removeTab: (id) =>
+    set((s) => {
+      const index = s.tabs.findIndex((tab) => tab.id === id)
+      if (index === -1) return s
+      const tabs = s.tabs.filter((tab) => tab.id !== id)
+      if (!tabs.length) tabs.push(emptyTab(s))
+      return {
+        tabs,
+        documentId: s.documentId === id ? tabs[Math.min(index, tabs.length - 1)].id : s.documentId
+      }
+    }),
   setGoal: (goal) =>
     set((s) => {
-      if (!s.doc.path) return { draftGoal: goal }
+      const { doc } = activeTab(s)
+      if (!doc.path) return updateTab(s, s.documentId, (tab) => ({ ...tab, draftGoal: goal }))
       const wordGoals = { ...s.wordGoals }
-      if (goal) wordGoals[s.doc.path] = goal
-      else delete wordGoals[s.doc.path]
+      if (goal) wordGoals[doc.path] = goal
+      else delete wordGoals[doc.path]
       return { wordGoals }
     }),
-  toggleSourceMode: () => set((s) => ({ sourceMode: !s.sourceMode })),
-  toggleTheme: () => set((s) => ({ theme: s.theme === 'light' ? 'dark' : 'light' })),
-  setContent: (content) =>
-    set((s) => ({ doc: { ...s.doc, content, dirty: content !== s.savedContent } })),
-  loadDoc: ({ path, name, content }) =>
+  toggleSourceMode: () =>
     set((s) => ({
-      documentId: s.documentId + 1,
-      documentEol: content.match(/\r\n?|\n/)?.[0] ?? (s.lineEnding === 'LF' ? '\n' : '\r\n'),
-      doc: { path, name, content, dirty: false },
-      savedContent: content,
-      draftGoal: 0
+      editorMode: s.editorMode === 'source' ? s.lastFormattedMode : 'source'
     })),
-  markSaved: (content, path, name) =>
+  toggleTheme: () => set((s) => ({ theme: s.theme === 'light' ? 'dark' : 'light' })),
+  setContent: (content, id) =>
+    set((s) =>
+      updateTab(s, id ?? s.documentId, (tab) => ({
+        ...tab,
+        doc: { ...tab.doc, content, dirty: content !== tab.savedContent }
+      }))
+    ),
+  loadDoc: (doc) => {
+    const s = get()
+    const existing = doc.path && s.tabs.find((tab) => tab.doc.path === doc.path)
+    if (existing) {
+      s.activateTab(existing.id)
+      return existing.id
+    }
+    const tab = documentTab(nextId++, doc, s.lineEnding === 'LF' ? '\n' : '\r\n')
+    set(openTab(s, tab))
+    return tab.id
+  },
+  markSaved: (id, content, diskContent, path, name) =>
     set((s) => {
-      const goal = s.doc.path ? s.wordGoals[s.doc.path] : s.draftGoal
+      const tab = s.tabs.find((entry) => entry.id === id)
+      if (!tab) return s
+      const goal = tab.doc.path ? s.wordGoals[tab.doc.path] : tab.draftGoal
       let wordGoals = s.wordGoals
-      if (path && path !== s.doc.path) {
+      if (path !== tab.doc.path) {
         wordGoals = { ...wordGoals }
         if (goal) wordGoals[path] = goal
         else delete wordGoals[path]
       }
       return {
-        wordGoals,
-        savedContent: content,
-        doc: {
-          ...s.doc,
-          dirty: s.doc.content !== content,
-          path: path ?? s.doc.path,
-          name: name ?? s.doc.name
-        }
+        ...updateTab(s, id, (entry) => ({
+          ...entry,
+          savedContent: content,
+          diskContent,
+          externalChange: false,
+          doc: { ...entry.doc, path, name, dirty: entry.doc.content !== content }
+        })),
+        wordGoals
       }
     }),
+  receiveDiskContent: (content, discardEdits = false, id) =>
+    set((s) =>
+      updateTab(s, id ?? s.documentId, (tab) => {
+        if (
+          !discardEdits &&
+          (content === tab.diskContent || (tab.doc.dirty && content !== tab.doc.content))
+        ) {
+          const externalChange = content !== tab.diskContent
+          return tab.externalChange === externalChange ? tab : { ...tab, externalChange }
+        }
+        return {
+          ...tab,
+          diskContent: content,
+          savedContent: content,
+          documentEol: content.match(/\r\n?|\n/)?.[0] ?? tab.documentEol,
+          externalChange: false,
+          reloadVersion: tab.reloadVersion + 1,
+          doc: { ...tab.doc, content, dirty: false }
+        }
+      })
+    ),
   newDoc: () =>
-    set((s) => ({
-      documentId: s.documentId + 1,
-      documentEol: s.lineEnding === 'LF' ? '\n' : '\r\n',
-      savedContent: '',
-      draftGoal: 0,
-      doc: { ...EMPTY_DOC, name: s.language === 'en' ? 'Untitled.md' : 'Без назви.md' }
-    })),
+    set((s) => {
+      const tab = emptyTab(s)
+      return { tabs: [...s.tabs, tab], documentId: tab.id }
+    }),
   root: null,
   setRoot: (root) => set(root ? { root, sidebarOpen: true, sidebarTab: 'folder' } : { root }),
   sidebarOpen: true,

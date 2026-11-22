@@ -1,7 +1,14 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react'
-import { useAppStore } from '@renderer/store/useAppStore'
+import { activeTab, useAppStore } from '@renderer/store/useAppStore'
 import { useTranslate } from '@renderer/lib/i18n'
-import { fonts, palettes, type Language, type Settings } from '@renderer/lib/settings'
+import {
+  editorModes,
+  editorModeLabels,
+  fonts,
+  palettes,
+  type Language,
+  type Settings
+} from '@renderer/lib/settings'
 import { MARKDOWN_FEATURE_LIST } from '@renderer/lib/markdownFeatures'
 import RecentSettings from './RecentSettings'
 import {
@@ -72,22 +79,25 @@ export default function Preferences() {
     label: string,
     value: T,
     options: readonly T[],
-    change: (v: T) => void
+    change: (v: T) => void,
+    labelFor?: (value: T) => string
   ) =>
     row(
       label,
       <select value={value} onChange={(e) => change(e.target.value as T)}>
         {options.map((v) => (
           <option key={v} value={v}>
-            {v === 'uk'
-              ? 'Українська'
-              : v === 'en'
-                ? 'English'
-                : v === 'light'
-                  ? t('Light')
-                  : v === 'dark'
-                    ? t('Dark')
-                    : t(v)}
+            {labelFor
+              ? labelFor(v)
+              : v === 'uk'
+                ? 'Українська'
+                : v === 'en'
+                  ? 'English'
+                  : v === 'light'
+                    ? t('Light')
+                    : v === 'dark'
+                      ? t('Dark')
+                      : t(v)}
           </option>
         ))}
       </select>
@@ -123,14 +133,14 @@ export default function Preferences() {
       | 'autoSave'
       | 'finalNewline'
       | 'smartPunctuation'
-      | 'sourceMode'
       | 'focusMode'
       | 'typewriterMode'
       | 'spellCheck'
     >,
     label: string
   ) => check(label, s[key], (v) => s.configure({ [key]: v }))
-  const goal = s.doc.path ? (s.wordGoals[s.doc.path] ?? 0) : s.draftGoal
+  const { doc, draftGoal } = activeTab(s)
+  const goal = doc.path ? (s.wordGoals[doc.path] ?? 0) : draftGoal
   return (
     <dialog
       ref={ref}
@@ -180,7 +190,13 @@ export default function Preferences() {
           )}
           {tab === 'Writing' && (
             <>
-              {toggle('sourceMode', 'Source')}
+              {select(
+                'Editor mode',
+                s.editorMode,
+                editorModes,
+                (editorMode) => s.configure({ editorMode }),
+                (mode) => t(editorModeLabels[mode])
+              )}
               {toggle('focusMode', 'Focus')}
               {toggle('typewriterMode', 'Keep the current line centered')}
               {toggle('autoSave', 'Auto-save named files')}

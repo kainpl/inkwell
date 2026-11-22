@@ -22,11 +22,11 @@ export async function installNativeMenu(
     useAppStore.getState().shortcuts[id].replace('Mod', 'CmdOrCtrl') || null
   const action = async (id: Command) => {
     const item = await MenuItem.new({
-      text: translate(id),
+      text: translate(id === 'Close' ? 'Close tab' : id),
       accelerator: nativeAccel(id) ?? undefined,
       action: () => actions.run(id)
     })
-    entries.push({ label: id, item })
+    entries.push({ label: id === 'Close' ? 'Close tab' : id, item })
     bindings.set(id, item)
     return item
   }
@@ -108,7 +108,7 @@ export async function installNativeMenu(
         MenuItem.new({
           text: translate('Quit Inkwell'),
           accelerator: 'Cmd+Q',
-          action: () => actions.run('Close')
+          action: actions.closeWindow
         }).then((item) => {
           entries.push({ label: 'Quit Inkwell', item })
           return item

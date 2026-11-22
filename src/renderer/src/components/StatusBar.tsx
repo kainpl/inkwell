@@ -1,6 +1,6 @@
 import { useTranslate } from '@renderer/lib/i18n'
 import { useMemo } from 'react'
-import { useAppStore } from '@renderer/store/useAppStore'
+import { activeTab, useAppStore } from '@renderer/store/useAppStore'
 
 function countWords(text: string): number {
   const m = text.match(/[\p{L}\p{N}]+(?:['’ʼ-][\p{L}\p{N}]+)*/gu)
@@ -8,8 +8,8 @@ function countWords(text: string): number {
 }
 
 export default function StatusBar(): JSX.Element {
-  const content = useAppStore((s) => s.doc.content)
-  const dirty = useAppStore((s) => s.doc.dirty)
+  const content = useAppStore((s) => activeTab(s).doc.content)
+  const dirty = useAppStore((s) => activeTab(s).doc.dirty)
   const focusMode = useAppStore((s) => s.focusMode)
   const typewriter = useAppStore((s) => s.typewriterMode)
   const toggleFocusMode = useAppStore((s) => s.toggleFocusMode)
@@ -17,7 +17,10 @@ export default function StatusBar(): JSX.Element {
 
   const words = useMemo(() => countWords(content), [content])
   const t = useTranslate()
-  const goal = useAppStore((s) => (s.doc.path ? s.wordGoals[s.doc.path] : s.draftGoal))
+  const goal = useAppStore((s) => {
+    const { doc, draftGoal } = activeTab(s)
+    return doc.path ? s.wordGoals[doc.path] : draftGoal
+  })
   const spellError = useAppStore((s) => s.spellCheck && s.spellError)
   const chars = content.length
 

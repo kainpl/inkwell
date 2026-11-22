@@ -3,6 +3,7 @@
 use std::path::PathBuf;
 use tauri::webview::NewWindowResponse;
 use tauri::{Manager, WebviewWindowBuilder};
+use tauri_plugin_window_state::StateFlags;
 
 mod images;
 mod recents;
@@ -53,6 +54,13 @@ fn main() {
             } else {
                 window
             };
+            // Keep the portable profile's window state beside its other data.
+            app.handle().plugin(
+                tauri_plugin_window_state::Builder::default()
+                    .with_state_flags(StateFlags::SIZE | StateFlags::MAXIMIZED)
+                    .with_filename(data.join("window-state.json").to_string_lossy())
+                    .build(),
+            )?;
             app.manage(AppData(data));
             recents::protect_storage(app.handle())?;
             window

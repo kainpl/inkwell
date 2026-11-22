@@ -1,9 +1,10 @@
 import { useTranslate } from '@renderer/lib/i18n'
-import { useAppStore } from '@renderer/store/useAppStore'
+import { activeTab, useAppStore } from '@renderer/store/useAppStore'
 import type { DesktopActions } from '@renderer/desktop/menu'
 import AppMenu from './AppMenu'
 import WindowControls from './WindowControls'
 import './titlebar.css'
+import { editorModes, editorModeLabels, type EditorMode } from '@renderer/lib/settings'
 
 function IconButton({
   label,
@@ -34,11 +35,12 @@ function IconButton({
 
 export default function TitleBar({ actions }: { actions: DesktopActions }): JSX.Element {
   const t = useTranslate()
-  const { doc, sidebarOpen, sidebarTab, theme, showPreferences } = useAppStore()
+  const { sidebarOpen, sidebarTab, theme, showPreferences } = useAppStore()
+  const doc = useAppStore((s) => activeTab(s).doc)
   const toggleSidebar = useAppStore((s) => s.toggleSidebar)
   const toggleOutline = useAppStore((s) => s.toggleOutline)
-  const sourceMode = useAppStore((s) => s.sourceMode)
-  const toggleSourceMode = useAppStore((s) => s.toggleSourceMode)
+  const mode = useAppStore((s) => s.editorMode)
+  const configure = useAppStore((s) => s.configure)
   const toggleTheme = useAppStore((s) => s.toggleTheme)
 
   return (
@@ -101,22 +103,33 @@ export default function TitleBar({ actions }: { actions: DesktopActions }): JSX.
       </div>
 
       <div className="flex shrink-0 items-center gap-1">
-        <button
-          type="button"
-          aria-pressed={sourceMode}
-          aria-label={t(sourceMode ? 'Return to live Markdown' : 'Edit Markdown source')}
-          onClick={toggleSourceMode}
-          title={t(sourceMode ? 'Return to live Markdown' : 'Edit Markdown source')}
-          className={
-            'rounded-md px-2 py-1 font-mono text-xs hover:bg-ink/5 ' +
-            (sourceMode ? 'bg-ink/5 text-accent' : 'text-muted')
-          }
+        <IconButton label={t('Find in document')} onClick={() => void actions.run('Find')}>
+          <svg
+            viewBox="0 0 24 24"
+            width="16"
+            height="16"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            aria-hidden="true"
+          >
+            <circle cx="10.5" cy="10.5" r="6.5" />
+            <path d="m16 16 4.5 4.5" />
+          </svg>
+        </IconButton>
+        <select
+          aria-label={t('Editor mode')}
+          title={t('Editor mode')}
+          className="max-w-[9rem] rounded-md border border-line bg-chrome px-2 py-1 text-xs text-ink"
+          value={mode}
+          onChange={(event) => configure({ editorMode: event.target.value as EditorMode })}
         >
-          <span className="source-name">{t('Source')}</span>
-          <span className="source-symbol" aria-hidden="true">
-            &lt;/&gt;
-          </span>
-        </button>
+          {editorModes.map((id) => (
+            <option key={id} value={id}>
+              {t(editorModeLabels[id])}
+            </option>
+          ))}
+        </select>
         <IconButton label={t('Settings')} onClick={() => showPreferences(true)}>
           <svg
             width="16"

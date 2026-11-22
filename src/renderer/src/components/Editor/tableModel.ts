@@ -75,7 +75,7 @@ const ALIGN_DELIM: Record<Align, string> = {
   left: ':---',
   center: ':-:',
   right: '---:',
-  none: '---',
+  none: '---'
 }
 
 /** Serialize a model back to GFM markdown. */
@@ -85,9 +85,36 @@ export function serializeTable(t: TableModel): string {
   const lines = [
     row(t.header),
     '| ' + t.aligns.map((a) => ALIGN_DELIM[a]).join(' | ') + ' |',
-    ...t.rows.map(row),
+    ...t.rows.map(row)
   ]
   return lines.join('\n')
+}
+
+/** Replace just one cell, leaving other rows, delimiters and alignment intact. */
+export function tableCellChange(md: string, row: number, column: number, value: string) {
+  const lines = md.split('\n')
+  const lineIndex = row === -1 ? 0 : row + 2
+  const line = lines[lineIndex]
+  if (line === undefined) return null
+  const offset = lines.slice(0, lineIndex).reduce((sum, text) => sum + text.length + 1, 0)
+  const pipes = [...line.matchAll(/(?<!\\)\|/g)].map((match) => match.index)
+  const leading = line.trimStart().startsWith('|')
+  const trailing = pipes.at(-1) === line.trimEnd().length - 1
+  const divider = column + Number(leading)
+  const left = divider === 0 ? 0 : pipes[divider - 1] + 1
+  const right = pipes[divider] ?? line.length
+  const text = value.replace(/\|/g, '\\|')
+  if (Number.isFinite(left) && !(trailing && left > pipes.at(-1)!)) {
+    return { from: offset + left, to: offset + right, insert: ' ' + text + ' ' }
+  }
+  // GFM pads a short body row visually. Materialize cells up to the edited column.
+  const end = trailing ? pipes.at(-1)! : line.length
+  const existingCells = pipes.length + 1 - Number(leading) - Number(trailing)
+  return {
+    from: offset + end,
+    to: offset + end,
+    insert: ' |'.repeat(column - existingCells + 1) + ' ' + text + ' '
+  }
 }
 
 const emptyRow = (cols: number): string[] => Array.from({ length: cols }, () => '')

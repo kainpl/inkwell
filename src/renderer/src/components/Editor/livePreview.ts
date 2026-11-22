@@ -2,10 +2,12 @@ import { DEFAULT_MARKDOWN_FEATURES, type MarkdownFeatures } from '@renderer/lib/
 import { translate } from '@renderer/lib/i18n'
 import { convertFileSrc } from '@tauri-apps/api/core'
 import { openUrl } from '@tauri-apps/plugin-opener'
-import { Decoration, type DecorationSet, EditorView, WidgetType } from '@codemirror/view'
-import { Range, Facet, StateField, type EditorState, type Text } from '@codemirror/state'
+import { Decoration, type DecorationSet, EditorView, WidgetType, drawSelection, keymap } from '@codemirror/view'
+import { Range, RangeSet, Facet, StateField, EditorState, Prec, findClusterBreak, type Text } from '@codemirror/state'
+import { standardKeymap } from '@codemirror/commands'
 import { syntaxTree, syntaxTreeAvailable } from '@codemirror/language'
-import { markdownLanguage } from '@codemirror/lang-markdown'
+import { markdown, markdownLanguage } from '@codemirror/lang-markdown'
+import { Subscript, Superscript } from '@lezer/markdown'
 import type { SyntaxNode, SyntaxNodeRef, Tree } from '@lezer/common'
 import { parseOutline, revealInEditor } from '@renderer/lib/outline'
 import { get as emojiGet, search as emojiSearch } from 'node-emoji'
@@ -15,7 +17,8 @@ import { type ImageAlign, parseHtmlImage, parseMarkdownImage, parseImage, toHtml
 import katex from 'katex'
 import { renderMermaid } from './mermaidRender'
 import DOMPurify from 'dompurify'
-import { parseTable } from './tableModel'
+import { floatingToolbar } from './floatingToolbar'
+import { parseTable, tableCellChange } from './tableModel'
 import { applyTable, applyTableAt, type TableAction } from './tableCommands'
 import {
   createElement as createIcon,
@@ -431,6 +434,38 @@ function renderCell(cell: HTMLTableCellElement, text: string): void {
   })
 }
 
+interface ActiveCell {
+  row: number
+  col: number
+  table: TableWidget
+  editor: EditorView
+}
+
+const activeCells = new WeakMap<HTMLElement, ActiveCell>()
+const renderedTables = new WeakMap<HTMLElement, TableWidget>()
+const cellMarkdown = markdown({
+  base: markdownLanguage,
+  extensions: [
+    Subscript,
+    Superscript,
+    {
+      remove: [
+        'ATXHeading',
+        'SetextHeading',
+        'HorizontalRule',
+        'Blockquote',
+        'BulletList',
+        'OrderedList',
+        'HTMLBlock',
+        'FencedCode',
+        'IndentedCode',
+        'LinkReference',
+        'Table'
+      ]
+    }
+  ]
+})
+
 /**
  * Renders a GFM table as a styled HTML <table> on idle lines, with an inline
  * toolbar (add/delete row+col, alignment) and draggable column borders. Controls
@@ -442,15 +477,136 @@ export class TableWidget extends WidgetType {
   constructor(
     readonly md: string,
     readonly pos: number,
+    readonly visualCells = false
   ) {
     super()
   }
   eq(other: TableWidget): boolean {
-    return other.md === this.md && other.pos === this.pos
+    return other.md === this.md && other.pos === this.pos && other.visualCells === this.visualCells
+  }
+  updateDOM(wrap: HTMLElement, _view: EditorView, previous: TableWidget): boolean {
+    const cell = activeCells.get(wrap)
+    if (!this.visualCells || !cell) return false
+    const change = tableCellChange(
+      previous.md,
+      cell.row,
+      cell.col,
+      cell.editor.state.doc.toString()
+    )
+    if (
+      previous.md !== this.md &&
+      (!change ||
+        previous.md.slice(0, change.from) + change.insert + previous.md.slice(change.to) !==
+          this.md)
+    )
+      return false
+    cell.table = this
+    renderedTables.set(wrap, this)
+    return true
+  }
+  destroy(wrap: HTMLElement): void {
+    activeCells.get(wrap)?.editor.destroy()
+    activeCells.delete(wrap)
+  }
+
+  private bindCell(
+    wrap: HTMLElement,
+    view: EditorView,
+    cell: HTMLTableCellElement,
+    row: number,
+    col: number
+  ) {
+    if (!this.visualCells) return
+    const content = document.createElement('div')
+    content.className = 'ink-visual-cell'
+    content.tabIndex = 0
+    content.setAttribute('aria-label', translate('Edit table cell'))
+    content.append(...cell.childNodes)
+    cell.append(content)
+    const start = (pointer?: MouseEvent) => {
+      if (content.querySelector('.cm-editor')) return
+      const table = renderedTables.get(wrap) ?? this
+      const model = parseTable(table.md)
+      const text = (row === -1 ? model?.header[col] : model?.rows[row]?.[col]) ?? ''
+      // A focused cell runs the same Markdown renderer in a single-line editor.
+      // Its changes are written straight back to the parent document.
+      const mount = document.createElement('div')
+      content.replaceChildren(mount)
+      const editor = new EditorView({
+        parent: mount,
+        state: EditorState.create({
+          doc: text,
+          extensions: [
+            cellMarkdown,
+            livePreview,
+            visualEditing,
+            openLinksOnClick,
+            floatingToolbar,
+            EditorView.lineWrapping,
+            drawSelection(),
+            keymap.of(standardKeymap),
+            cellMode.of(true),
+            parentEditor.of(view),
+            previewContext.of(view.state.facet(previewContext)),
+            EditorView.contentAttributes.of({ 'aria-label': translate('Edit table cell') }),
+            EditorView.clipboardInputFilter.of((value) => value.replace(/\r\n?|\n/g, '<br>')),
+            EditorState.changeFilter.of((tr) => tr.newDoc.lines === 1),
+            EditorView.updateListener.of((update) => {
+              const active = activeCells.get(wrap)
+              if (!update.docChanged || active?.editor !== update.view) return
+              const { md, pos } = active.table
+              if (view.state.doc.sliceString(pos, pos + md.length) !== md) return
+              const change = tableCellChange(md, row, col, update.state.doc.toString())
+              if (change)
+                view.dispatch({
+                  changes: { from: pos + change.from, to: pos + change.to, insert: change.insert }
+                })
+            })
+          ]
+        })
+      })
+      const active = { row, col, table, editor }
+      activeCells.set(wrap, active)
+      const finish = () => {
+        if (activeCells.get(wrap) !== active) return
+        const display = document.createElement('td')
+        const model = parseTable(active.table.md)
+        renderCell(display, (row === -1 ? model?.header[col] : model?.rows[row]?.[col]) ?? '')
+        activeCells.delete(wrap)
+        editor.destroy()
+        content.replaceChildren(...display.childNodes)
+      }
+      mount.addEventListener('focusout', (event) => {
+        if (!(event.relatedTarget instanceof Node) || !content.contains(event.relatedTarget))
+          finish()
+      })
+      mount.addEventListener('keydown', (event) => {
+        if (event.key !== 'Escape' && event.key !== 'Enter') return
+        if (event.isComposing) return
+        event.preventDefault()
+        event.stopPropagation()
+        content.focus()
+      })
+      const position = pointer
+        ? editor.posAtCoords({ x: pointer.clientX, y: pointer.clientY }, false)
+        : null
+      editor.dispatch({ selection: { anchor: position ?? editor.state.doc.length } })
+      editor.focus()
+    }
+    content.addEventListener('click', (event) => {
+      if (!event.ctrlKey && !event.metaKey) start(event)
+    })
+    content.addEventListener('keydown', (event) => {
+      if (event.target === content && (event.key === 'Enter' || event.key === 'F2')) {
+        event.preventDefault()
+        start()
+      }
+    })
   }
   toDOM(view: EditorView): HTMLElement {
     const wrap = document.createElement('div')
     wrap.className = 'ink-table-wrap'
+    if (this.visualCells) renderedTables.set(wrap, this)
     const model = parseTable(this.md)
     if (!model) {
       wrap.textContent = this.md
@@ -465,7 +621,11 @@ export class TableWidget extends WidgetType {
     const table = document.createElement('table')
     table.className = 'ink-table'
     table.addEventListener('mousedown', (event) => {
-      if ((event.ctrlKey || event.metaKey) && event.target instanceof Element && event.target.closest('a[href]')) {
+      if (
+        (event.ctrlKey || event.metaKey) &&
+        event.target instanceof Element &&
+        event.target.closest('a[href]')
+      ) {
         // Keep CodeMirror from replacing the clicked widget with raw Markdown before click.
         event.preventDefault()
         event.stopPropagation()
@@ -502,6 +662,7 @@ export class TableWidget extends WidgetType {
       const align = model.aligns[i]
       if (align !== undefined && align !== 'none') th.style.textAlign = align
       th.addEventListener('mouseenter', target(-1, i))
+      this.bindCell(wrap, view, th, -1, i)
       // A draggable border on the right edge resizes this column (visual only —
       // GFM has no column widths, so it resets on the next edit).
       if (i < ncols) th.appendChild(this.resizeHandle(colEls, i, table))
@@ -519,6 +680,7 @@ export class TableWidget extends WidgetType {
         const align = model.aligns[i]
         if (align !== undefined && align !== 'none') td.style.textAlign = align
         td.addEventListener('mouseenter', target(r, i))
+        this.bindCell(wrap, view, td, r, i)
         tr.appendChild(td)
       })
       tbody.appendChild(tr)
@@ -529,7 +691,7 @@ export class TableWidget extends WidgetType {
     // the hovered target cell. mousedown + preventDefault keeps the caret out of
     // the table so it stays rendered (idle) through the edit.
     const toolbar = buildTableToolbar((action) =>
-      applyTableAt(view, pos, activeRow, activeCol, action),
+      applyTableAt(view, renderedTables.get(wrap)?.pos ?? pos, activeRow, activeCol, action)
     )
 
     wrap.appendChild(toolbar)
@@ -541,7 +703,7 @@ export class TableWidget extends WidgetType {
   private resizeHandle(
     colEls: HTMLTableColElement[],
     i: number,
-    table: HTMLTableElement,
+    table: HTMLTableElement
   ): HTMLElement {
     const handle = document.createElement('span')
     handle.className = 'ink-col-resize'
@@ -572,8 +734,12 @@ export class TableWidget extends WidgetType {
     return handle
   }
 
-  ignoreEvent(): boolean {
-    return false
+  ignoreEvent(event: Event): boolean {
+    return (
+      this.visualCells &&
+      event.target instanceof Element &&
+      !!event.target.closest('.ink-visual-cell')
+    )
   }
 }
 
@@ -883,7 +1049,7 @@ export const openLinksOnClick = EditorView.domEventHandlers({
     const url = linkUrlAt(view.state, pos)
     if (!url) return false
     event.preventDefault()
-    followLink(view, url)
+    followLink(view.state.facet(parentEditor) ?? view, url)
     return true
   },
 })
@@ -1205,6 +1371,7 @@ export function buildDecorations(
   const doc = state.doc
   const fullText = doc.toString()
   const features = state.facet(previewContext).features ?? DEFAULT_MARKDOWN_FEATURES
+  const visual = state.facet(keepMarkupHidden)
   const fnDefs = features.footnotes ? footnoteDefs(fullText) : new Map<string, string>()
   // Parse headings once for any `[toc]` widget (excludes the [toc] line itself).
   const tocHeadings = features.toc && /\[toc\]/i.test(fullText) ? parseOutline(fullText) : []
@@ -1243,6 +1410,10 @@ export function buildDecorations(
         const name = node.name
         if (name === 'HTMLTag') {
           const line = doc.lineAt(node.from)
+          if (state.facet(cellMode) && /^<br[ \t]*\/?>$/i.test(doc.sliceString(node.from, node.to))) {
+            decos.push(Decoration.replace({ widget: new CellBreakWidget() }).range(node.from, node.to))
+            return
+          }
           if (!active.has(line.number)) {
             emptyAnchor.lastIndex = node.from - line.from
             const anchor = emptyAnchor.exec(line.text)
@@ -1324,7 +1495,7 @@ export function buildDecorations(
           if (!blockActive) {
             const md = doc.sliceString(node.from, node.to)
             decos.push(
-              Decoration.replace({ widget: new TableWidget(md, node.from), block: true }).range(
+              Decoration.replace({ widget: new TableWidget(md, node.from, visual), block: true }).range(
                 node.from,
                 node.to,
               ),
@@ -1559,12 +1730,14 @@ export function buildDecorations(
         }
 
         // 5) Syntax markers: hide on inactive lines, dim on active ones.
-        if (MARK_NODES.has(name)) {
+        if (MARK_NODES.has(name) || (visual && name === 'LinkTitle')) {
           const lineNo = doc.lineAt(node.from).number
           if (active.has(lineNo)) {
             decos.push(Decoration.mark({ class: 'ink-mark' }).range(node.from, node.to))
           } else if (node.to > node.from) {
-            decos.push(Decoration.replace({}).range(node.from, node.to))
+            const whitespace = visual && name === 'HeaderMark' && /^\s*$/.test(doc.sliceString(doc.lineAt(node.from).from, node.from))
+              ? doc.sliceString(node.to, doc.lineAt(node.to).to).match(/^[ \t]+/)?.[0].length ?? 0 : 0
+            decos.push(Decoration.replace({}).range(node.from, node.to + whitespace))
           }
         }
       },
@@ -1608,10 +1781,85 @@ function computeDecorations(state: EditorState): DecorationSet {
   return buildDecorations(
     state,
     [{ from: 0, to: state.doc.length }],
-    activeLines(state),
+    state.facet(keepMarkupHidden) ? new Set() : activeLines(state),
     docPath,
   )
 }
+
+const keepMarkupHidden = Facet.define<boolean, boolean>({
+  combine: (values) => values.some(Boolean)
+})
+const cellMode = Facet.define<boolean, boolean>({ combine: (values) => values.some(Boolean) })
+const parentEditor = Facet.define<EditorView, EditorView | null>({
+  combine: (values) => values[0] ?? null
+})
+
+class CellBreakWidget extends WidgetType {
+  get lineBreaks() {
+    return 1
+  }
+  toDOM(): HTMLElement {
+    return document.createElement('br')
+  }
+}
+
+function deleteAcrossMarkup(view: EditorView, forward: boolean): boolean {
+  const { state } = view
+  const { main, ranges } = state.selection
+  if (!main.empty || ranges.length !== 1 || state.readOnly) return false
+  const line = state.doc.lineAt(main.head)
+  const markers = new Map<number, number>()
+  state.field(livePreview).between(line.from, line.to, (from, to, decoration) => {
+    if (
+      decoration.point &&
+      !decoration.spec.widget &&
+      from < to &&
+      from >= line.from &&
+      to <= line.to
+    ) {
+      markers.set(forward ? from : to, forward ? to : from)
+    }
+  })
+  let position = main.head
+  while (markers.has(position)) position = markers.get(position)!
+  if (position === main.head) return false
+  // Skip markup at the edge of a formatted span. Delete a visible grapheme.
+  const adjacent = line.from + findClusterBreak(line.text, position - line.from, forward)
+  if (adjacent !== position) {
+    const from = Math.min(position, adjacent)
+    view.dispatch({
+      changes: { from, to: Math.max(position, adjacent) },
+      selection: { anchor: from },
+      userEvent: forward ? 'delete.forward' : 'delete.backward',
+      scrollIntoView: true
+    })
+  }
+  return true
+}
+
+const visualAtomic = new WeakMap<DecorationSet, RangeSet<Decoration>>()
+export const visualEditing = [
+  keepMarkupHidden.of(true),
+  Prec.high(
+    keymap.of([
+      { key: 'Backspace', run: (view) => deleteAcrossMarkup(view, false) },
+      { key: 'Delete', run: (view) => deleteAcrossMarkup(view, true) }
+    ])
+  ),
+  EditorView.atomicRanges.of((view) => {
+    const decorations = view.state.field(livePreview)
+    const cached = visualAtomic.get(decorations)
+    if (cached) return cached
+    const ranges: Range<Decoration>[] = []
+    for (const cursor = decorations.iter(); cursor.value; cursor.next()) {
+      if (cursor.value.point && cursor.to > cursor.from)
+        ranges.push(cursor.value.range(cursor.from, cursor.to))
+    }
+    const atomic = RangeSet.of(ranges, true)
+    visualAtomic.set(decorations, atomic)
+    return atomic
+  })
+]
 
 interface PreviewContext {
   features?: MarkdownFeatures
@@ -1626,8 +1874,10 @@ export const previewContext = Facet.define<PreviewContext, PreviewContext>({
 export const livePreview = StateField.define<DecorationSet>({
   create: (state) => computeDecorations(state),
   update(value, tr) {
-    const refresh = tr.startState.facet(previewContext) !== tr.state.facet(previewContext)
-    if (!tr.docChanged && !tr.selection && !refresh && syntaxTree(tr.startState) === syntaxTree(tr.state)) return value
+    const visual = tr.state.facet(keepMarkupHidden)
+    const refresh = tr.startState.facet(previewContext) !== tr.state.facet(previewContext) ||
+      visual !== tr.startState.facet(keepMarkupHidden)
+    if (!tr.docChanged && (!tr.selection || visual) && !refresh && syntaxTree(tr.startState) === syntaxTree(tr.state)) return value
     return computeDecorations(tr.state)
   },
   provide: (f) => EditorView.decorations.from(f),

@@ -93,7 +93,7 @@ export default function AppMenu({ actions }: { actions: DesktopActions }) {
         key={entry}
         onSelect={() => select(() => actions.run(entry))}
       >
-        {t(entry)}
+        {t(entry === 'Close' ? 'Close tab' : entry)}
         {shortcut && <kbd>{shortcutLabel(shortcut)}</kbd>}
       </Bar.Item>
     )
