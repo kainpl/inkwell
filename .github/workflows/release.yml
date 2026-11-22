@@ -1,0 +1,111 @@
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-${{ github.ref }}
+
+jobs:
+  version:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Verify the tag, release branch and build versions
+        shell: bash
+        run: |
+          git merge-base --is-ancestor HEAD origin/main
+          python3 - <<'PY'
+          import json, os, re
+          from pathlib import Path
+
+          tag = os.environ["GITHUB_REF_NAME"]
+          if not re.fullmatch(r"v[0-9]+\.[0-9]+\.[0-9]+", tag):
+              raise SystemExit(f"Expected vMAJOR.MINOR.PATCH, got {tag}")
+          for file in ("package.json", "package-lock.json", "src-tauri/tauri.conf.json"):
+              if json.loads(Path(file).read_text(encoding="utf-8"))["version"] != tag[1:]:
+                  raise SystemExit(f"{file} does not match {tag}")
+          if f'version = "{tag[1:]}"' not in Path("src-tauri/Cargo.toml").read_text(encoding="utf-8").splitlines()[:5]:
+              raise SystemExit(f"Cargo.toml does not match {tag}")
+          if not Path(f".github/release-notes/{tag}.md").is_file():
+              raise SystemExit(f"Release notes missing for {tag}")
+          PY
+
+  ci:
+    needs: version
+    uses: ./.github/workflows/ci.yml
+
+  package:
+    needs: version
+    name: Package ${{ matrix.platform }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - {platform: windows, os: windows-2022, args: '--bundles nsis'}
+          - {platform: linux, os: ubuntu-22.04, args: '--bundles deb,appimage'}
+          - {platform: macos, os: macos-15, args: '--target universal-apple-darwin --bundles dmg'}
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/setup
+      - name: Install both macOS Rust targets
+        if: runner.os == 'macOS'
+        run: rustup target add aarch64-apple-darwin x86_64-apple-darwin
+      - name: Build native packages
+        shell: bash
+        env:
+          APPIMAGE_EXTRACT_AND_RUN: '1'
+        run: npm run build -- ${{ matrix.args }} -- --locked
+      - name: Stage downloads
+        run: python scripts/stage-release.py ${{ matrix.platform }} release
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: inkwell-${{ matrix.platform }}
+          path: release/*
+          if-no-files-found: error
+
+  publish:
+    needs: [ci, package]
+    runs-on: ubuntu-22.04
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5
+        with:
+          pattern: inkwell-*
+          path: release
+          merge-multiple: true
+      - name: Upload and publish all downloads
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          tag="$GITHUB_REF_NAME"
+          base="Inkwell-${tag#v}"
+          files=("$base-windows-x64-setup.exe" "$base-windows-x64-portable.zip" "$base-linux-x64.deb" "$base-linux-x64.AppImage" "$base-macos-universal.dmg")
+          (cd release && sha256sum "${files[@]}" > SHA256SUMS.txt)
+          if gh release view "$tag" --json isDraft --jq .isDraft > "$RUNNER_TEMP/inkwell-draft"; then
+            if [[ "$(cat "$RUNNER_TEMP/inkwell-draft")" != true ]]; then
+              echo "Release $tag is already published."
+              exit 0
+            fi
+          else
+            gh release create "$tag" --verify-tag --draft --title "Inkwell ${tag#v}" --notes-file ".github/release-notes/$tag.md"
+          fi
+          (cd release && gh release upload "$tag" --clobber "${files[@]}" SHA256SUMS.txt)
+          gh release edit "$tag" --draft=false --latest

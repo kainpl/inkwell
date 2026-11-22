@@ -3,6 +3,7 @@ import { useAppStore } from '@renderer/store/useAppStore'
 import { useTranslate } from '@renderer/lib/i18n'
 import { fonts, palettes, type Language, type Settings } from '@renderer/lib/settings'
 import { MARKDOWN_FEATURE_LIST } from '@renderer/lib/markdownFeatures'
+import RecentSettings from './RecentSettings'
 import {
   commands,
   defaultShortcuts,
@@ -47,7 +48,7 @@ function ShortcutField({ command }: { command: Command }) {
   )
 }
 
-const tabs = ['Appearance', 'Writing', 'Markdown', 'Spelling', 'Shortcuts'] as const
+const tabs = ['Appearance', 'Writing', 'Markdown', 'Spelling', 'Recent items', 'Shortcuts'] as const
 export default function Preferences() {
   const s = useAppStore()
   const t = useTranslate()
@@ -252,6 +253,17 @@ export default function Preferences() {
                   }
                 />
               </label>
+            </>
+          )}
+          {tab === 'Recent items' && (
+            <>
+              <p>
+                {t(
+                  'Keep up to 100 entries per list. Lowering a limit removes the oldest entries. Set it to 0 to disable that list.'
+                )}
+              </p>
+              <RecentSettings kind="files" />
+              <RecentSettings kind="folders" />
             </>
           )}
           {tab === 'Shortcuts' && (

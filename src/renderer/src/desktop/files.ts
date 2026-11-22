@@ -1,15 +1,29 @@
 import { translate } from '@renderer/lib/i18n'
 import { useAppStore } from '@renderer/store/useAppStore'
-import { open, save } from '@tauri-apps/plugin-dialog'
+import { message, open, save } from '@tauri-apps/plugin-dialog'
+import { invoke } from '@tauri-apps/api/core'
+import { updateRecents, type RecentKind } from '@renderer/lib/recents'
 import { readDir, readFile, writeTextFile } from '@tauri-apps/plugin-fs'
 import { basename, sep } from '@tauri-apps/api/path'
 import type { FileNode, OpenedFile } from '@shared/files'
 
 const extensions = ['md', 'markdown', 'mdown', 'mkd', 'txt']
 
+async function remember(kind: RecentKind, path: string): Promise<void> {
+  try {
+    await updateRecents({ type: 'visit', kind, path })
+  } catch (error) {
+    void message(String(error), {
+      title: translate('Could not update recent items'),
+      kind: 'error'
+    })
+  }
+}
+
 async function readDocument(path: string): Promise<OpenedFile> {
   // Preserve an existing UTF-8 BOM on a subsequent save, as well as the line endings.
   const content = new TextDecoder('utf-8', { ignoreBOM: true }).decode(await readFile(path))
+  await remember('files', path)
   return { path, name: await basename(path), content }
 }
 
@@ -32,18 +46,29 @@ async function children(path: string): Promise<FileNode[]> {
   }))
 }
 
+async function readFolder(path: string): Promise<FileNode> {
+  const entries = await children(path)
+  const name = await basename(path).catch(() => path) // A filesystem root has no basename.
+  await remember('folders', path)
+  return { path, name, type: 'directory', children: entries }
+}
+
 export const files = {
+  restoreRecentAccess: (kind: RecentKind, path: string) =>
+    invoke<void>('restore_recent_access', { kind, path }),
+  readFolder,
   readFile: readDocument,
   readDir: children,
   async openFileDialog(): Promise<OpenedFile | null> {
-    const path = await open({ title: translate('Open File…'), filters: [{ name: 'Markdown', extensions }] })
+    const path = await open({
+      title: translate('Open File…'),
+      filters: [{ name: 'Markdown', extensions }]
+    })
     return path ? readDocument(path) : null
   },
   async openFolderDialog(): Promise<FileNode | null> {
     const path = await open({ title: translate('Open Folder…'), directory: true, recursive: true })
-    return path
-      ? { path, name: await basename(path), type: 'directory', children: await children(path) }
-      : null
+    return path ? readFolder(path) : null
   },
   async saveFile(path: string, content: string): Promise<boolean> {
     await writeTextFile(path, content)
@@ -57,6 +82,7 @@ export const files = {
     })
     if (!path) return null
     await writeTextFile(path, content)
+    await remember('files', path)
     return { path, name: await basename(path), content }
   }
 }

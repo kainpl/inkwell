@@ -1,6 +1,7 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'
 import { isTauri } from '@tauri-apps/api/core'
+import { getCurrentWindow } from '@tauri-apps/api/window'
 import { files } from './desktop/files'
 import { installDesktopShell } from './desktop/shell'
 import App from './App'
@@ -17,16 +18,21 @@ const root = ReactDOM.createRoot(document.getElementById('root') as HTMLElement)
 
 async function start(): Promise<void> {
   if (!isTauri())
-    throw new Error(translate('Open Inkwell in its desktop window. For development, run npm run dev.'))
+    throw new Error(
+      translate('Open Inkwell in its desktop window. For development, run npm run dev.')
+    )
   window.api = files
-  await installDesktopShell()
+  const actions = await installDesktopShell()
   root.render(
     <React.StrictMode>
-      <App />
+      <App actions={actions} />
     </React.StrictMode>
   )
 }
 
 void start().catch((error: unknown) => {
+  if (isTauri() && navigator.platform.startsWith('Win')) {
+    void getCurrentWindow().setDecorations(true).catch(console.error)
+  }
   root.render(<StartupError title={translate('Inkwell failed to start')} detail={String(error)} />)
 })

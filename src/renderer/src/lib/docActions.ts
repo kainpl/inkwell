@@ -1,5 +1,6 @@
 import { useAppStore } from '@renderer/store/useAppStore'
 import { useConfirm } from '@renderer/store/useConfirm'
+import type { RecentKind } from './recents'
 
 /**
  * Document operations that may discard unsaved work, all funnelled through
@@ -96,8 +97,15 @@ export async function openFolderFromDialog(): Promise<void> {
   if (node) useAppStore.getState().setRoot(node)
 }
 
-export async function openPath(path: string): Promise<void> {
+export async function openPath(path: string, recent = false): Promise<void> {
   if (!(await guardUnsaved())) return
+  if (recent) await window.api.restoreRecentAccess('files', path)
   const file = await window.api.readFile(path)
   useAppStore.getState().loadDoc(file)
+}
+
+export async function openRecent(kind: RecentKind, path: string): Promise<void> {
+  if (kind === 'files') return openPath(path, true)
+  await window.api.restoreRecentAccess(kind, path)
+  useAppStore.getState().setRoot(await window.api.readFolder(path))
 }

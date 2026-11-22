@@ -10,15 +10,18 @@ export const fonts = {
   'JetBrains Mono': '"JetBrains Mono Variable", monospace'
 }
 export type Language = 'uk' | 'en'
+export const sidebarMinWidth = 180
+export const sidebarMaxWidth = 720
 const language: Language = navigator.language.toLowerCase().startsWith('uk') ? 'uk' : 'en'
 export const defaults = {
   language,
-  theme: 'light' as 'light' | 'dark',
+  theme: 'dark' as 'light' | 'dark',
   palette: 'Inkwell' as (typeof palettes)[number],
-  font: 'Serif' as keyof typeof fonts,
-  fontSize: 17,
-  lineHeight: 1.75,
-  columnWidth: 80,
+  font: 'JetBrains Mono' as keyof typeof fonts,
+  fontSize: 12,
+  lineHeight: 1.25,
+  columnWidth: 90,
+  sidebarWidth: 240,
   sourceMode: false,
   focusMode: false,
   typewriterMode: false,
@@ -54,11 +57,12 @@ export function readSettings(): Settings {
     for (const [key, min, max] of [
       ['fontSize', 11, 24],
       ['lineHeight', 1, 2.4],
-      ['columnWidth', 40, 100]
+      ['columnWidth', 40, 100],
+      ['sidebarWidth', sidebarMinWidth, sidebarMaxWidth]
     ] as const)
       if (Number.isFinite(s[key])) out[key] = Math.max(min, Math.min(max, s[key]))
     if (s.language === 'uk' || s.language === 'en') out.language = s.language
-    if (s.theme === 'dark') out.theme = 'dark'
+    if (s.theme === 'light' || s.theme === 'dark') out.theme = s.theme
     if (s.lineEnding === 'CRLF') out.lineEnding = 'CRLF'
     if (palettes.includes(s.palette)) out.palette = s.palette
     if (Object.hasOwn(fonts, s.font)) out.font = s.font

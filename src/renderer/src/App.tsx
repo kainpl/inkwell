@@ -2,7 +2,6 @@ import { useEffect, type CSSProperties } from 'react'
 import { useAppStore } from '@renderer/store/useAppStore'
 import TitleBar from '@renderer/components/TitleBar'
 import Sidebar from '@renderer/components/Sidebar'
-import OutlinePanel from '@renderer/components/OutlinePanel'
 import StatusBar from '@renderer/components/StatusBar'
 import Editor from '@renderer/components/Editor/Editor'
 import ConfirmUnsavedModal from '@renderer/components/ConfirmUnsavedModal'
@@ -10,8 +9,9 @@ import ConfirmUnsavedModal from '@renderer/components/ConfirmUnsavedModal'
 import Preferences from './components/Preferences'
 import { useShallow } from 'zustand/react/shallow'
 import { fonts } from './lib/settings'
+import type { DesktopActions } from './desktop/menu'
 
-export default function App(): JSX.Element {
+export default function App({ actions }: { actions: DesktopActions }): JSX.Element {
   const theme = useAppStore((s) => s.theme)
 
   const [palette, font, fontSize, lineHeight, columnWidth, preferencesOpen, language] = useAppStore(
@@ -37,7 +37,7 @@ export default function App(): JSX.Element {
 
   return (
     <div className="flex h-full w-full flex-col bg-paper">
-      <TitleBar />
+      <TitleBar actions={actions} />
       <div className="flex min-h-0 flex-1">
         <Sidebar />
         <main
@@ -54,7 +54,6 @@ export default function App(): JSX.Element {
         >
           <Editor />
         </main>
-        <OutlinePanel />
       </div>
       <StatusBar />
       {preferencesOpen && <Preferences />}

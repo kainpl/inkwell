@@ -4,9 +4,10 @@ import { convertFileSrc } from '@tauri-apps/api/core'
 import { openUrl } from '@tauri-apps/plugin-opener'
 import { Decoration, type DecorationSet, EditorView, WidgetType } from '@codemirror/view'
 import { Range, Facet, StateField, type EditorState, type Text } from '@codemirror/state'
-import { syntaxTree } from '@codemirror/language'
-import type { SyntaxNode, SyntaxNodeRef } from '@lezer/common'
-import { parseOutline } from '@renderer/lib/outline'
+import { syntaxTree, syntaxTreeAvailable } from '@codemirror/language'
+import { markdownLanguage } from '@codemirror/lang-markdown'
+import type { SyntaxNode, SyntaxNodeRef, Tree } from '@lezer/common'
+import { parseOutline, revealInEditor } from '@renderer/lib/outline'
 import { get as emojiGet, search as emojiSearch } from 'node-emoji'
 import type { CompletionSource } from '@codemirror/autocomplete'
 import MarkdownIt from 'markdown-it'
@@ -398,9 +399,34 @@ export class TableEditToolbarWidget extends WidgetType {
 
 const tableMarkdown = new MarkdownIt({ html: false, linkify: true })
 
+// Cells wrap only at explicit word boundaries. Escape the token first so
+// break opportunities are added to visible text, never to a link's href.
+function renderTableText(text: string): string {
+  return tableMarkdown.utils.escapeHtml(text).replace(/[ \t]+/g, '<wbr>$&')
+}
+tableMarkdown.renderer.rules.text = (tokens, i) => renderTableText(tokens[i].content)
+tableMarkdown.renderer.rules.code_inline = (tokens, i) => '<code>' + renderTableText(tokens[i].content) + '</code>'
+
+// Recognize empty anchors and explicit line breaks without enabling arbitrary HTML.
+const emptyAnchor = /<a[ \t]+(?:id|name)[ \t]*=[ \t]*(?:"([^"\s<>]+)"|'([^'\s<>]+)')[ \t]*>[ \t]*<\/a[ \t]*>/iy
+const tableLineBreak = /<br[ \t]*\/?>/iy
+tableMarkdown.inline.ruler.before('html_inline', 'table_html', (state, silent) => {
+  if (state.src[state.pos] !== '<') return false
+  tableLineBreak.lastIndex = state.pos
+  if (tableLineBreak.test(state.src) && tableLineBreak.lastIndex <= state.posMax) {
+    if (!silent) state.push('hardbreak', 'br', 0)
+    state.pos = tableLineBreak.lastIndex
+    return true
+  }
+  emptyAnchor.lastIndex = state.pos
+  if (!emptyAnchor.test(state.src) || emptyAnchor.lastIndex > state.posMax) return false
+  state.pos = emptyAnchor.lastIndex
+  return true
+})
+
 function renderCell(cell: HTMLTableCellElement, text: string): void {
   cell.innerHTML = DOMPurify.sanitize(tableMarkdown.renderInline(text), {
-    ALLOWED_TAGS: ['strong', 'em', 's', 'code', 'a', 'br'],
+    ALLOWED_TAGS: ['strong', 'em', 's', 'code', 'a', 'br', 'wbr'],
     ALLOWED_ATTR: ['href', 'title']
   })
 }
@@ -438,14 +464,19 @@ export class TableWidget extends WidgetType {
 
     const table = document.createElement('table')
     table.className = 'ink-table'
+    table.addEventListener('mousedown', (event) => {
+      if ((event.ctrlKey || event.metaKey) && event.target instanceof Element && event.target.closest('a[href]')) {
+        // Keep CodeMirror from replacing the clicked widget with raw Markdown before click.
+        event.preventDefault()
+        event.stopPropagation()
+      }
+    })
     table.addEventListener('click', (event) => {
       const link = event.target instanceof Element ? event.target.closest('a') : null
       if (!link) return
       event.preventDefault()
       const href = link.getAttribute('href') ?? ''
-      if ((event.ctrlKey || event.metaKey) && /^(https?:\/\/|mailto:)/i.test(href)) {
-        void openUrl(href)
-      }
+      if (event.ctrlKey || event.metaKey) followLink(view, href)
     })
     const ncols = model.header.length
     const colEls: HTMLTableColElement[] = []
@@ -764,13 +795,44 @@ function slugify(text: string): string {
     .replace(/\s+/g, '-')
 }
 
-/** Document offset of the heading whose explicit `{#id}` or slug matches, or null. */
-export function headingOffset(state: EditorState, slug: string): number | null {
+// The live editor parses incrementally. A link near the top can target a
+// table far beyond the parsed viewport in a long document.
+const completeTrees = new WeakMap<Text, Tree>()
+
+export function anchorOffset(state: EditorState, fragment: string): number | null {
+  let slug: string
+  try {
+    slug = decodeURIComponent(fragment)
+  } catch {
+    slug = fragment
+  }
+  if (!slug) return null
+  const text = state.doc.toString()
+  for (const match of text.matchAll(new RegExp(emptyAnchor.source, 'gi'))) {
+    if ((match[1] ?? match[2]) !== slug) continue
+    let tree = syntaxTree(state)
+    if (!syntaxTreeAvailable(state, match.index + match[0].length)) {
+      tree = completeTrees.get(state.doc) ?? markdownLanguage.parser.parse(text)
+      completeTrees.set(state.doc, tree)
+    }
+    // Literal examples inside code, escaped tags and comments are not destinations.
+    const node = tree.resolve(match.index, 1)
+    if (node.name === 'HTMLTag' && node.from === match.index) return match.index
+  }
   const target = slug.toLowerCase()
-  const h = parseOutline(state.doc.toString()).find(
+  const h = parseOutline(text).find(
     (x) => x.id?.toLowerCase() === target || slugify(x.text) === target,
   )
   return h ? h.from : null
+}
+
+function followLink(view: EditorView, url: string): void {
+  if (url.startsWith('#')) {
+    const target = anchorOffset(view.state, url.slice(1))
+    if (target != null) revealInEditor(view, target)
+  } else if (/^(https?:\/\/|mailto:)/i.test(url)) {
+    void openUrl(url)
+  }
 }
 
 /** Resolve a reference-link id against its `[id]: url` definition. */
@@ -821,18 +883,7 @@ export const openLinksOnClick = EditorView.domEventHandlers({
     const url = linkUrlAt(view.state, pos)
     if (!url) return false
     event.preventDefault()
-    if (url.startsWith('#')) {
-      const target = headingOffset(view.state, url.slice(1))
-      if (target != null) {
-        view.dispatch({
-          selection: { anchor: target },
-          effects: EditorView.scrollIntoView(target, { y: 'start' }),
-        })
-        view.focus()
-      }
-    } else if (/^(https?:\/\/|mailto:)/i.test(url)) {
-      void openUrl(url)
-    }
+    followLink(view, url)
     return true
   },
 })
@@ -1190,6 +1241,15 @@ export function buildDecorations(
       to,
       enter: (node): boolean | void => {
         const name = node.name
+        if (name === 'HTMLTag') {
+          const line = doc.lineAt(node.from)
+          if (!active.has(line.number)) {
+            emptyAnchor.lastIndex = node.from - line.from
+            const anchor = emptyAnchor.exec(line.text)
+            if (anchor) decos.push(Decoration.replace({}).range(node.from, node.from + anchor[0].length))
+          }
+          return
+        }
         if (!features.subSup && (name === 'Subscript' || name === 'Superscript')) return false
         if (name === 'Link' || name === 'LinkReference') {
           const text = doc.sliceString(node.from, node.to)

@@ -81,7 +81,13 @@
 /* Rendered GFM table. Block-replace widgets use PADDING (not margin). */
 .ink-table-wrap { display: block; overflow-x: auto; padding: 0.4em 0; position: relative; }
 .ink-table { border-collapse: collapse; width: auto; }
-.ink-table th, .ink-table td { border: 1px solid rgb(var(--line)); padding: 0.35em 0.7em; }
+.ink-table th, .ink-table td {
+  border: 1px solid rgb(var(--line));
+  padding: 0.35em 0.7em;
+  white-space: nowrap;
+  word-break: normal;
+  overflow-wrap: normal;
+}
 .ink-table th { background: color-mix(in srgb, rgb(var(--ink)) 4%, transparent); font-weight: 700; text-align: left; position: relative; }
 .ink-table tr:nth-child(even) td { background: color-mix(in srgb, rgb(var(--ink)) 2%, transparent); }
 

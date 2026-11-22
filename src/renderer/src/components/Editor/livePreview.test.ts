@@ -22,7 +22,7 @@ import {
   TableEditToolbarWidget,
   resolveImageSrc,
   linkUrlAt,
-  headingOffset,
+  anchorOffset,
 } from './livePreview'
 
 interface DecoItem {
@@ -30,6 +30,9 @@ interface DecoItem {
   to: number
   spec: Decoration['spec']
 }
+
+const isHidden = (i: DecoItem): boolean =>
+  i.spec.widget === undefined && i.spec.class === undefined && i.from !== i.to
 
 /** Build decorations for a doc with the given active (1-based) line numbers. */
 function decorate(doc: string, active: number[] = []): DecoItem[] {
@@ -154,8 +157,6 @@ describe('buildDecorations — horizontal rule & links', () => {
   })
 
   it('hides a heading {#id} marker on idle lines, keeps it when active', () => {
-    const isHidden = (i: DecoItem): boolean =>
-      i.spec.widget === undefined && i.spec.class === undefined && i.from !== i.to
     // "### Title {#id}" → hide " {#id}" (indices 9..15) on the idle line.
     expect(
       decorate('### Title {#id}').some((i) => isHidden(i) && i.from === 9 && i.to === 15),
@@ -184,7 +185,15 @@ describe('buildDecorations — horizontal rule & links', () => {
   })
 
   it('maps an internal anchor to a heading offset', () => {
-    expect(headingOffset(parsed('# Tasks\n\nbody'), 'tasks')).toBe(0)
+    expect(anchorOffset(parsed('# Tasks\n\nbody'), 'tasks')).toBe(0)
+  })
+
+  it('resolves named HTML anchors, ignoring examples in code and escaped markup', () => {
+    const tag = '<a name="звіт"></a>'
+    const doc = ['`' + tag + '`', '\\' + tag, '<!-- ' + tag + ' -->', '```html', tag, '```', '', tag + ' Тут'].join('\n')
+    expect(anchorOffset(parsed(doc), encodeURIComponent('звіт'))).toBe(doc.lastIndexOf(tag))
+    expect(decorate(tag + ' Тут').some(i => isHidden(i) && i.from === 0 && i.to === tag.length)).toBe(true)
+    expect(decorate(tag + ' Тут', [1]).some(isHidden)).toBe(false)
   })
 })
 

@@ -1,5 +1,7 @@
 import { create } from 'zustand'
 import type { FileNode } from '@shared/files'
+import welcomeEn from '../welcome/Welcome.md?raw'
+import welcomeUk from '../welcome/Вітаємо.md?raw'
 
 import { readSettings, settingsKey, settingsKeys, type Settings } from '@renderer/lib/settings'
 
@@ -36,7 +38,8 @@ interface AppState extends Settings {
   // --- ui ---
   toggleTheme: () => void
   sidebarOpen: boolean
-  outlineOpen: boolean
+  sidebarTab: 'folder' | 'outline'
+  selectSidebarTab: (tab: 'folder' | 'outline') => void
   toggleSidebar: () => void
   toggleOutline: () => void
   toggleFocusMode: () => void
@@ -50,47 +53,11 @@ const EMPTY_DOC: DocState = {
   dirty: false
 }
 
-const WELCOME = `# Welcome to Inkwell
-
-A **seamless** Markdown editor — move your caret onto this line and the \`#\`
-marker reappears so you can edit it.
-
-## Try it
-
-- *Italic*, **bold**, ~~strikethrough~~ and \`inline code\`
-- A [link](https://typora.io) styled inline
-- Headings resize as you type
-
-## Lists
-
-- Bullet at depth one
-  - Nested item (hollow ◦ bullet)
-    - Deeper still (▪ bullet)
-- A long bullet that wraps onto a second line so you can see the hanging indent line up under the text rather than under the bullet
-
-1. Ordered item one
-2. Ordered item two
-3. Ordered item three
-
-> Markers hide on idle lines and reveal on the line you're editing.
-
-### Next
-
-Open a folder (\`Ctrl/⌘ Shift O\`) to browse files, or just start writing.
-`
-
-const INITIAL_DOC: DocState = {
-  path: null,
-  name: 'Welcome.md',
-  content: WELCOME,
-  dirty: false
-}
-
 const initial = readSettings()
-if (initial.language === 'uk') {
-  INITIAL_DOC.name = 'Вітаємо.md'
-  INITIAL_DOC.content =
-    '# Вітаємо в Inkwell\n\nПишіть у **Markdown**. Перемістіть курсор на рядок, щоб побачити його розмітку.\n\n## Спробуйте\n\n- *Курсив*, **жирний текст** і `код`\n- [ ] Позначте виконане завдання\n'
+const INITIAL_DOC: DocState = {
+  ...EMPTY_DOC,
+  name: initial.language === 'uk' ? 'Вітаємо.md' : 'Welcome.md',
+  content: (initial.language === 'uk' ? welcomeUk : welcomeEn).replace(/\r\n?/g, '\n')
 }
 
 export const useAppStore = create<AppState>((set) => ({
@@ -153,11 +120,16 @@ export const useAppStore = create<AppState>((set) => ({
       doc: { ...EMPTY_DOC, name: s.language === 'en' ? 'Untitled.md' : 'Без назви.md' }
     })),
   root: null,
-  setRoot: (root) => set({ root }),
+  setRoot: (root) => set(root ? { root, sidebarOpen: true, sidebarTab: 'folder' } : { root }),
   sidebarOpen: true,
-  outlineOpen: false,
+  sidebarTab: 'folder',
+  selectSidebarTab: (sidebarTab) => set({ sidebarOpen: true, sidebarTab }),
   toggleSidebar: () => set((s) => ({ sidebarOpen: !s.sidebarOpen })),
-  toggleOutline: () => set((s) => ({ outlineOpen: !s.outlineOpen })),
+  toggleOutline: () =>
+    set((s) => ({
+      sidebarOpen: !s.sidebarOpen || s.sidebarTab !== 'outline',
+      sidebarTab: 'outline'
+    })),
   toggleFocusMode: () => set((s) => ({ focusMode: !s.focusMode })),
   toggleTypewriter: () => set((s) => ({ typewriterMode: !s.typewriterMode }))
 }))

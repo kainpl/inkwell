@@ -1,7 +1,7 @@
 {
   "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
   "productName": "Inkwell",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "identifier": "io.inkwell.app",
   "build": {
     "frontendDist": "../dist",
@@ -29,6 +29,14 @@
   "bundle": {
     "active": true,
     "targets": "all",
+    "publisher": "Inkwell",
+    "homepage": "https://github.com/kainpl/inkwell",
+    "category": "Productivity",
+    "license": "MIT",
+    "shortDescription": "Markdown editor with live preview",
+    "macOS": {
+      "minimumSystemVersion": "11.0"
+    },
     "icon": [
       "icons/32x32.png",
       "icons/128x128.png",
@@ -37,8 +45,15 @@
       "icons/icon.ico"
     ],
     "resources": {
-      "../node_modules/dictionary-en/license": "licenses/dictionary-en.txt",
-      "../node_modules/dictionary-uk/license": "licenses/dictionary-uk.txt"
+      "../LICENSE": "licenses/Inkwell.txt",
+      "../THIRD-PARTY.md": "licenses/THIRD-PARTY.md",
+      "../node_modules/@fontsource-variable/jetbrains-mono/LICENSE": "licenses/JetBrains-Mono.txt",
+      "../node_modules/dictionary-en/index.aff": "dictionaries/dictionary-en/index.aff",
+      "../node_modules/dictionary-en/index.dic": "dictionaries/dictionary-en/index.dic",
+      "../node_modules/dictionary-en/license": "dictionaries/dictionary-en/license",
+      "../node_modules/dictionary-uk/index.aff": "dictionaries/dictionary-uk/index.aff",
+      "../node_modules/dictionary-uk/index.dic": "dictionaries/dictionary-uk/index.dic",
+      "../node_modules/dictionary-uk/license": "dictionaries/dictionary-uk/license"
     }
   }
 }

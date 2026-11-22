@@ -1,16 +1,31 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
-use tauri::WebviewWindowBuilder;
+use std::path::PathBuf;
 use tauri::webview::NewWindowResponse;
+use tauri::{Manager, WebviewWindowBuilder};
 
 mod images;
+mod recents;
 mod spelling;
+mod theme;
+
+struct AppData(PathBuf);
 
 fn main() {
-    tauri::Builder::default()
+    let builder = tauri::Builder::default();
+    #[cfg(windows)]
+    let builder = builder.plugin(
+        tauri_plugin_snap_layout::init()
+            .button_id("window-maximize")
+            .build(),
+    );
+    builder
         .invoke_handler(tauri::generate_handler![
             spelling::misspellings,
-            spelling::suggestions
+            spelling::suggestions,
+            theme::set_shell_theme,
+            recents::recent_history,
+            recents::restore_recent_access
         ])
         .plugin(tauri_plugin_fs::init())
         .plugin(tauri_plugin_dialog::init())
@@ -23,7 +38,24 @@ fn main() {
         .setup(|app| {
             let config = &app.config().app.windows[0];
             let dev_url = app.config().build.dev_url.clone();
-            WebviewWindowBuilder::from_config(app, config)?
+            let window = WebviewWindowBuilder::from_config(app, config)?;
+            #[cfg(windows)]
+            let window = window.decorations(false);
+            let resources = app.path().resource_dir()?;
+            let portable = cfg!(windows) && resources.join("portable").is_file();
+            let data = if portable {
+                resources.join("data")
+            } else {
+                app.path().app_data_dir()?
+            };
+            let window = if portable {
+                window.data_directory(data.join("webview"))
+            } else {
+                window
+            };
+            app.manage(AppData(data));
+            recents::protect_storage(app.handle())?;
+            window
                 .on_navigation(move |url| {
                     let local = url.port().is_none()
                         && matches!(

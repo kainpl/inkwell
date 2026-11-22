@@ -1,4 +1,4 @@
-import { guardUnsaved, saveDoc, saveDocAs, installAutosave } from './docActions'
+import { guardUnsaved, saveDoc, saveDocAs, installAutosave, openRecent } from './docActions'
 import { useAppStore } from '@renderer/store/useAppStore'
 import { useConfirm, type ConfirmChoice } from '@renderer/store/useConfirm'
 
@@ -33,6 +33,18 @@ describe('guardUnsaved', () => {
     setDoc(true)
     mockChoice('cancel')
     expect(await guardUnsaved()).toBe(false)
+  })
+
+  it('keeps a dirty document when reopening a recent file is cancelled or the file is missing', async () => {
+    setDoc(true)
+    const original = useAppStore.getState().doc
+    window.api.restoreRecentAccess = vi.fn().mockRejectedValue(new Error('Missing file'))
+    mockChoice('cancel')
+    await openRecent('files', '/missing.md')
+    expect(window.api.restoreRecentAccess).not.toHaveBeenCalled()
+    mockChoice('discard')
+    await expect(openRecent('files', '/missing.md')).rejects.toThrow('Missing file')
+    expect(useAppStore.getState().doc).toBe(original)
   })
 
   it('proceeds (without saving) when the user discards', async () => {
