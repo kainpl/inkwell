@@ -7,24 +7,64 @@ import { useConfirm } from '@renderer/store/useConfirm'
  * (App.tsx), the file tree, and the window-close handler.
  */
 
-/** Save to the current path, or fall back to Save As. Returns false if canceled. */
-export async function saveDoc(): Promise<boolean> {
-  const { doc, markSaved } = useAppStore.getState()
-  if (doc.path) {
-    await window.api.saveFile(doc.path, doc.content)
-    markSaved()
-    return true
-  }
-  return saveDocAs()
-}
+// Serialize writes so a slower old save cannot overwrite a newer one.
+let pending: Promise<unknown> = Promise.resolve()
 
-/** Save As via a native dialog. Returns false if the user cancels the dialog. */
-export async function saveDocAs(): Promise<boolean> {
-  const { doc, markSaved } = useAppStore.getState()
-  const result = await window.api.saveFileAs(doc.content)
-  if (!result) return false
-  markSaved(result.path, result.name)
-  return true
+function enqueueSave(as: boolean, automatic = false): Promise<boolean> {
+  const id = useAppStore.getState().documentId
+  const run = async () => {
+    const { doc, documentId, finalNewline, documentEol, autoSave } = useAppStore.getState()
+    if (
+      id !== documentId ||
+      (automatic && (!autoSave || !doc.path || !doc.dirty || useConfirm.getState().open))
+    )
+      return false
+    const text =
+      finalNewline && !/[\r\n]$/.test(doc.content) ? doc.content + documentEol : doc.content
+    let path = doc.path
+    let name = doc.name
+    if (as || !path) {
+      const result = await window.api.saveFileAs(text)
+      if (!result) return false
+      path = result.path
+      name = result.name
+    } else if (!(await window.api.saveFile(path, text))) return false
+    const state = useAppStore.getState()
+    if (state.documentId !== id) return false
+    // A final newline is a file serialization option. Keep the caret and undo history intact.
+    state.markSaved(doc.content, path, name)
+    return !useAppStore.getState().doc.dirty
+  }
+  const result = pending.then(run)
+  pending = result.catch(() => false)
+  return result
+}
+export const saveDoc = () => enqueueSave(false)
+export const saveDocAs = () => enqueueSave(true)
+
+export function installAutosave(onError: (error: unknown) => void): () => void {
+  let timer: ReturnType<typeof setTimeout> | undefined
+  const schedule = () => {
+    clearTimeout(timer)
+    const { autoSave, doc } = useAppStore.getState()
+    if (autoSave && doc.path && doc.dirty && !useConfirm.getState().open)
+      timer = setTimeout(() => {
+        void enqueueSave(false, true).catch(onError)
+      }, 900)
+  }
+  const unsubscribe = useAppStore.subscribe((s, p) => {
+    if (s.doc !== p.doc || s.autoSave !== p.autoSave) schedule()
+  })
+  schedule()
+  const unconfirm = useConfirm.subscribe((s) => {
+    if (s.open) clearTimeout(timer)
+    else if (s.lastChoice === 'cancel') schedule()
+  })
+  return () => {
+    clearTimeout(timer)
+    unsubscribe()
+    unconfirm()
+  }
 }
 
 /**
@@ -32,6 +72,7 @@ export async function saveDocAs(): Promise<boolean> {
  * safe to proceed (changes saved or discarded), false to abort the operation.
  */
 export async function guardUnsaved(): Promise<boolean> {
+  await pending
   if (!useAppStore.getState().doc.dirty) return true
   const choice = await useConfirm.getState().ask()
   if (choice === 'cancel') return false

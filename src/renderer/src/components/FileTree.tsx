@@ -1,7 +1,8 @@
+import { useTranslate } from '@renderer/lib/i18n'
 import { useState } from 'react'
-import type { FileNode } from '@shared/ipc'
+import type { FileNode } from '@shared/files'
 import { useAppStore } from '@renderer/store/useAppStore'
-import { openPath } from '@renderer/lib/docActions'
+import { openPath, openFolderFromDialog } from '@renderer/lib/docActions'
 
 function ChevronIcon({ open }: { open: boolean }): JSX.Element {
   return (
@@ -52,7 +53,9 @@ function TreeRow({ node, depth }: { node: FileNode; depth: number }): JSX.Elemen
         }
         style={{ paddingLeft: `${depth * 12 + 8}px` }}
       >
-        <span className="w-3 shrink-0 text-faint">{isDir ? <ChevronIcon open={open} /> : null}</span>
+        <span className="w-3 shrink-0 text-faint">
+          {isDir ? <ChevronIcon open={open} /> : null}
+        </span>
         <span className="truncate">{node.name}</span>
       </button>
       {isDir && open && children && (
@@ -67,14 +70,17 @@ function TreeRow({ node, depth }: { node: FileNode; depth: number }): JSX.Elemen
 }
 
 export default function FileTree(): JSX.Element {
+  const t = useTranslate()
   const root = useAppStore((s) => s.root)
 
   if (!root) {
     return (
       <div className="px-3 py-6 text-[13px] leading-relaxed text-faint">
-        No folder open.
+        {t('No folder open.')}
         <br />
-        <span className="text-muted">⌘/Ctrl + Shift + O</span> to open one.
+        <button className="text-accent hover:underline" onClick={openFolderFromDialog}>
+          {t('Open Folder…')}
+        </button>
       </div>
     )
   }

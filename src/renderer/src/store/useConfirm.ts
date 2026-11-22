@@ -9,6 +9,7 @@ export type ConfirmChoice = 'save' | 'discard' | 'cancel'
  * window-close handler) await a user decision.
  */
 interface ConfirmState {
+  lastChoice: ConfirmChoice | null
   open: boolean
   _resolve: ((choice: ConfirmChoice) => void) | null
   ask: () => Promise<ConfirmChoice>
@@ -17,14 +18,15 @@ interface ConfirmState {
 
 export const useConfirm = create<ConfirmState>((set, get) => ({
   open: false,
+  lastChoice: null,
   _resolve: null,
   ask: () =>
     new Promise<ConfirmChoice>((resolve) => {
-      set({ open: true, _resolve: resolve })
+      set({ open: true, lastChoice: null, _resolve: resolve })
     }),
   answer: (choice) => {
     const resolve = get()._resolve
-    set({ open: false, _resolve: null })
+    set({ open: false, lastChoice: choice, _resolve: null })
     resolve?.(choice)
   }
 }))

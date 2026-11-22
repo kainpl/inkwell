@@ -7,6 +7,8 @@
 /* ------------------------------------------------------------------ */
 @layer base {
   :root {
+    --syntax-string: #476c32;
+    --syntax-name: #365c89;
     --paper: 250 249 247; /* warm off-white */
     --ink: 38 38 36;
     --muted: 110 108 102;
@@ -17,6 +19,8 @@
   }
 
   .dark {
+    --syntax-string: #a8c789;
+    --syntax-name: #98bce5;
     --paper: 24 24 27;
     --ink: 226 224 219;
     --muted: 148 146 140;

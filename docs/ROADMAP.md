@@ -20,11 +20,11 @@ Auto Save & Version Control*) і з поточним кодом Inkwell.
 ---
 
 ## Фаза 0 — каркас (готово)
-- [x] Electron + electron-vite + React + Tailwind; IPC-контракт; файлові операції; нативне меню
+- [x] Tauri 2 + Vite + React + Tailwind; типізований файловий адаптер; файлові операції; нативне меню
 - [x] CodeMirror 6 + базовий live-preview (H1–H6, **strong**, *em*, ~~strike~~, `code`, посилання)
 - [x] Маркери проявляються на активному рядку (`activeLines` + `Decoration.replace`)
 - [x] Сайдбар, дерево файлів (лінива підвантаж), аутлайн, статус-бар, світла/темна теми, focus mode
-- [x] Фікс preload (`index.mjs`) + `StartupError` замість «білого екрана»
+- [x] `StartupError` повідомляє про помилки запуску десктопної оболонки
 - [x] Тестова інфраструктура: Vitest (+ jsdom, RTL), coverage, ESLint flat-config
 - [ ] Guard на незбережені зміни (перед open/new/close) — також у Фазі 4
 
@@ -57,7 +57,7 @@ Auto Save & Version Control*) і з поточним кодом Inkwell.
 ## Фаза 3 — навігація й режими письма
 - [ ] **Source Code Mode** (увесь документ у сирому md без декорацій) + toggle
 - [x] Focus mode
-- [ ] **Typewriter mode** (активний рядок по центру скролом)
+- [x] **Typewriter mode** (активний рядок по центру під час введення)
 - [ ] **Outline**: згортуваний/плоский, Expand/Collapse All, підсвітка поточного заголовка, popover
 - [ ] **Сайдбар**: дві вкладки — **File Tree** і **Articles (список md, сортування/фільтр)**
 - [ ] **Пошук/заміна** в документі (`@codemirror/search`, regex)
@@ -68,13 +68,14 @@ Auto Save & Version Control*) і з поточним кодом Inkwell.
 
 ## Фаза 4 — файли та надійність
 - [ ] **Guard незбережених змін** (діалог перед open/new/close) + індикатор «брудного» документа
-- [ ] **Автозбереження** (`autoSaveTimer`, debounce → `fs.writeFile`)
+- [x] **Автозбереження** названих файлів після паузи у введенні
 - [ ] **Recover Unsaved Drafts** — бекапи `{date}-{filename}.md` при краху/виході
 - [ ] **Browse All Versions** — локальна історія версій документа
 - [ ] **Open Recent / Recent Locations**, **Reopen Closed File**, **Save All**, **New Window**
 - [ ] **Відновлення сесії** (останній документ/тека/каретка) при старті
 - [ ] Дії над файлами в дереві: New File/Folder, Rename, Duplicate, Move To, Delete, Reveal in File Tree / Open File Location
-- [ ] Reopen with Encoding; **Line Endings** CRLF/LF; Insert Final New Line On Save
+- [x] LF / CRLF для нових документів і завершальний перенос рядка при збереженні
+- [ ] Reopen with Encoding
 - [ ] **Стеження за змінами файлу на диску** + перезавантаження/конфлікт
 
 ## Фаза 5 — експорт і друк
@@ -89,10 +90,11 @@ Auto Save & Version Control*) і з поточним кодом Inkwell.
 ## Фаза 6 — теми й оформлення
 - [x] Світла/темна тема (CSS-змінні + перемикач)
 - [~] Кастомні теми: механізм `[data-theme]` є; треба **завантаження зовнішніх `.css`** із теки тем + перемикач у UI
-- [ ] Кілька **вбудованих тем** (аналоги github / newsprint / night / pixyll / whitey)
+- [x] Світлий і темний варіанти палітр Inkwell, GitHub, Newsprint, Pixyll і Tokyo
 - [ ] Каскад `base.user.css` + `{theme}.user.css` для правок без втрати при оновленні (як у Typora)
-- [ ] **Налаштування**: шрифти (standard/serif/sans/mono), ширина «сторінки», міжрядковий інтервал, розмір; auto-hide menu bar
-- [ ] Повноцінна панель **Preferences** (Editor / Appearance / Image / Markdown-прапорці / Export)
+- [x] Шрифт, розмір тексту, ширина колонки й міжрядковий інтервал
+- [ ] Автоматичне приховування меню
+- [x] Панель налаштувань вигляду, письма, Markdown, правопису й гарячих клавіш
 
 ## Фаза 7 — продуктивність і power-user
 - [ ] **Команда-палітра** (`Ctrl/⌘ K`/`P`) — усі дії + fuzzy-перемикач файлів ⭐

@@ -10,14 +10,11 @@ the syntax markers (`#`, `**`, `` ` ``, …) are hidden as you go, so the text
 reads like a finished document. Move the caret onto a line and that line's
 markers reappear (dimmed) for editing.
 
-This repository is a **working scaffold**, not a finished product. The
-architecture, IPC contract, editor pipeline, and UI shell are in place. Most
-"rich" Markdown features (tables, images-as-widgets, math, diagrams, export)
-are scaffolded or documented but not yet implemented. See `docs/ROADMAP.md`.
+The editor supports source mode and rendered tables, tasks, images, math and diagrams.
 
 ## Stack
 
-- **Electron** (main + preload + renderer), wired by **electron-vite**
+- **Tauri 2** hosts the desktop window. **Vite** serves and bundles the frontend.
 - **React 18** + **TypeScript** in the renderer
 - **TailwindCSS 3** for chrome styling (CSS variables drive theming)
 - **CodeMirror 6** as the editing engine (this is where the Typora magic is)
@@ -26,33 +23,28 @@ are scaffolded or documented but not yet implemented. See `docs/ROADMAP.md`.
 ## Commands
 
 ```bash
-npm install        # install deps
-npm run dev        # launch the app with HMR (electron-vite dev)
-npm run build      # type-check + bundle main/preload/renderer into out/
-npm run typecheck  # tsc for both node and web projects
+npm install
+npm run dev        # Tauri desktop with Vite HMR
+npm run typecheck
+npm test
 npm run lint
-npm run build:mac | build:win | build:linux   # package via electron-builder
+npm run build:win  # package NSIS when requested (build:mac / build:linux on those platforms)
 ```
 
-Requires Node 18+.
+See README.md for native prerequisites.
 
 ## Project layout
 
 ```
+src-tauri/                      Rust host, local-image protocol, CSP and capabilities
 src/
-  shared/ipc.ts                 IPC channel names + shared types (single source of truth)
-  main/
-    index.ts                    BrowserWindow lifecycle, loads renderer
-    menu.ts                     Native menu -> sends IPC events to renderer
-    ipc/files.ts                fs handlers: open/read/save/readDir dialogs
-  preload/
-    index.ts                    contextBridge -> window.api (typed surface)
-    index.d.ts                  global Window.api type
+  shared/files.ts               document and file tree types
   renderer/
-    index.html                  renderer entry (+ CSP)
+    index.html                  Vite entry
     src/
-      main.tsx                  React root
-      App.tsx                   layout + theme + menu/file-op wiring
+      main.tsx                  installs the desktop adapter and mounts React
+      desktop/                  dialogs, file access, menu, close guard
+      App.tsx                   layout and theme
       index.css                 Tailwind layers, theme tokens, CodeMirror typography
       store/useAppStore.ts      Zustand store (doc, workspace, ui flags)
       lib/outline.ts            markdown heading parser for the outline panel
@@ -71,8 +63,8 @@ docs/                           ARCHITECTURE / FEATURES / ROADMAP / DECISIONS
 
 ## How the editor works (the important part)
 
-`livePreview.ts` is a CodeMirror `ViewPlugin` that, on every doc/selection
-change, walks the Lezer Markdown syntax tree over the **visible range** and
+`livePreview.ts` is a CodeMirror `StateField` that, on every doc/selection
+change, walks the Lezer Markdown syntax tree over the document and
 emits decorations:
 
 1. **Heading lines** get a CSS class (`ink-h1`…`ink-h6`) → resized by `index.css`.
@@ -100,32 +92,13 @@ editable when focused). This is the standard Typora-style approach.
 
 ## Conventions
 
-- **IPC**: never hardcode channel strings. Add to `src/shared/ipc.ts` `IPC`
-  object, expose through `preload/index.ts`, consume via `window.api`.
+- **Desktop APIs**: keep filesystem operations in `desktop/files.ts`, behind `window.api`.
+  Declare native permissions for the main window in `src-tauri/capabilities/default.json`.
 - **State**: all renderer state goes through `useAppStore`. Read with selectors
   (`useAppStore(s => s.x)`); call actions imperatively with
   `useAppStore.getState()` inside event handlers.
 - **Styling**: Tailwind utilities for layout/chrome; semantic CSS classes
   (`.ink-*`) for editor content. Use theme tokens (`bg-paper`, `text-ink`,
   `border-line`, `text-accent`, …), never raw hex, so dark mode keeps working.
-- **Security**: `contextIsolation: true`, `nodeIntegration: false`. The renderer
-  touches the filesystem ONLY through `window.api`. Keep it that way.
-- **No `any`**: `strict` is on. Prefer the shared types in `ipc.ts`.
-
-## Good first tasks (see ROADMAP for the full list)
-
-- Wire `Cmd/Ctrl+S` to actually persist (menu is wired; verify the round-trip).
-- Render fenced code blocks with proper syntax highlight backgrounds.
-- Implement task-list checkboxes you can click (`- [ ]` / `- [x]`).
-- Add an image WidgetType so `![](path)` shows the image when the line is idle.
-- Add an unsaved-changes guard before opening another file / closing the window.
-
-## Gotchas
-
-- The editor↔store sync in `Editor.tsx` guards against echo loops with
-  `lastPushed`. When you add programmatic edits, route them through CM
-  `dispatch`, not by mutating store content directly, or you'll fight the sync.
-- `livePreview` iterates only `view.visibleRanges` for performance — don't
-  assume the whole document is decorated.
-- macOS uses `titleBarStyle: 'hiddenInset'`; the drag region is set on
-  `TitleBar` via `WebkitAppRegion`. Buttons opt out with `no-drag`.
+- **Security**: use dialog-scoped file access. Keep document links in the system browser.
+- **No `any`**: strict TypeScript is on. Shared file types live in `src/shared/files.ts`.

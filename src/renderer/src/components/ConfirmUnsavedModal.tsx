@@ -1,3 +1,4 @@
+import { useTranslate } from '@renderer/lib/i18n'
 import { useEffect } from 'react'
 import { useConfirm } from '@renderer/store/useConfirm'
 
@@ -7,6 +8,7 @@ import { useConfirm } from '@renderer/store/useConfirm'
  * `answer()`. Esc = cancel, Enter = save.
  */
 export default function ConfirmUnsavedModal(): JSX.Element | null {
+  const t = useTranslate()
   const open = useConfirm((s) => s.open)
   const answer = useConfirm((s) => s.answer)
 
@@ -33,30 +35,29 @@ export default function ConfirmUnsavedModal(): JSX.Element | null {
         className="w-[26rem] max-w-[90vw] rounded-lg border border-line bg-paper p-5 shadow-xl"
         onMouseDown={(e) => e.stopPropagation()}
       >
-        <h2 className="mb-1 text-base font-semibold text-ink">Unsaved changes</h2>
+        <h2 className="mb-1 text-base font-semibold text-ink">{t('Unsaved changes')}</h2>
         <p className="mb-5 text-sm leading-relaxed text-muted">
-          Do you want to save the changes you made? Your changes will be lost if you don’t save
-          them.
+          {t('Save your changes before continuing?')}
         </p>
         <div className="flex justify-end gap-2">
           <button
             onClick={() => answer('cancel')}
             className="rounded px-3 py-1.5 text-sm text-ink hover:bg-ink/5"
           >
-            Cancel
+            {t('Cancel')}
           </button>
           <button
             onClick={() => answer('discard')}
             className="rounded px-3 py-1.5 text-sm text-ink hover:bg-ink/5"
           >
-            Don’t Save
+            {t('Don’t Save')}
           </button>
           <button
             onClick={() => answer('save')}
             autoFocus
             className="rounded bg-accent px-3 py-1.5 text-sm font-medium text-paper hover:opacity-90"
           >
-            Save
+            {t('Save')}
           </button>
         </div>
       </div>

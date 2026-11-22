@@ -1,88 +1,115 @@
 import { useEffect, useRef } from 'react'
-import { EditorState } from '@codemirror/state'
-import { EditorView, keymap } from '@codemirror/view'
-import { defaultKeymap, history, historyKeymap } from '@codemirror/commands'
-import { inkwellExtensions } from './markdownExtensions'
+import { Compartment, EditorState, type StateEffect } from '@codemirror/state'
+import { EditorView } from '@codemirror/view'
+import { inkwellExtensions, modeCompartment, modeExtensions } from './markdownExtensions'
+import { previewContext } from './livePreview'
 import { useAppStore } from '@renderer/store/useAppStore'
+import { revealInEditor } from '@renderer/lib/outline'
 
-/** OutlinePanel dispatches this to jump the caret to a heading. */
+import { ukrainian } from '@renderer/lib/i18n'
+import { spellingExtension } from './spelling'
+import { smartPunctuation } from './smartPunctuation'
+import { typewriterPlugin } from './typewriter'
+
 export const GOTO_EVENT = 'ink:goto'
 
-export default function Editor(): JSX.Element {
-  const hostRef = useRef<HTMLDivElement>(null)
-  const viewRef = useRef<EditorView | null>(null)
-  // The last value we pushed *into* the editor, to avoid echo loops.
-  const lastPushed = useRef<string>('')
+const typing = new Compartment()
+const spelling = new Compartment()
+const locale = new Compartment()
+const context = new Compartment()
 
-  const setContent = useAppStore((s) => s.setContent)
+function currentContext() {
+  const { doc, theme, features } = useAppStore.getState()
+  return previewContext.of({ docPath: doc.path, dark: theme === 'dark', features })
+}
+
+function typingExtensions() {
+  const s = useAppStore.getState()
+  return [
+    s.smartPunctuation && !s.sourceMode ? smartPunctuation() : [],
+    s.typewriterMode
+      ? [typewriterPlugin, EditorView.editorAttributes.of({ class: 'ink-typewriter' })]
+      : []
+  ]
+}
+function localeExtensions() {
+  return EditorState.phrases.of(useAppStore.getState().language === 'uk' ? ukrainian : {})
+}
+
+function documentState(): EditorState {
+  const { doc, setContent, sourceMode, spellCheck, documentEol } = useAppStore.getState()
+  return EditorState.create({
+    doc: doc.content,
+    extensions: [
+      context.of(currentContext()),
+      locale.of(localeExtensions()),
+      spelling.of(spellCheck ? spellingExtension() : []),
+      typing.of(typingExtensions()),
+      EditorView.contentAttributes.of({ spellcheck: 'false' }),
+      inkwellExtensions(sourceMode),
+      EditorView.updateListener.of((update) => {
+        if (update.docChanged) setContent(update.state.doc.sliceString(0, undefined, documentEol))
+      })
+    ]
+  })
+}
+
+export default function Editor(): JSX.Element {
+  const host = useRef<HTMLDivElement>(null)
   const focusMode = useAppStore((s) => s.focusMode)
 
-  // Mount once.
   useEffect(() => {
-    if (!hostRef.current) return
-
-    const state = EditorState.create({
-      doc: useAppStore.getState().doc.content,
-      extensions: [
-        history(),
-        keymap.of([...defaultKeymap, ...historyKeymap]),
-        ...inkwellExtensions((value) => {
-          lastPushed.current = value
-          setContent(value)
-        })
-      ]
-    })
-
-    const view = new EditorView({ state, parent: hostRef.current })
-    viewRef.current = view
-    lastPushed.current = state.doc.toString()
+    if (!host.current) return
+    const view = new EditorView({ parent: host.current, state: documentState() })
     view.focus()
-
-    return () => {
-      view.destroy()
-      viewRef.current = null
-    }
-  }, [setContent])
-
-  // Push external content changes (file open / new doc) into the editor.
-  useEffect(() => {
-    const unsub = useAppStore.subscribe((s) => {
-      const view = viewRef.current
-      if (!view) return
-      const next = s.doc.content
-      if (next !== lastPushed.current && next !== view.state.doc.toString()) {
-        view.dispatch({
-          changes: { from: 0, to: view.state.doc.length, insert: next }
-        })
-        lastPushed.current = next
+    const unsubscribe = useAppStore.subscribe((state, previous) => {
+      if (state.documentId !== previous.documentId) {
+        view.setState(documentState())
+        view.scrollDOM.scrollTop = 0
+        view.focus()
+        return
       }
+      const effects: StateEffect<unknown>[] = []
+      if (state.sourceMode !== previous.sourceMode)
+        effects.push(modeCompartment.reconfigure(modeExtensions(state.sourceMode)))
+      if (
+        state.sourceMode !== previous.sourceMode ||
+        state.smartPunctuation !== previous.smartPunctuation ||
+        state.typewriterMode !== previous.typewriterMode
+      )
+        effects.push(typing.reconfigure(typingExtensions()))
+      if (
+        state.spellCheck !== previous.spellCheck ||
+        state.spellLanguages !== previous.spellLanguages ||
+        state.personalWords !== previous.personalWords
+      )
+        effects.push(spelling.reconfigure(state.spellCheck ? spellingExtension() : []))
+      if (
+        state.theme !== previous.theme ||
+        state.doc.path !== previous.doc.path ||
+        state.features !== previous.features
+      )
+        effects.push(context.reconfigure(currentContext()))
+      if (state.language !== previous.language) effects.push(locale.reconfigure(localeExtensions()))
+      if (effects.length) view.dispatch({ effects })
+      if (state.language !== previous.language) {
+        const scroll = view.scrollDOM.scrollTop
+        view.setState(view.state)
+        view.scrollDOM.scrollTop = scroll
+      }
+      if (state.sourceMode !== previous.sourceMode && !state.preferencesOpen) view.focus()
     })
-    return unsub
-  }, [])
 
-  // Jump-to-offset from the outline panel.
-  useEffect(() => {
-    const handler = (e: Event): void => {
-      const view = viewRef.current
-      if (!view) return
-      const offset = (e as CustomEvent<number>).detail
-      view.dispatch({
-        selection: { anchor: offset },
-        effects: EditorView.scrollIntoView(offset, { y: 'start' })
-      })
-      view.focus()
+    const goto = (event: Event): void => revealInEditor(view, (event as CustomEvent<number>).detail)
+    window.addEventListener(GOTO_EVENT, goto)
+    return () => {
+      unsubscribe()
+      window.removeEventListener(GOTO_EVENT, goto)
+      view.destroy()
     }
-    window.addEventListener(GOTO_EVENT, handler)
-    return () => window.removeEventListener(GOTO_EVENT, handler)
   }, [])
 
   return (
-    <div
-      ref={hostRef}
-      className={
-        'h-full w-full overflow-hidden transition-opacity ' +
-        (focusMode ? 'ink-focus' : '')
-      }
-    />
+    <div ref={host} className={'h-full w-full overflow-hidden ' + (focusMode ? 'ink-focus' : '')} />
   )
 }

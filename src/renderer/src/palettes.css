@@ -1,0 +1,88 @@
+[data-theme='github'] {
+  --paper: 255 255 255;
+  --chrome: 246 248 250;
+  --ink: 31 35 40;
+  --muted: 89 99 110;
+  --faint: 129 139 152;
+  --line: 209 217 224;
+  --accent: 9 105 218;
+  --syntax-string: #0a3069;
+  --syntax-name: #8250df;
+}
+[data-theme='github'].dark {
+  --paper: 13 17 23;
+  --chrome: 22 27 34;
+  --ink: 230 237 243;
+  --muted: 125 133 144;
+  --faint: 110 118 129;
+  --line: 48 54 61;
+  --accent: 47 129 247;
+  --syntax-string: #a5d6ff;
+  --syntax-name: #d2a8ff;
+}
+[data-theme='newsprint'] {
+  --paper: 244 242 236;
+  --chrome: 232 230 223;
+  --ink: 43 42 38;
+  --muted: 107 104 96;
+  --faint: 155 151 140;
+  --line: 216 212 200;
+  --accent: 138 90 43;
+  --syntax-string: #5c6f2e;
+  --syntax-name: #7a5230;
+}
+[data-theme='newsprint'].dark {
+  --paper: 38 36 31;
+  --chrome: 33 31 27;
+  --ink: 230 226 214;
+  --muted: 168 163 148;
+  --faint: 118 113 95;
+  --line: 56 53 45;
+  --accent: 200 154 91;
+  --syntax-string: #a3b06a;
+  --syntax-name: #c2a079;
+}
+[data-theme='pixyll'] {
+  --paper: 255 255 255;
+  --chrome: 244 244 244;
+  --ink: 42 42 42;
+  --muted: 74 74 74;
+  --faint: 140 140 140;
+  --line: 224 224 224;
+  --accent: 42 42 42;
+  --syntax-string: #183691;
+  --syntax-name: #795da3;
+}
+[data-theme='pixyll'].dark {
+  --paper: 27 27 31;
+  --chrome: 32 32 36;
+  --ink: 234 234 234;
+  --muted: 184 184 184;
+  --faint: 119 119 119;
+  --line: 52 52 58;
+  --accent: 234 234 234;
+  --syntax-string: #8be9fd;
+  --syntax-name: #50fa7b;
+}
+[data-theme='tokyo'] {
+  --paper: 225 226 231;
+  --chrome: 208 210 219;
+  --ink: 52 59 88;
+  --muted: 97 114 176;
+  --faint: 137 144 179;
+  --line: 196 200 218;
+  --accent: 46 125 233;
+  --syntax-string: #587539;
+  --syntax-name: #2e7de9;
+}
+[data-theme='tokyo'].dark {
+  --paper: 31 36 48;
+  --chrome: 22 27 36;
+  --ink: 214 219 229;
+  --muted: 139 148 163;
+  --faint: 90 98 113;
+  --line: 43 49 61;
+  --accent: 122 162 247;
+  --syntax-string: #9ece6a;
+  --syntax-name: #7dcfff;
+}

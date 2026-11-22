@@ -1,0 +1,156 @@
+.preferences {
+  width: min(760px, 94vw);
+  max-height: 85vh;
+  padding: 0;
+  border: 1px solid rgb(var(--line));
+  border-radius: 12px;
+  background: rgb(var(--paper));
+  color: rgb(var(--ink));
+  box-shadow: 0 20px 70px #0003;
+}
+.preferences::backdrop {
+  background: #0005;
+}
+.preferences header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 20px;
+  border-bottom: 1px solid rgb(var(--line));
+}
+.preferences h1 {
+  font-size: 18px;
+  font-weight: 600;
+}
+.preferences header button {
+  font-size: 24px;
+  line-height: 1;
+  padding: 4px 8px;
+}
+.pref-body {
+  display: grid;
+  grid-template-columns: minmax(130px, 24%) 1fr;
+  height: min(470px, 68vh);
+  font-size: 14px;
+}
+.preferences nav {
+  padding: 12px 8px;
+  background: rgb(var(--chrome));
+}
+.preferences nav button {
+  display: block;
+  width: 100%;
+  text-align: left;
+  border-radius: 5px;
+  padding: 7px 10px;
+}
+.preferences nav button[aria-current] {
+  background: rgb(var(--accent) / 0.13);
+  color: rgb(var(--ink));
+  font-weight: 600;
+}
+.preferences section {
+  overflow: auto;
+  padding: 8px 20px 20px;
+}
+.pref-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 44px;
+  padding: 6px 0;
+  border-bottom: 1px solid rgb(var(--line));
+}
+.preferences :is(input, select, textarea) {
+  accent-color: rgb(var(--accent));
+  color: rgb(var(--ink));
+}
+.preferences :is(select, textarea, input:not([type='checkbox'], [type='range'])) {
+  background: rgb(var(--chrome));
+  border: 1px solid rgb(var(--line));
+  border-radius: 4px;
+  padding: 4px 7px;
+}
+.preferences input:not([type='checkbox'], [type='range']) {
+  max-width: 10rem;
+}
+.preferences input[type='checkbox'] {
+  width: 16px;
+  height: 16px;
+}
+.pref-range {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.pref-range input {
+  width: clamp(50px, 12vw, 125px);
+}
+.pref-range output {
+  min-width: 40px;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.preferences :is(h2, .pref-dictionary, .pref-reset, .pref-body p) {
+  display: block;
+  margin: 14px 0 6px;
+}
+.preferences h2 {
+  font-weight: 600;
+}
+.preferences small,
+.preferences p {
+  display: block;
+  color: rgb(var(--muted));
+}
+.pref-dictionary textarea {
+  display: block;
+  width: 100%;
+  min-height: 90px;
+  margin-top: 8px;
+}
+.pref-reset {
+  color: rgb(var(--accent));
+}
+.dark {
+  color-scheme: dark;
+}
+.ink-misspelled {
+  text-decoration: underline wavy #cc5145;
+  text-underline-offset: 0.17em;
+}
+.spell-menu {
+  position: fixed;
+  z-index: 20;
+  max-height: 70vh;
+  overflow: auto;
+  min-width: 140px;
+  padding: 4px;
+  background: rgb(var(--paper));
+  color: rgb(var(--ink));
+  border: 1px solid rgb(var(--line));
+  border-radius: 6px;
+  box-shadow: 0 4px 18px #0002;
+  font: 14px system-ui;
+}
+.spell-menu button,
+.spell-menu span {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 5px 9px;
+}
+.spell-menu button:hover {
+  background: rgb(var(--chrome));
+}
+
+main:has(.ink-typewriter) {
+  container-type: size;
+}
+.ink-typewriter .cm-scroller {
+  padding-block: 0;
+}
+.cm-editor.ink-typewriter .cm-content {
+  padding-block: calc(50cqh - 0.5lh);
+}

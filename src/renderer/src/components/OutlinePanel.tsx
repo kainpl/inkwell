@@ -1,9 +1,11 @@
+import { useTranslate } from '@renderer/lib/i18n'
 import { useMemo } from 'react'
 import { useAppStore } from '@renderer/store/useAppStore'
 import { parseOutline } from '@renderer/lib/outline'
 import { GOTO_EVENT } from './Editor/Editor'
 
 export default function OutlinePanel(): JSX.Element {
+  const t = useTranslate()
   const open = useAppStore((s) => s.outlineOpen)
   const content = useAppStore((s) => s.doc.content)
 
@@ -24,10 +26,10 @@ export default function OutlinePanel(): JSX.Element {
       {open && (
         <div className="py-2">
           <div className="px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-faint">
-            Outline
+            {t('Outline')}
           </div>
           {headings.length === 0 ? (
-            <div className="px-3 py-2 text-[13px] text-faint">No headings yet.</div>
+            <div className="px-3 py-2 text-[13px] text-faint">{t('No headings yet.')}</div>
           ) : (
             headings.map((h, i) => (
               <button

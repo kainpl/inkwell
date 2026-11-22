@@ -3,11 +3,7 @@ interface StartupErrorProps {
   detail: string
 }
 
-/**
- * Full-window fallback shown when the renderer cannot boot — e.g. the preload
- * bridge (`window.api`) failed to load. Without this, such failures unmount
- * React into a silent white screen with no explanation.
- */
+/** Shown when the desktop shell cannot be initialized. */
 export default function StartupError({ title, detail }: StartupErrorProps): JSX.Element {
   return (
     <div className="flex h-full w-full items-center justify-center bg-paper p-8 text-ink">

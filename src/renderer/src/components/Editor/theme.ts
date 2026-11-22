@@ -9,7 +9,25 @@ import { tags as t } from '@lezer/highlight'
  */
 export const inkTheme = EditorView.theme({
   '&': { height: '100%' },
-  '.cm-gutters': { display: 'none' },
+  '.cm-scroller': {
+    fontFamily: 'var(--document-font, Georgia, serif)',
+    lineHeight: 'var(--line-height, 1.75)'
+  },
+  '.cm-content': {
+    width: 'var(--column-width, 80%)',
+    flexGrow: '0',
+    maxWidth: 'var(--column-width, 80%)',
+    fontSize: 'var(--document-size, 17px)',
+    margin: '0 auto',
+    padding: '0 1.5rem'
+  },
+  '&.ink-source .cm-scroller': { fontFamily: 'var(--code-font, monospace)' },
+  '&.ink-source .cm-content': { padding: '0 1rem' },
+  '.cm-gutters': {
+    backgroundColor: 'rgb(var(--chrome))',
+    color: 'rgb(var(--muted))',
+    borderColor: 'rgb(var(--line))'
+  },
   '.cm-activeLine': { backgroundColor: 'transparent' },
   '.cm-selectionBackground, ::selection': {
     backgroundColor: 'rgb(var(--accent) / 0.20) !important'
@@ -28,7 +46,10 @@ export const inkHighlight = syntaxHighlighting(
     { tag: t.emphasis, fontStyle: 'italic' },
     { tag: t.strikethrough, textDecoration: 'line-through' },
     { tag: t.link, color: 'rgb(var(--accent))', textDecoration: 'underline' },
-    { tag: t.monospace, fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Consolas, monospace' },
+    { tag: t.monospace, fontFamily: 'var(--code-font, monospace)' },
+    { tag: [t.keyword, t.operatorKeyword, t.bool, t.number], color: 'rgb(var(--accent))' },
+    { tag: [t.string, t.regexp], color: 'var(--syntax-string)' },
+    { tag: [t.function(t.variableName), t.typeName, t.tagName], color: 'var(--syntax-name)' },
     { tag: [t.processingInstruction, t.meta], color: 'rgb(var(--faint))' },
     { tag: t.comment, color: 'rgb(var(--faint))', fontStyle: 'italic' }
   ])

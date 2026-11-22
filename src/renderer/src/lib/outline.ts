@@ -1,8 +1,22 @@
+import { EditorView } from '@codemirror/view'
+
 export interface Heading {
   level: number
   text: string
   /** Character offset of the line start in the document. */
   from: number
+  /** Explicit `{#id}` if present, else undefined. */
+  id?: string
+}
+
+/** Move the caret to `from` and scroll it to the top — used by the outline panel
+ *  to reveal a heading in the editor. Keeps CodeMirror usage inside the lib. */
+export function revealInEditor(view: EditorView, from: number): void {
+  view.dispatch({
+    selection: { anchor: from },
+    effects: EditorView.scrollIntoView(from, { y: 'start' }),
+  })
+  view.focus()
 }
 
 /**
@@ -11,7 +25,7 @@ export interface Heading {
  */
 export function parseOutline(content: string): Heading[] {
   const headings: Heading[] = []
-  const lines = content.split('\n')
+  const lines = content.split(/\r\n?|\n/)
   let offset = 0
   let inFence = false
 
@@ -21,11 +35,18 @@ export function parseOutline(content: string): Heading[] {
 
     if (!inFence) {
       const m = line.match(/^(#{1,6})\s+(.*)$/)
-      if (m) {
+      const hashes = m?.[1]
+      const rest = m?.[2]
+      if (hashes !== undefined && rest !== undefined) {
+        const idM = /\{#([\w-]+)\}\s*$/.exec(rest)
         headings.push({
-          level: m[1].length,
-          text: m[2].replace(/#+\s*$/, '').trim(),
-          from: offset
+          level: hashes.length,
+          text: rest
+            .replace(/\s*\{#[\w-]+\}\s*$/, '')
+            .replace(/#+\s*$/, '')
+            .trim(),
+          from: offset,
+          id: idM ? idM[1] : undefined,
         })
       }
     }
