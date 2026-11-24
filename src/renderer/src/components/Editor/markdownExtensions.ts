@@ -1,4 +1,4 @@
-import { markdown, markdownLanguage } from '@codemirror/lang-markdown'
+import { insertNewlineContinueMarkup, markdown, markdownLanguage } from '@codemirror/lang-markdown'
 import { languages } from '@codemirror/language-data'
 import { defaultKeymap, history, historyKeymap, undo, redo } from '@codemirror/commands'
 import { autocompletion, completionKeymap } from '@codemirror/autocomplete'
@@ -13,18 +13,27 @@ import {
 import { Compartment, Prec, type Extension } from '@codemirror/state'
 import { Subscript, Superscript } from '@lezer/markdown'
 import { inkTheme, inkHighlight } from './theme'
-import { emojiCompletion, livePreview, openLinksOnClick } from './livePreview'
+import { emojiCompletion, livePreview, openLinksOnClick, visualEditing } from './livePreview'
 import { floatingToolbar } from './floatingToolbar'
+import type { EditorMode } from '@renderer/lib/settings'
 
 export const modeCompartment = new Compartment()
 
-export function modeExtensions(sourceMode: boolean): Extension {
-  return sourceMode
-    ? [lineNumbers(), EditorView.editorAttributes.of({ class: 'ink-source' })]
-    : [livePreview, openLinksOnClick, floatingToolbar]
+export function modeExtensions(mode: EditorMode): Extension {
+  if (mode === 'source') {
+    return [lineNumbers(), EditorView.editorAttributes.of({ class: 'ink-source' })]
+  }
+  return [
+    livePreview,
+    openLinksOnClick,
+    floatingToolbar,
+    mode === 'visual'
+      ? [visualEditing, Prec.high(keymap.of([{ key: 'Enter', run: insertNewlineContinueMarkup }]))]
+      : []
+  ]
 }
 
-export function inkwellExtensions(sourceMode: boolean): Extension[] {
+export function inkwellExtensions(mode: EditorMode): Extension[] {
   return [
     markdown({
       base: markdownLanguage,
@@ -33,7 +42,7 @@ export function inkwellExtensions(sourceMode: boolean): Extension[] {
     }),
     inkTheme,
     inkHighlight,
-    modeCompartment.of(modeExtensions(sourceMode)),
+    modeCompartment.of(modeExtensions(mode)),
     history(),
     drawSelection(),
     autocompletion({ override: [emojiCompletion] }),

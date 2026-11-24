@@ -19,7 +19,7 @@ Choose a package from the [latest release](https://github.com/kainpl/inkwell/rel
 | Linux x64 | Debian package or AppImage. Give the AppImage executable permission before running it. Built on Ubuntu 22.04. |
 | macOS 11+ | Universal DMG for Apple Silicon and Intel. Drag Inkwell to Applications. |
 
-The release notes include signing information and download checksums.
+The release notes include signing information and download checksums. See the [changelog](CHANGELOG.md) for version history and upcoming changes.
 
 ## Features
 

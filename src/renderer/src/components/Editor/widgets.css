@@ -90,6 +90,12 @@
 }
 .ink-table th { background: color-mix(in srgb, rgb(var(--ink)) 4%, transparent); font-weight: 700; text-align: left; position: relative; }
 .ink-table tr:nth-child(even) td { background: color-mix(in srgb, rgb(var(--ink)) 2%, transparent); }
+.ink-visual-cell { min-width: 1ch; min-height: 1lh; cursor: text; }
+.ink-visual-cell:focus-within { outline: 1px solid rgb(var(--accent) / .65); outline-offset: 3px; border-radius: 2px; }
+.ink-visual-cell .cm-editor { height: auto; }
+.ink-visual-cell .cm-scroller { padding: 0; font: inherit; }
+.ink-visual-cell .cm-content { padding: 0; margin: 0; width: 100%; max-width: none; min-height: 0; font: inherit; }
+.ink-visual-cell .cm-line { padding: 0; }
 
 /* Table toolbar — hover bar (top-right of the table) + pinned bar. */
 .ink-table-toolbar {

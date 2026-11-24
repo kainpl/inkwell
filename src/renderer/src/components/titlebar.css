@@ -82,16 +82,7 @@
   background: #c42b36;
   color: white;
 }
-.source-symbol {
-  display: none;
-}
 @media (max-width: 760px) {
-  .custom-frame .source-name {
-    display: none;
-  }
-  .custom-frame .source-symbol {
-    display: inline;
-  }
   .window-controls button {
     width: 36px;
   }

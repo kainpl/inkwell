@@ -1,8 +1,9 @@
 import { useTranslate } from '@renderer/lib/i18n'
 import { useState } from 'react'
 import type { FileNode } from '@shared/files'
-import { useAppStore } from '@renderer/store/useAppStore'
+import { activeTab, useAppStore } from '@renderer/store/useAppStore'
 import { openPath, openFolderFromDialog } from '@renderer/lib/docActions'
+import FolderSearch from './FolderSearch'
 
 function ChevronIcon({ open }: { open: boolean }): JSX.Element {
   return (
@@ -23,7 +24,7 @@ function ChevronIcon({ open }: { open: boolean }): JSX.Element {
 function TreeRow({ node, depth }: { node: FileNode; depth: number }): JSX.Element {
   const [open, setOpen] = useState(false)
   const [children, setChildren] = useState<FileNode[] | undefined>(node.children)
-  const activePath = useAppStore((s) => s.doc.path)
+  const activePath = useAppStore((s) => activeTab(s).doc.path)
 
   const isDir = node.type === 'directory'
   const isActive = !isDir && activePath === node.path
@@ -36,7 +37,6 @@ function TreeRow({ node, depth }: { node: FileNode; depth: number }): JSX.Elemen
         setChildren(await window.api.readDir(node.path))
       }
     } else {
-      // Routes through the unsaved-changes guard.
       await openPath(node.path)
     }
   }
@@ -86,13 +86,15 @@ export default function FileTree(): JSX.Element {
   }
 
   return (
-    <div className="py-1">
-      <div className="truncate px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-faint">
-        {root.name}
+    <FolderSearch key={root.path} path={root.path}>
+      <div className="py-1">
+        <div className="truncate px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-faint">
+          {root.name}
+        </div>
+        {root.children?.map((c) => (
+          <TreeRow key={c.path} node={c} depth={0} />
+        ))}
       </div>
-      {root.children?.map((c) => (
-        <TreeRow key={c.path} node={c} depth={0} />
-      ))}
-    </div>
+    </FolderSearch>
   )
 }

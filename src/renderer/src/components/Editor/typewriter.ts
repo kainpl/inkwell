@@ -1,4 +1,5 @@
 import { EditorView, ViewPlugin, type ViewUpdate } from '@codemirror/view'
+import { diskReload } from './reload'
 export const typewriterPlugin = ViewPlugin.fromClass(
   class {
     private raf: number | null = null
@@ -8,6 +9,8 @@ export const typewriterPlugin = ViewPlugin.fromClass(
       // it to the next frame, deduped, reading the caret fresh at that point.
       const view = update.view
       if (this.raf !== null) cancelAnimationFrame(this.raf)
+      this.raf = null
+      if (update.transactions.some((tr) => tr.annotation(diskReload))) return
       this.raf = requestAnimationFrame(() => {
         this.raf = null
         view.dispatch({

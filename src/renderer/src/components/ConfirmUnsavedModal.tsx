@@ -1,6 +1,7 @@
 import { useTranslate } from '@renderer/lib/i18n'
 import { useEffect } from 'react'
 import { useConfirm } from '@renderer/store/useConfirm'
+import { activeTab, useAppStore } from '@renderer/store/useAppStore'
 
 /**
  * In-app modal for the unsaved-changes guard. Driven by the `useConfirm`
@@ -9,6 +10,7 @@ import { useConfirm } from '@renderer/store/useConfirm'
  */
 export default function ConfirmUnsavedModal(): JSX.Element | null {
   const t = useTranslate()
+  const name = useAppStore((s) => activeTab(s).doc.name)
   const open = useConfirm((s) => s.open)
   const answer = useConfirm((s) => s.answer)
 
@@ -36,6 +38,7 @@ export default function ConfirmUnsavedModal(): JSX.Element | null {
         onMouseDown={(e) => e.stopPropagation()}
       >
         <h2 className="mb-1 text-base font-semibold text-ink">{t('Unsaved changes')}</h2>
+        <p className="mb-2 break-words text-sm font-medium">{name}</p>
         <p className="mb-5 text-sm leading-relaxed text-muted">
           {t('Save your changes before continuing?')}
         </p>

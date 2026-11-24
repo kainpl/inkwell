@@ -5,12 +5,16 @@ import { message } from '@tauri-apps/plugin-dialog'
 import { EditorView } from '@codemirror/view'
 import { undo, redo, selectAll } from '@codemirror/commands'
 import {
+  closeTab,
+  guardAllUnsaved,
   guardUnsaved,
   installAutosave,
+  installFileRefresh,
   newDocument,
   openFileFromDialog,
   openFolderFromDialog,
   openRecent,
+  reloadFromDisk,
   saveDoc,
   saveDocAs
 } from '@renderer/lib/docActions'
@@ -46,8 +50,10 @@ export async function installDesktopShell(): Promise<DesktopActions> {
       if (!closing) busy = false
     }
   }
-  const edit = (run: (editor: EditorView) => unknown) => {
-    const host = document.querySelector<HTMLElement>('.cm-editor')
+  const edit = (run: (editor: EditorView) => unknown, documentOnly = false) => {
+    const host =
+      (!documentOnly && document.activeElement?.closest<HTMLElement>('.cm-editor')) ||
+      document.querySelector<HTMLElement>('.cm-editor')
     const editor = host && EditorView.findFromDOM(host)
     if (editor) run(editor)
   }
@@ -73,7 +79,7 @@ export async function installDesktopShell(): Promise<DesktopActions> {
     Save: saveDoc,
     'Save As…': saveDocAs,
     Settings: () => store.showPreferences(true),
-    Close: () => win.close(),
+    Close: () => closeTab(),
     Undo: () => history(true),
     Redo: () => history(false),
     Cut: () => document.execCommand('cut'),
@@ -97,7 +103,7 @@ export async function installDesktopShell(): Promise<DesktopActions> {
       document.activeElement?.closest('.cm-content')
         ? edit(selectAll)
         : document.execCommand('selectAll'),
-    Find: () => edit(openSearchPanel),
+    Find: () => edit(openSearchPanel, true),
     Bold: () => edit((v) => applyFormat(v, 'bold')),
     Italic: () => edit((v) => applyFormat(v, 'italic')),
     Strikethrough: () => edit((v) => applyFormat(v, 'strike')),
@@ -109,7 +115,7 @@ export async function installDesktopShell(): Promise<DesktopActions> {
     Focus: store.toggleFocusMode,
     Typewriter: store.toggleTypewriter,
     Reload: async () => {
-      if (await guardUnsaved()) location.reload()
+      if (await guardUnsaved()) await reloadFromDisk()
     },
     'Actual Size': () => changeZoom(0),
     'Zoom In': () => changeZoom(1),
@@ -120,7 +126,8 @@ export async function installDesktopShell(): Promise<DesktopActions> {
   }
   const actions: DesktopActions = {
     customFrame: navigator.platform.startsWith('Win'),
-    run: (id) => guarded(callbacks[id], id === 'Close'),
+    run: (id) => guarded(callbacks[id]),
+    closeWindow: () => guarded(() => win.close(), true),
     recent: (kind, path) => guarded(() => openRecent(kind, path))
   }
   await updateRecents().catch(reportFileError)
@@ -144,6 +151,13 @@ export async function installDesktopShell(): Promise<DesktopActions> {
         useConfirm.getState().open
       )
         return
+      if (event.key === 'Tab' && event.ctrlKey && !event.altKey && !event.metaKey) {
+        event.preventDefault()
+        const index = state.tabs.findIndex((tab) => tab.id === state.documentId)
+        const next = (index + (event.shiftKey ? -1 : 1) + state.tabs.length) % state.tabs.length
+        state.activateTab(state.tabs[next].id)
+        return
+      }
       const shortcut = eventShortcut(event)
       const id = shortcut && commands.find((cmd) => state.shortcuts[cmd] === shortcut)
       if (!id) {
@@ -178,15 +192,16 @@ export async function installDesktopShell(): Promise<DesktopActions> {
   installAutosave((error) => {
     void reportFileError(error)
   })
+  installFileRefresh()
 
   await win.onCloseRequested(async (event) => {
-    if (!useAppStore.getState().doc.dirty) return
+    if (!useAppStore.getState().tabs.some((tab) => tab.doc.dirty)) return
     event.preventDefault()
     if (useConfirm.getState().open || busy) return
     store.showPreferences(false)
     busy = true
     try {
-      if (await guardUnsaved()) await win.destroy()
+      if (await guardAllUnsaved()) await win.destroy()
     } catch (error) {
       await reportFileError(error)
     } finally {

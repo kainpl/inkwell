@@ -13,4 +13,6 @@ npm test
 cargo test --locked --manifest-path src-tauri/Cargo.toml
 ```
 
-For release maintainers, update the version in `package.json`, `package-lock.json`, `src-tauri/Cargo.toml`, `src-tauri/Cargo.lock` and `src-tauri/tauri.conf.json`. Add notes in `.github/release-notes/vX.Y.Z.md`. Merge the release into `main` and push an annotated `vX.Y.Z` tag on the release commit. The Release workflow publishes only after all tests and native builds pass.
+Record user-facing changes under **Unreleased** in the [changelog](CHANGELOG.md).
+
+When preparing a release, move the pending entries into a dated version section and add notes in `.github/release-notes/vX.Y.Z.md`. Update the version in `package.json`, `package-lock.json`, `src-tauri/Cargo.toml`, `src-tauri/Cargo.lock` and `src-tauri/tauri.conf.json`. Merge the release into `main` and push an annotated `vX.Y.Z` tag on the release commit. The Release workflow publishes only after all tests and native builds pass.

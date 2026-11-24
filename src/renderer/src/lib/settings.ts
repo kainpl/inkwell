@@ -10,6 +10,13 @@ export const fonts = {
   'JetBrains Mono': '"JetBrains Mono Variable", monospace'
 }
 export type Language = 'uk' | 'en'
+export const editorModes = ['live', 'visual', 'source'] as const
+export type EditorMode = (typeof editorModes)[number]
+export const editorModeLabels: Record<EditorMode, string> = {
+  live: 'Live Markdown',
+  visual: 'Visual editing',
+  source: 'Source'
+}
 export const sidebarMinWidth = 180
 export const sidebarMaxWidth = 720
 const language: Language = navigator.language.toLowerCase().startsWith('uk') ? 'uk' : 'en'
@@ -22,7 +29,8 @@ export const defaults = {
   lineHeight: 1.25,
   columnWidth: 90,
   sidebarWidth: 240,
-  sourceMode: false,
+  editorMode: 'visual' as EditorMode,
+  lastFormattedMode: 'visual' as Exclude<EditorMode, 'source'>,
   focusMode: false,
   typewriterMode: false,
   autoSave: false,
@@ -45,7 +53,6 @@ export function readSettings(): Settings {
   try {
     const s = JSON.parse(localStorage.getItem(settingsKey) || '{}')
     for (const key of [
-      'sourceMode',
       'focusMode',
       'typewriterMode',
       'autoSave',
@@ -54,6 +61,11 @@ export function readSettings(): Settings {
       'spellCheck'
     ] as const)
       if (typeof s[key] === 'boolean') out[key] = s[key]
+    if (editorModes.includes(s.editorMode)) out.editorMode = s.editorMode
+    else if (s.sourceMode === true) out.editorMode = 'source'
+    if (out.editorMode !== 'source') out.lastFormattedMode = out.editorMode
+    else if (s.lastFormattedMode === 'live' || s.lastFormattedMode === 'visual')
+      out.lastFormattedMode = s.lastFormattedMode
     for (const [key, min, max] of [
       ['fontSize', 11, 24],
       ['lineHeight', 1, 2.4],

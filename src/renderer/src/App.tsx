@@ -5,6 +5,8 @@ import Sidebar from '@renderer/components/Sidebar'
 import StatusBar from '@renderer/components/StatusBar'
 import Editor from '@renderer/components/Editor/Editor'
 import ConfirmUnsavedModal from '@renderer/components/ConfirmUnsavedModal'
+import ExternalChangeNotice from '@renderer/components/ExternalChangeNotice'
+import DocumentTabs from '@renderer/components/DocumentTabs'
 
 import Preferences from './components/Preferences'
 import { useShallow } from 'zustand/react/shallow'
@@ -13,6 +15,7 @@ import type { DesktopActions } from './desktop/menu'
 
 export default function App({ actions }: { actions: DesktopActions }): JSX.Element {
   const theme = useAppStore((s) => s.theme)
+  const tab = useAppStore((s) => s.documentId)
 
   const [palette, font, fontSize, lineHeight, columnWidth, preferencesOpen, language] = useAppStore(
     useShallow(
@@ -38,10 +41,11 @@ export default function App({ actions }: { actions: DesktopActions }): JSX.Eleme
   return (
     <div className="flex h-full w-full flex-col bg-paper">
       <TitleBar actions={actions} />
+      <ExternalChangeNotice />
       <div className="flex min-h-0 flex-1">
         <Sidebar />
         <main
-          className="min-w-0 flex-1"
+          className="flex min-w-0 flex-1 flex-col"
           style={
             {
               '--document-font': fonts[font],
@@ -52,7 +56,15 @@ export default function App({ actions }: { actions: DesktopActions }): JSX.Eleme
             } as CSSProperties
           }
         >
-          <Editor />
+          <DocumentTabs />
+          <div
+            id="document-editor"
+            role="tabpanel"
+            aria-labelledby={'document-tab-' + tab}
+            className="min-h-0 flex-1"
+          >
+            <Editor />
+          </div>
         </main>
       </div>
       <StatusBar />
