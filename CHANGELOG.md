@@ -1,6 +1,8 @@
 # Changelog
 
-## Unreleased (planned 1.1.0)
+## Unreleased
+
+## [1.1.0] — 2026-11-24
 
 ### Added
 
@@ -35,5 +37,6 @@ First public release.
 
 - Initial Electron prototype with CodeMirror live preview, document open and save, a folder sidebar, a document outline and focus mode.
 
+[1.1.0]: https://github.com/kainpl/inkwell/releases/tag/v1.1.0
 [1.0.0]: https://github.com/kainpl/inkwell/releases/tag/v1.0.0
 [0.1.0]: https://github.com/kainpl/inkwell/tree/a8ed99ccb8586db79262c003e7e3b6941979a604
